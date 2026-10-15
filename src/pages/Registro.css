@@ -1,0 +1,562 @@
+
+.registro-contenedor {
+  width: min(100%, 780px);
+  margin: 0 auto;
+  padding: 10px 0;
+}
+
+.registro-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #ec008c;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.registro-encabezado {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.registro-encabezado h1 {
+  font-size: clamp(27px, 5vw, 38px);
+  margin: 0 0 10px;
+}
+
+.registro-encabezado p {
+  color: #777;
+}
+
+.registro-formulario {
+  background: #fff;
+  border: 1px solid #f3dce8;
+  border-radius: 22px;
+  padding: 32px;
+  box-shadow: 0 15px 45px #b81c6a12;
+}
+
+.registro-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.registro-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.registro-grid input,
+.registro-grid select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #e8d7e0;
+  border-radius: 10px;
+  background: white;
+  color: #231f20;
+  font: inherit;
+  font-weight: 400;
+}
+
+.registro-grid input:focus,
+.registro-grid select:focus {
+  outline: 2px solid #ec008c55;
+  border-color: #ec008c;
+}
+
+.registro-grid small {
+  color: #888;
+  font-weight: 400;
+}
+
+.registro-ancho {
+  grid-column: 1 / -1;
+}
+
+.registro-archivos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 28px 0;
+}
+
+.registro-archivo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px 14px;
+  border: 2px dashed #f1b6d5;
+  border-radius: 14px;
+  background: #fff8fc;
+  cursor: pointer;
+}
+
+.registro-archivo svg {
+  color: #ec008c;
+}
+
+.registro-archivo strong {
+  font-size: 14px;
+}
+
+.registro-archivo span,
+.registro-archivo small {
+  color: #777;
+  font-size: 12px;
+}
+
+.registro-archivo input {
+  width: 100%;
+  max-width: 240px;
+  font-size: 12px;
+}
+
+.registro-archivo small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-wrap: anywhere;
+}
+
+.registro-privacidad {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.registro-privacidad input {
+  margin-top: 4px;
+  accent-color: #ec008c;
+}
+
+.registro-enviar {
+  display: block;
+  width: 100%;
+  padding: 17px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 12px;
+  background: #ec008c;
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.registro-enviar:hover {
+  background: #c90078;
+}
+
+@media (max-width: 600px) {
+  .registro-formulario {
+    padding: 22px 16px;
+  }
+
+  .registro-grid,
+  .registro-archivos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.registro-foto-seccion {
+  margin: 30px 0;
+  padding: 24px;
+  background: #fff8fc;
+  border: 1px solid #f5d4e6;
+  border-radius: 18px;
+  text-align: center;
+}
+
+.registro-foto-seccion h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.registro-foto-seccion > p {
+  color: #777;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.registro-foto-placeholder,
+.registro-foto-preview {
+  width: 190px;
+  height: 190px;
+  margin: 22px auto;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.registro-foto-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: white;
+  border: 2px dashed #efb4d2;
+  color: #bc6d98;
+  font-size: 12px;
+}
+
+.registro-foto-preview {
+  position: relative;
+  height: auto;
+  overflow: visible;
+}
+
+.registro-foto-preview img {
+  width: 190px;
+  height: 190px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid #ec008c;
+}
+
+.registro-foto-preview span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #17834c;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.registro-foto-botones {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.registro-btn-camara,
+.registro-btn-galeria,
+.registro-cambiar-foto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-radius: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.registro-btn-camara {
+  background: #ec008c;
+  border: 1px solid #ec008c;
+  color: white;
+}
+
+.registro-btn-galeria,
+.registro-cambiar-foto {
+  background: white;
+  border: 1px solid #ec008c;
+  color: #ec008c;
+}
+
+.registro-cambiar-foto {
+  margin: 12px auto 0;
+}
+
+.registro-error {
+  color: #c62828 !important;
+  font-weight: 700;
+}
+
+.registro-comprobante {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px;
+  margin-bottom: 24px;
+  border: 2px dashed #f1b6d5;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.registro-comprobante > svg {
+  color: #ec008c;
+}
+
+.registro-comprobante p {
+  color: #777;
+  font-size: 12px;
+}
+
+.registro-comprobante input {
+  max-width: 100%;
+}
+
+.registro-comprobante small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #17834c;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .registro-foto-seccion {
+    padding: 20px 12px;
+  }
+
+  .registro-foto-botones button {
+    width: 100%;
+  }
+}
+
+/* Cuentas bancarias AMOR */
+
+.amor-pagos {
+  margin: 30px 0;
+  padding: 24px;
+  background: #fff8fc;
+  border: 1px solid #f3c6df;
+  border-radius: 18px;
+}
+
+.amor-pagos-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.amor-pagos-titulo svg {
+  color: #ec008c;
+  flex-shrink: 0;
+}
+
+.amor-pagos-titulo h2 {
+  font-size: 20px;
+  margin: 0 0 5px;
+}
+
+.amor-pagos-titulo p {
+  color: #777;
+  font-size: 13px;
+  margin: 0;
+}
+
+.amor-cuota {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: white;
+  border-radius: 14px;
+}
+
+.amor-cuota span {
+  font-size: 13px;
+  color: #777;
+}
+
+.amor-cuota strong {
+  font-size: 30px;
+  color: #ec008c;
+}
+
+.amor-cuentas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.amor-cuenta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 17px;
+  background: white;
+  border: 2px solid #f0d8e5;
+  border-radius: 13px;
+}
+
+.amor-cuenta.seleccionada {
+  border-color: #ec008c;
+  background: #fff0f8;
+}
+
+.amor-cuenta-datos {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.amor-cuenta-datos input {
+  margin-top: 5px;
+  accent-color: #ec008c;
+}
+
+.amor-cuenta-datos > span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.amor-cuenta-datos strong {
+  font-size: 15px;
+}
+
+.amor-cuenta-datos small {
+  color: #777;
+  font-size: 12px;
+}
+
+.amor-numero {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  overflow-wrap: anywhere;
+}
+
+.amor-copiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px solid #ec008c;
+  border-radius: 9px;
+  background: white;
+  color: #ec008c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.amor-pago-aviso {
+  display: flex;
+  gap: 12px;
+  padding: 15px;
+  margin-top: 20px;
+  background: #fce7f3;
+  border-radius: 12px;
+  color: #831843;
+}
+
+.amor-pago-aviso svg {
+  flex-shrink: 0;
+}
+
+.amor-pago-aviso p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+  .amor-pagos {
+    padding: 16px;
+  }
+
+  .amor-cuenta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .amor-copiar {
+    align-self: flex-end;
+  }
+
+  .amor-numero {
+    font-size: 14px;
+  }
+}
+
+/* Tipo de participante: selección única y obligatoria */
+.registro-obligatorios {
+  color: #8e315b;
+  background: #fff1f7;
+  border: 1px solid #f4d2e1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 22px;
+}
+
+.registro-tipo-participante {
+  border: 1px solid #f0c5d9;
+  border-radius: 16px;
+  background: #fff8fc;
+  padding: 16px;
+  margin: 0 0 24px;
+  min-width: 0;
+}
+
+.registro-tipo-participante legend {
+  color: #862b57;
+  font-weight: 750;
+  padding: 0 6px;
+}
+
+.registro-tipo-participante p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #725866;
+}
+
+.registro-tipo-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.registro-tipo-opciones label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid #efd4e1;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #573247;
+}
+
+.registro-tipo-opciones label.seleccionada {
+  border-color: #ec008c;
+  background: #fff0f8;
+}
+
+.registro-tipo-opciones input {
+  accent-color: #ec008c;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 440px) {
+  .registro-tipo-opciones { grid-template-columns: 1fr; }
+}
+
+/* Registro público v2: estado del envío y verificación anti-bots */
+.registro-turnstile { display: flex; flex-direction: column; align-items: center; margin: 20px 0; }
+.registro-exito { background: #fff; border: 1px solid #b6e2c7; border-radius: 18px; padding: 36px 26px; text-align: center; box-shadow: 0 14px 36px #146c3820; }
+.registro-exito h1 { color: #166534; }
+.registro-exito p { color: #57484f; line-height: 1.6; }
+.registro-exito .registro-volver { margin-top: 20px; justify-content: center; }
