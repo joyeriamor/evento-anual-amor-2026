@@ -17,7 +17,11 @@ type Respuesta = {
  * sin añadir la sesión ni encabezados de autenticación del administrador.
  * Nunca se utiliza una clave service_role en el navegador.
  */
-export default function SelectorAsesor() {
+export default function SelectorAsesor({
+  onChange,
+}: {
+  onChange?: (asesor: Asesor | null) => void;
+}) {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -94,6 +98,10 @@ export default function SelectorAsesor() {
         name="asesor"
         required
         defaultValue=""
+        onChange={(evento) => {
+          const asesor = asesores.find((a) => a.id === evento.target.value) ?? null;
+          onChange?.(asesor);
+        }}
         disabled={cargando || !!error || asesores.length === 0}
       >
         <option value="" disabled>

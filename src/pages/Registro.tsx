@@ -127,6 +127,13 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
   const [cuentaElegida, setCuentaElegida] =
     useState("");
 
+  // Se determina por el asesor REAL seleccionado (no por datos manipulables del usuario).
+  const [asesorEmpleado, setAsesorEmpleado] = useState(false);
+  const [grupoRuta, setGrupoRuta] = useState("");
+  const [registroCortesia, setRegistroCortesia] = useState(false);
+  const requierePago = !asesorEmpleado && tipoParticipante === "vendedora";
+  const esCortesia = asesorEmpleado || tipoParticipante === "promotora";
+
   const [copiado, setCopiado] = useState("");
 
   const [aceptaPrivacidad, setAceptaPrivacidad] =
@@ -225,19 +232,23 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
       setError("Escribe un WhatsApp válido de 10 dígitos.");
       return;
     }
-    if (tipoParticipante !== "vendedora" && tipoParticipante !== "promotora") {
+    if (!asesorEmpleado && tipoParticipante !== "vendedora" && tipoParticipante !== "promotora") {
       setError("Indica si eres vendedora o promotora.");
+      return;
+    }
+    if (!asesorEmpleado && (grupoRuta.trim().length < 2 || grupoRuta.trim().length > 60)) {
+      setError("GRUPO es obligatorio y debe tener entre 2 y 60 caracteres.");
       return;
     }
     if (!foto || !TIPOS.includes(foto.type) || foto.size < 1 || foto.size > MAX_ARCHIVO) {
       setError("La fotografía es obligatoria: JPG, PNG o WebP de hasta 5 MB.");
       return;
     }
-    if (!cuentas.some((cuenta) => cuenta.id === cuentaElegida)) {
+    if (requierePago && !cuentas.some((cuenta) => cuenta.id === cuentaElegida)) {
       setError("Selecciona la cuenta a la que realizaste tu transferencia.");
       return;
     }
-    if (!comprobante || !TIPOS.includes(comprobante.type) || comprobante.size < 1 || comprobante.size > MAX_ARCHIVO) {
+    if (requierePago && (!comprobante || !TIPOS.includes(comprobante.type) || comprobante.size < 1 || comprobante.size > MAX_ARCHIVO)) {
       setError("Adjunta tu comprobante: JPG, PNG o WebP de hasta 5 MB.");
       return;
     }
@@ -251,7 +262,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
         return;
       }
       if (!confirmaPrueba) {
-        setError('Confirma que los datos y el comprobante son ficticios.');
+        setError('Confirma que utilizas datos ficticios y que no realizaste ningún pago real.');
         return;
       }
     } else if (!tokenSeguridad) {
@@ -261,8 +272,17 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
 
     datos.set("asesor_id", asesor);
     datos.delete("asesor");
-    datos.set("tipo_participante", tipoParticipante);
-    datos.set("cuenta_destino", cuentaElegida);
+    // EMPLEADO se normaliza a promotora por compatibilidad con la BD.
+    // El servidor revalida el asesor y el tipo: no confía en estos datos del cliente.
+    datos.set("tipo_participante", asesorEmpleado ? "promotora" : tipoParticipante);
+    datos.set("grupo_ruta", asesorEmpleado ? "" : grupoRuta.trim());
+    if (requierePago) {
+      datos.set("cuenta_destino", cuentaElegida);
+    } else {
+      datos.delete("cuenta_destino");
+      datos.delete("cuenta_transferencia");
+      datos.delete("comprobante");
+    }
     datos.set("privacidad_aceptada", "true");
     if (modoPruebaAdmin) {
       datos.set("confirmar_prueba", "true");
@@ -271,7 +291,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
       datos.set("turnstile_token", tokenSeguridad);
     }
     datos.set("foto", foto);
-    datos.set("comprobante", comprobante);
+    if (requierePago && comprobante) datos.set("comprobante", comprobante);
 
     envioEnCurso.current = true;
     setEnviando(true);
@@ -305,11 +325,14 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
       if (data?.ok !== true || typeof data?.folio !== "string") {
         throw new Error(data?.mensaje ?? "El servidor no confirmó tu inscripción.");
       }
+      setRegistroCortesia(esCortesia);
       setFolioRegistrado(data.folio);
       formulario.reset();
       setFoto(null);
       setComprobante(null);
       setTipoParticipante("");
+      setGrupoRuta("");
+      setAsesorEmpleado(false);
       setCuentaElegida("");
       setAceptaPrivacidad(false);
       setConfirmaPrueba(false);
@@ -332,9 +355,11 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
           <CheckCircle2 size={46} color="#15803d" />
           <h1>{modoPruebaAdmin ? "¡Registro de prueba creado!" : "¡Recibimos tu inscripción!"}</h1>
           <p>Tu folio es <strong>{folioRegistrado}</strong>.</p>
-          <p>{modoPruebaAdmin
-            ? "Marcado como PRUEBA. El pago está pendiente; búscalo en el panel de participantes para comprobar fotografía y comprobante."
-            : "Tu comprobante está pendiente de revisión. Guarda este folio; la inscripción no confirma todavía el acceso al evento."}</p>
+          <p>{registroCortesia
+            ? "Cortesía pendiente de autorización del administrador. Guarda tu folio; aún no tienes QR de acceso."
+            : modoPruebaAdmin
+              ? "Marcado como PRUEBA. El comprobante ficticio queda pendiente de revisión."
+              : "Tu comprobante está pendiente de revisión. Guarda el folio; aún no tienes QR de acceso."}</p>
           <button type="button" className="registro-volver" onClick={onVolver}>
             <ArrowLeft size={18} /> Volver al inicio
           </button>
@@ -363,8 +388,8 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
           <strong>SOLO PRUEBAS · NO ABRE INSCRIPCIONES PÚBLICAS</strong>
           <p style={{ marginBottom: 0 }}>
             Escribe un nombre que comience con <b>PRUEBA </b> y usa un WhatsApp ficticio de 10 dígitos que no pertenezca a nadie.
-            Adjunta archivos de ejemplo propios, sin datos personales ni bancarios reales. <b>No realices una transferencia.</b>
-            El registro quedará marcado para poder identificarlo y cancelarlo antes de abrir el evento.
+            Adjunta una fotografía ficticia o autorizada. Solo si seleccionas VENDEDORA deberás adjuntar un comprobante ficticio. <b>No realices ninguna transferencia.</b>
+            El registro se identificará como PRUEBA y no ocupará un lugar del cupo real.
           </p>
         </div>
       )}
@@ -374,37 +399,10 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
         onSubmit={enviarRegistro}
       >
         <p className="registro-obligatorios">
-          Todos los campos son obligatorios, incluida la fotografía y el comprobante.
+          Completa los campos visibles. La fotografía personal es obligatoria para todos.
         </p>
 
-        <fieldset className="registro-tipo-participante">
-          <legend>¿Cómo participas en el Evento Anual AMOR? *</legend>
-          <p>Selecciona únicamente una opción.</p>
-          <div className="registro-tipo-opciones">
-            <label className={tipoParticipante === "vendedora" ? "seleccionada" : ""}>
-              <input
-                type="radio"
-                name="tipo_participante"
-                value="vendedora"
-                checked={tipoParticipante === "vendedora"}
-                onChange={() => setTipoParticipante("vendedora")}
-                required
-              />
-              Vendedora
-            </label>
-            <label className={tipoParticipante === "promotora" ? "seleccionada" : ""}>
-              <input
-                type="radio"
-                name="tipo_participante"
-                value="promotora"
-                checked={tipoParticipante === "promotora"}
-                onChange={() => setTipoParticipante("promotora")}
-                required
-              />
-              Promotora
-            </label>
-          </div>
-        </fieldset>
+
 
         <div className="registro-grid">
           <label>
@@ -449,7 +447,30 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
             </select>
           </label>
 
-          <SelectorAsesor />
+          <SelectorAsesor onChange={(seleccionado) => {
+            const empleado = seleccionado?.nombre.trim().toLocaleUpperCase("es-MX") === "EMPLEADO";
+            setAsesorEmpleado(empleado);
+            setTipoParticipante("");
+            setComprobante(null);
+            setCuentaElegida("");
+            if (empleado) setGrupoRuta("");
+            setError("");
+          }} />
+
+          {!asesorEmpleado && (
+            <label className="registro-ancho">
+              GRUPO *
+              <input
+                name="grupo_ruta"
+                maxLength={60}
+                minLength={2}
+                required
+                value={grupoRuta}
+                onChange={(e) => setGrupoRuta(e.target.value)}
+                placeholder="Grupo de ruta al que perteneces"
+              />
+            </label>
+          )}
 
           <label className="registro-ancho">
             Número de WhatsApp *
@@ -467,6 +488,41 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
             </small>
           </label>
         </div>
+
+        {!asesorEmpleado && (
+        <fieldset className="registro-tipo-participante">
+          <legend>¿Cómo participas en el Evento Anual AMOR? *</legend>
+          <p>Selecciona únicamente una opción.</p>
+          <div className="registro-tipo-opciones">
+            <label className={tipoParticipante === "vendedora" ? "seleccionada" : ""}>
+              <input
+                type="radio"
+                name="tipo_participante"
+                value="vendedora"
+                checked={tipoParticipante === "vendedora"}
+                onChange={() => setTipoParticipante("vendedora")}
+                required
+              />
+              Vendedora
+            </label>
+            <label className={tipoParticipante === "promotora" ? "seleccionada" : ""}>
+              <input
+                type="radio"
+                name="tipo_participante"
+                value="promotora"
+                checked={tipoParticipante === "promotora"}
+                onChange={() => {
+                  setTipoParticipante("promotora");
+                  setCuentaElegida("");
+                  setComprobante(null);
+                }}
+                required
+              />
+              Promotora
+            </label>
+          </div>
+        </fieldset>
+        )}
 
         <div className="registro-foto-seccion">
           <h2>Tu fotografía *</h2>
@@ -556,6 +612,17 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
           />
         </div>
 
+        {esCortesia && (
+          <div role="status" style={{ padding: 16, marginTop: 18, borderRadius: 12, background: "#f0f8f3", color: "#176747" }}>
+            <strong>Registro con cortesía pendiente</strong>
+            <p style={{ marginBottom: 0 }}>
+              No necesitas cuenta bancaria ni comprobante. El administrador debe autorizar tu cortesía antes de emitir el QR.
+            </p>
+          </div>
+        )}
+
+        {requierePago && (
+          <>
         <div className="amor-pagos">
           <div className="amor-pagos-titulo">
             <Landmark size={25} />
@@ -687,6 +754,9 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
           )}
         </div>
 
+          </>
+        )}
+
         {/* AVISO DE PRIVACIDAD INTEGRADO */}
 
         <AvisoPrivacidad
@@ -707,7 +777,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
         {modoPruebaAdmin && (
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "20px 0", fontWeight: 600, color: "#80571d" }}>
             <input type="checkbox" checked={confirmaPrueba} onChange={(e) => setConfirmaPrueba(e.target.checked)} required />
-            Confirmo que se trata de una prueba con datos ficticios y sin pago real.
+            Confirmo que es una prueba con datos ficticios y sin transferencia real.
           </label>
         )}
 
