@@ -212,7 +212,7 @@ export default function DetalleParticipante({
       ? "¿Confirmas otorgar una cortesía y autorizar la entrada sin pago?"
       : accion === "reemitir"
         ? "¿Reemitir el QR? El código anterior dejará de ser válido."
-        : "¿Generar la invitación para esta inscripción confirmada?";
+        : "¿Consultar o generar la invitación? Si ya existe un QR, no se modificará.";
 
     if (!window.confirm(textoConfirmacion)) return;
 
@@ -243,7 +243,7 @@ export default function DetalleParticipante({
         setInvitacionQR({ token, registroId: participante.id });
         setMensaje("Invitación generada. Imprímela o guárdala antes de cerrar esta ventana.");
       } else {
-        setMensaje("La invitación ya existe, pero su token no puede recuperarse. Usa «Reemitir QR» para obtener uno nuevo.");
+        setMensaje("Ya existe una invitación. Si perdiste su imagen, utiliza «Reemitir QR» para crear una nueva; el QR anterior quedará invalidado.");
       }
 
       const actualizado = await cargar();
@@ -808,7 +808,7 @@ export default function DetalleParticipante({
                     <button type="button" disabled={procesando !== null}
                       onClick={() => void administrarInvitacion("recuperar")}
                       style={{ ...botonBase, background: "#7c3aed", opacity: procesando ? 0.6 : 1 }}>
-                      <QrCode size={18} /> Generar invitación
+                      <QrCode size={18} /> Consultar / generar QR
                     </button>
                     <button type="button" disabled={procesando !== null}
                       onClick={() => void administrarInvitacion("reemitir")}
