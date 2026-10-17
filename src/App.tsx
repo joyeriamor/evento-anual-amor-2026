@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from "react";
 
 import {
@@ -84,7 +84,7 @@ export default function App() {
           fontWeight: 600,
         }}
       >
-        Verificando sesión...
+        Verificando sesiÃ³n...
       </div>
     );
   }
@@ -99,7 +99,7 @@ export default function App() {
   }
 
   if (pantalla === "acceso") {
-    return <div style={{background:"#fff6f9",minHeight:"100vh",padding:18}}><button onClick={async()=>{await supabase.auth.signOut();setPantalla("inicio");}}>Cerrar sesión</button><ControlAcceso /></div>;
+    return <div style={{background:"#fff6f9",minHeight:"100vh",padding:18}}><button onClick={async()=>{await supabase.auth.signOut();setPantalla("inicio");}}>Cerrar sesiÃ³n</button><ControlAcceso /></div>;
   }
 
   if (pantalla === "validador" || pantalla === "recepcion") {
@@ -159,7 +159,7 @@ export default function App() {
             }}
           >
             <LockKeyhole size={16} />
-            Administración
+            AdministraciÃ³n
           </button>
         </div>
       </header>
@@ -183,7 +183,7 @@ export default function App() {
             </p>
 
             <h1>
-              Fiesta Anual <span>2026</span>
+              Evento Anual <span>2026</span>
             </h1>
 
             <p className="descripcion">
@@ -203,7 +203,7 @@ export default function App() {
               <div>
                 <MapPin size={21} />
                 <span>
-                  Salón RADEV'S 1, Minatitlán,
+                  SalÃ³n RADEV'S 1, MinatitlÃ¡n,
                   Veracruz
                 </span>
               </div>
@@ -231,9 +231,10 @@ export default function App() {
       </main>
 
       <footer>
-        © 2026 AMOR · Plataforma de gestión
+        Â© 2026 AMOR Â· Plataforma de gestiÃ³n
         de eventos
       </footer>
     </div>
   );
 }
+
