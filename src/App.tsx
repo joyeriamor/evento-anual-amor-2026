@@ -84,7 +84,7 @@ export default function App() {
           fontWeight: 600,
         }}
       >
-        Verificando sesiÃ³n...
+        Verificando sesión...
       </div>
     );
   }
@@ -99,7 +99,7 @@ export default function App() {
   }
 
   if (pantalla === "acceso") {
-    return <div style={{background:"#fff6f9",minHeight:"100vh",padding:18}}><button onClick={async()=>{await supabase.auth.signOut();setPantalla("inicio");}}>Cerrar sesiÃ³n</button><ControlAcceso /></div>;
+    return <div style={{background:"#fff6f9",minHeight:"100vh",padding:18}}><button onClick={async()=>{await supabase.auth.signOut();setPantalla("inicio");}}>Cerrar sesión</button><ControlAcceso /></div>;
   }
 
   if (pantalla === "validador" || pantalla === "recepcion") {
@@ -159,7 +159,7 @@ export default function App() {
             }}
           >
             <LockKeyhole size={16} />
-            AdministraciÃ³n
+            Administración
           </button>
         </div>
       </header>
@@ -203,7 +203,7 @@ export default function App() {
               <div>
                 <MapPin size={21} />
                 <span>
-                  SalÃ³n RADEV'S 1, MinatitlÃ¡n,
+                  Salón RADEV'S 1, Minatitlán,
                   Veracruz
                 </span>
               </div>
@@ -231,7 +231,7 @@ export default function App() {
       </main>
 
       <footer>
-        Â© 2026 AMOR Â· Plataforma de gestiÃ³n
+        © 2026 AMOR · Plataforma de gestión
         de eventos
       </footer>
     </div>

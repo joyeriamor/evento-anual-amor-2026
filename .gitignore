@@ -41,3 +41,5 @@ VERIFICAR_CUPO.sql
 VERIFICAR_PRUEBAS.sql
 supabase/
 *.bak
+
+public/prueba-turnstile-local.html

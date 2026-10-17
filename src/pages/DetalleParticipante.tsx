@@ -457,32 +457,23 @@ export default function DetalleParticipante({
   async function compartirInvitacion() {
     setError("");
     if (!participante || !invitacionQR) return;
+    const numero = (participante.promotora?.telefono_whatsapp ?? "").replace(/\D/g, "");
+    const telefono = numero.length === 10 ? `52${numero}` : numero;
+    if (telefono.length < 10) {
+      setError("La participante no tiene un número de WhatsApp válido.");
+      return;
+    }
+    const texto = `Hola ${nombreParticipante()}, te compartimos tu invitación al Evento Anual AMOR 2026. ` +
+      `Folio: ${participante.folio ?? "—"}. Presenta tu código QR el día del evento.`;
+    const destino = `https://wa.me/${telefono}?text=${encodeURIComponent(texto)}`;
+    // Abrir primero dentro del gesto del usuario para evitar bloqueos emergentes.
+    window.open(destino, "_blank", "noopener,noreferrer");
     try {
       const blob = await crearImagenInvitacion();
-      const archivo = new File([blob], nombreArchivo(), { type: "image/png" });
-      const texto = `Hola ${nombreParticipante()}, te compartimos tu invitación al Evento Anual AMOR 2026. Folio: ${participante.folio ?? "—"}. Presenta el QR adjunto en el acceso.`;
-      const compartir = navigator as Navigator & {
-        canShare?: (data: ShareData) => boolean;
-        share?: (data: ShareData) => Promise<void>;
-      };
-      if (compartir.share && compartir.canShare?.({ files: [archivo] })) {
-        try {
-          await compartir.share({ files: [archivo], title: "Invitación Evento Anual AMOR 2026", text: texto });
-          setMensaje("Se abrió el menú para compartir la imagen. Selecciona WhatsApp.");
-          return;
-        } catch (err) {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          // Si el navegador no permite compartir, continuamos con WhatsApp Web.
-        }
-      }
       guardarImagen(blob);
-      const numero = (participante.promotora?.telefono_whatsapp ?? "").replace(/\D/g, "");
-      const telefono = numero.length === 10 ? `52${numero}` : numero;
-      const destino = telefono.length >= 10 ? `https://wa.me/${telefono}?text=${encodeURIComponent(texto)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
-      window.open(destino, "_blank", "noopener,noreferrer");
-      setMensaje("Se descargó el PNG y se abrió WhatsApp. Adjunta manualmente la imagen descargada antes de enviarla.");
+      setMensaje("Se abrió WhatsApp de la participante. Adjunta la invitación descargada y presiona Enviar.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo compartir la invitación.");
+      setError(err instanceof Error ? `Se abrió WhatsApp, pero no se pudo descargar la invitación: ${err.message}` : "Se abrió WhatsApp, pero no se pudo descargar la invitación.");
     }
   }
 
@@ -847,7 +838,7 @@ export default function DetalleParticipante({
                     </button>
                   </div>
                   <p className="no-imprimir" style={{ fontSize: 12, color: "#806e76" }}>
-                    El QR es único y se incorpora sin modificarlo. En PC se descarga la imagen y se abre WhatsApp para adjuntarla.
+                    El QR es único y se incorpora sin modificarlo. Al compartir, se abre WhatsApp directamente y se descarga la imagen para adjuntarla manualmente.
                   </p>
                 </div>
               )}
