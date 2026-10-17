@@ -1,9 +1,10 @@
-﻿
+
 import { useEffect, useState } from "react";
 
 import {
   CalendarDays,
   MapPin,
+  Clock3,
   UserRoundPlus,
   ShieldCheck,
   Sparkles,
@@ -206,6 +207,11 @@ export default function App() {
                   Salón RADEV'S 1, Minatitlán,
                   Veracruz
                 </span>
+              </div>
+
+              <div>
+                <Clock3 size={21} />
+                <span>Recepción: 1:00 p.m.</span>
               </div>
             </div>
 
