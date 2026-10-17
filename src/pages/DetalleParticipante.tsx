@@ -456,27 +456,56 @@ export default function DetalleParticipante({
 
   async function compartirInvitacion() {
     setError("");
+    setMensaje("");
+
     if (!participante || !invitacionQR) return;
-    const numero = (participante.promotora?.telefono_whatsapp ?? "").replace(/\D/g, "");
-    const telefono = numero.length === 10 ? `52${numero}` : numero;
-    if (telefono.length < 10) {
-      setError("La participante no tiene un número de WhatsApp válido.");
-      return;
-    }
-    const texto = `Hola ${nombreParticipante()}, te compartimos tu invitación al Evento Anual AMOR 2026. ` +
-      `Folio: ${participante.folio ?? "—"}. Presenta tu código QR el día del evento.`;
-    const destino = `https://wa.me/${telefono}?text=${encodeURIComponent(texto)}`;
-    // Abrir primero dentro del gesto del usuario para evitar bloqueos emergentes.
-    window.open(destino, "_blank", "noopener,noreferrer");
+
     try {
       const blob = await crearImagenInvitacion();
+
+      const archivo = new File(
+        [blob],
+        nombreArchivo(),
+        { type: "image/png" }
+      );
+
+      if (
+        typeof navigator.share === "function" &&
+        typeof navigator.canShare === "function" &&
+        navigator.canShare({ files: [archivo] })
+      ) {
+        try {
+          await navigator.share({
+            files: [archivo]
+          });
+
+          setMensaje("Invitación compartida con el sistema.");
+          return;
+        } catch (error) {
+          if (
+            error instanceof DOMException &&
+            error.name === "AbortError"
+          ) {
+            return;
+          }
+          throw error;
+        }
+      }
+
       guardarImagen(blob);
-      setMensaje("Se abrió WhatsApp de la participante. Adjunta la invitación descargada y presiona Enviar.");
-    } catch (err) {
-      setError(err instanceof Error ? `Se abrió WhatsApp, pero no se pudo descargar la invitación: ${err.message}` : "Se abrió WhatsApp, pero no se pudo descargar la invitación.");
+      setMensaje(
+        "Tu navegador no permite compartir imágenes directamente. " +
+        "Se descargó el PNG para adjuntarlo en WhatsApp."
+      );
+
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo compartir la invitación."
+      );
     }
   }
-
   async function validarPago(
     pago: Pago,
     accion: "aprobar" | "rechazar"
