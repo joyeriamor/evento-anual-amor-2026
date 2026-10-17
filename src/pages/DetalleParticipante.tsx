@@ -460,6 +460,19 @@ export default function DetalleParticipante({
 
     if (!participante || !invitacionQR) return;
 
+    const numero = (participante.promotora?.telefono_whatsapp ?? "")
+      .replace(/\D/g, "");
+
+    const telefono = numero.length === 12 && numero.startsWith("52") ? numero.slice(2) : numero;
+
+    // Copiar el teléfono desde el clic del usuario.
+    const copiaNumero = telefono
+      ? navigator.clipboard.writeText(telefono).then(
+          () => true,
+          () => false
+        )
+      : Promise.resolve(false);
+
     try {
       const blob = await crearImagenInvitacion();
 
@@ -479,7 +492,12 @@ export default function DetalleParticipante({
             files: [archivo]
           });
 
-          setMensaje("Invitación compartida con el sistema.");
+          const copiado = await copiaNumero;
+          setMensaje(
+            copiado
+              ? "Número copiado. Pégalo en el buscador de WhatsApp si hace falta."
+              : "Selecciona el contacto de la participante en WhatsApp."
+          );
           return;
         } catch (error) {
           if (
