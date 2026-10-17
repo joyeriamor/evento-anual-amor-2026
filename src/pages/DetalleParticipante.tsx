@@ -381,6 +381,7 @@ export default function DetalleParticipante({
     ctx.fillText("Invitación personal • Un solo acceso", 561, 1281, 820);
     ctx.font = "19px Arial, sans-serif";
     ctx.fillText("Salón RADEV'S 1 · Minatitlán, Veracruz", 561, 1320, 840);
+    ctx.fillText("Recepción: 1:00 p.m.", 561, 1352, 840);
 
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {
