@@ -124,7 +124,7 @@ export default function App() {
           />
 
           <div>
-            <strong>AMOR</strong>
+            <strong>JOYERIA_AMOR</strong>
             <small>Plataforma de eventos</small>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function App() {
           }}
         >
           <span className="etiqueta">
-            FIESTAANUAL26
+            EVENTO_ANUAL26
           </span>
 
           <button
