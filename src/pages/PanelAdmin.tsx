@@ -15,6 +15,7 @@ type CupoEvento = {
   disponibles: number;
   con_pago: number;
   cortesias: number;
+  cortesias_pendientes: number;
   pendientes: number;
 
   porcentaje: number;
@@ -94,7 +95,8 @@ export default function PanelAdmin({ onSalir }: Props) {
                 ['Ocupados', cupo.ocupados],
                 ['Disponibles', cupo.disponibles],
                 ['Con cuota', cupo.con_pago],
-                ['Cortesías', cupo.cortesias],
+                ['Cortesías autorizadas', cupo.cortesias],
+                ['Cortesías pendientes', cupo.cortesias_pendientes],
                 ['Pendientes', cupo.pendientes],
 
               ].map(([etiqueta, valor]) => <div key={String(etiqueta)} style={{ background: '#fff9fb', padding: 12, borderRadius: 10, border: '1px solid #f1dde5' }}><span style={{ color: '#745f68', fontSize: 12, display: 'block' }}>{etiqueta}</span><strong style={{ display: 'block', fontSize: 23, color: '#a33460' }}>{Number(valor).toLocaleString('es-MX')}</strong></div>)}
