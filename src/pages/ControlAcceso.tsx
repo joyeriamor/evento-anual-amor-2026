@@ -12,7 +12,7 @@ const DetectorClass = (globalThis as typeof globalThis & {BarcodeDetector?: new 
 const card: React.CSSProperties = {background:'#fff',border:'1px solid #efd5df',borderRadius:18,padding:22,marginBottom:16};
 const btn: React.CSSProperties = {background:'#a33460',color:'white',border:0,borderRadius:10,padding:'13px 18px',cursor:'pointer',fontWeight:700};
 
-export default function ControlAcceso() {
+export default function ControlAcceso({ eventoId }: { eventoId?: string }) {
   const [entrada,setEntrada] = useState('');
   const [token,setToken] = useState('');
   const [ficha,setFicha] = useState<Ficha|null>(null);
@@ -30,7 +30,16 @@ export default function ControlAcceso() {
     procesando.current=true;
     setCargando(true); setMensaje(''); setFicha(null); setToken('');
     try {
-      const {data,error}=await supabase.functions.invoke('consultar-acceso', {body:{token:limpio}});
+      const funcionConsulta = eventoId
+         ? 'consultar-acceso-evento'
+         : 'consultar-acceso';
+       const cuerpoConsulta = eventoId
+         ? {token:limpio,evento_id:eventoId}
+         : {token:limpio};
+       const {data,error}=await supabase.functions.invoke(
+         funcionConsulta,
+         {body:cuerpoConsulta}
+       );
       if(error || !data?.ok) throw new Error(data?.error || error?.message || 'No se pudo validar el QR');
       setFicha(data.ficha as Ficha); setToken(limpio);
       if(data.ficha.estado !== 'autorizable') setMensaje(({ya_ingreso:'Esta participante ya ingresó',revocada:'Invitación revocada',no_confirmado:'Inscripción no confirmada',qr_invalido:'QR inválido'} as Record<string,string>)[data.ficha.estado] || 'Entrada no autorizada');
@@ -41,7 +50,15 @@ export default function ControlAcceso() {
     if(!token || ficha?.estado!=='autorizable' || cargando) return;
     setCargando(true);
     try {
-      const {data,error}=await supabase.rpc('registrar_entrada_qr',{p_token:token});
+      const {data,error}=eventoId
+         ? await supabase.rpc(
+             'registrar_entrada_qr_evento',
+             {p_token:token,p_evento_id:eventoId}
+           )
+         : await supabase.rpc(
+             'registrar_entrada_qr',
+             {p_token:token}
+           );
       if(error) throw error;
       if(data?.ok && data?.estado==='ingreso_registrado') {
         setFicha(v=>v?{...v,estado:'ya_ingreso',ingresado_at:data.ingresado_at}:v);
