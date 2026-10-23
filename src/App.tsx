@@ -15,6 +15,7 @@ import Registro from "./pages/Registro";
 import LoginAdmin from "./pages/LoginAdmin";
 import PanelAdmin from "./pages/PanelAdmin";
 import ControlAcceso from "./pages/ControlAcceso";
+import AccesoChiapas from "./pages/AccesoChiapas";
 import PanelPersonal from "./pages/PanelPersonal";
 
 import { supabase } from "./lib/supabase";
@@ -25,6 +26,16 @@ import "./App.css";
 type Pantalla = "inicio" | "registro" | "login" | "admin" | "acceso" | "validador" | "recepcion";
 
 export default function App() {
+  const rutaActual = window.location.pathname.replace(/\/+$/, "");
+
+  if (rutaActual.endsWith("/chiapas/acceso")) {
+    return <AccesoChiapas />;
+  }
+
+  return <AppPrincipal />;
+}
+
+function AppPrincipal() {
   const rutaActual = window.location.pathname.replace(/\/+$/, "");
   const esChiapas = rutaActual.endsWith("/chiapas");
 
