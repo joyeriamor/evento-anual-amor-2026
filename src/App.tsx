@@ -25,6 +25,12 @@ import "./App.css";
 type Pantalla = "inicio" | "registro" | "login" | "admin" | "acceso" | "validador" | "recepcion";
 
 export default function App() {
+  const rutaActual = window.location.pathname.replace(/\/+$/, "");
+  const esChiapas = rutaActual.endsWith("/chiapas");
+
+  if (esChiapas) {
+    return <PaginaChiapas />;
+  }
   const [pantalla, setPantalla] =
     useState<Pantalla>("inicio");
 
@@ -244,3 +250,49 @@ export default function App() {
   );
 }
 
+
+function PaginaChiapas() {
+  return (
+    <main style={{
+      minHeight: "100vh",
+      background: "#fff5f8",
+      display: "grid",
+      placeItems: "center",
+      padding: 24,
+      fontFamily: "Arial, sans-serif",
+      color: "#653d50"
+    }}>
+      <section style={{
+        background: "white",
+        padding: 32,
+        borderRadius: 20,
+        maxWidth: 570,
+        width: "100%",
+        textAlign: "center",
+        boxShadow: "0 8px 32px #a3346020"
+      }}>
+        <img
+          src={`${import.meta.env.BASE_URL}amor-logo.png`}
+          alt="Joyería Amor de los Dos"
+          style={{ maxWidth: 150, marginBottom: 20 }}
+        />
+        <h1 style={{ color: "#a33460" }}>
+          Fiesta Anual AMOR 2026
+        </h1>
+        <h2>Chiapas</h2>
+        <p><strong>Tuxtla Gutiérrez, Chiapas</strong></p>
+        <p>Sábado 19 de diciembre de 2026</p>
+        <p>Salón y horario por definir</p>
+        <p style={{
+          marginTop: 24,
+          padding: 14,
+          background: "#fff0f5",
+          borderRadius: 10
+        }}>
+          Las inscripciones para Chiapas todavía
+          no están habilitadas.
+        </p>
+      </section>
+    </main>
+  );
+}
