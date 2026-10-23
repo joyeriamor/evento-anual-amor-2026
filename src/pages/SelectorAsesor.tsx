@@ -19,8 +19,10 @@ type Respuesta = {
  */
 export default function SelectorAsesor({
   onChange,
+  excluirEmpleados = false,
 }: {
   onChange?: (asesor: Asesor | null) => void;
+  excluirEmpleados?: boolean;
 }) {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -63,7 +65,15 @@ export default function SelectorAsesor({
           throw new Error(datos.mensaje ?? datos.error ?? `Error HTTP ${respuesta.status} al consultar asesores.`);
         }
 
-        if (!control.signal.aborted) setAsesores(datos.asesores);
+        if (!control.signal.aborted) {
+          setAsesores(
+            excluirEmpleados
+              ? datos.asesores.filter(
+                  (asesor) => asesor.nombre.trim().toUpperCase() !== "EMPLEADO"
+                )
+              : datos.asesores
+          );
+        }
       } catch (fallo) {
         if (!montado) return;
         const detalle = agotoTiempo
@@ -89,7 +99,7 @@ export default function SelectorAsesor({
       montado = false;
       control.abort();
     };
-  }, [intento]);
+  }, [intento, excluirEmpleados]);
 
   return (
     <label>

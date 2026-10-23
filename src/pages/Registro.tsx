@@ -105,10 +105,11 @@ type Props = {
   onVolver: () => void;
   /** Solo cambia la interfaz; la autorización real se hace en la Edge Function. */
   modoPruebaAdmin?: boolean;
+  evento?: "minatitlan" | "chiapas";
 };
 
-export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
-  const formularioHabilitado = modoPruebaAdmin || REGISTROS_HABILITADOS;
+export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "minatitlan" }: Props) {
+  const formularioHabilitado = evento === "chiapas" ? false : (modoPruebaAdmin || REGISTROS_HABILITADOS);
   const camaraRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
 
@@ -308,7 +309,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
         opciones.headers = { Authorization: `Bearer ${sesion.session.access_token}` };
       }
       const { data, error: fallo } = await supabase.functions.invoke(
-        modoPruebaAdmin ? "registrar-prueba-admin" : "registrar-participante-v2",
+        modoPruebaAdmin ? "registrar-prueba-admin" : evento === "chiapas" ? "registrar-participante-chiapas" : "registrar-participante-v2",
         opciones
       );
       if (fallo) {
@@ -447,7 +448,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false }: Props) {
             </select>
           </label>
 
-          <SelectorAsesor onChange={(seleccionado) => {
+          <SelectorAsesor excluirEmpleados={evento === "chiapas"} onChange={(seleccionado) => {
             const empleado = seleccionado?.nombre.trim().toLocaleUpperCase("es-MX") === "EMPLEADO";
             setAsesorEmpleado(empleado);
             setTipoParticipante("");

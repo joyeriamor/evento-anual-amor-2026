@@ -252,6 +252,16 @@ export default function App() {
 
 
 function PaginaChiapas() {
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
+
+  if (mostrarRegistro) {
+    return (
+      <Registro
+        evento="chiapas"
+        onVolver={() => setMostrarRegistro(false)}
+      />
+    );
+  }
   return (
     <main style={{
       minHeight: "100vh",
@@ -292,6 +302,21 @@ function PaginaChiapas() {
           Las inscripciones para Chiapas todavía
           no están habilitadas.
         </p>
+        <button
+          type="button"
+          onClick={() => setMostrarRegistro(true)}
+          style={{
+            background: "#a33460",
+            color: "white",
+            border: "none",
+            padding: "12px 20px",
+            borderRadius: 10,
+            cursor: "pointer",
+            marginTop: 14
+          }}
+        >
+          Ver formulario de Chiapas
+        </button>
       </section>
     </main>
   );
