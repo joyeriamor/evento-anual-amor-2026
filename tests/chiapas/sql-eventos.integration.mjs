@@ -41,13 +41,13 @@ try {
   assert.equal(bandeja.total,1);assert.equal(bandeja.registros[0].registro_id,RR);count++;
   const chiapas=await scalar('select bandejas_admin_chiapas_paginadas($1,1,$2,$3) v',['pagos','',U]);
   assert.equal(chiapas.total,1);assert.equal(chiapas.registros[0].registro_id,RC);count++;
-  await fail('select validar_pago_admin($1,$2,null,$3)',[PC,'aprobar',U],/exclusiva de RADEVS/i);
+  await fail('select validar_pago_admin($1,$2,null,$3)',[PC,'aprobar',U],/inexistente|no existe/i);
   await db.query('update usuarios_eventos set activo=false where usuario_id=$1 and evento_id=$2',[U,R]);
   await fail('select validar_pago_admin($1,$2,null,$3)',[PR,'aprobar',U],/asignacion activa/i);
   await fail('select bandejas_admin_paginadas($1,1,$2,$3)',['pagos','',U],/asignacion activa/i);
   await db.query('update usuarios_eventos set activo=true where usuario_id=$1',[U]);
   await db.query("select set_config('test.uid',$1,false)",[V]);
-  await fail('select validar_pago_personal($1,$2,null)',[PC,'aprobar'],/otro evento/i);
+  await fail('select validar_pago_personal($1,$2,null)',[PC,'aprobar'],/inexistente|no existe/i);
   await db.query('update usuarios_eventos set activo=false where usuario_id=$1',[V]);
   await fail('select validar_pago_personal($1,$2,null)',[PR,'aprobar'],/asignacion activa/i);
   await db.query("select set_config('test.uid',$1,false)",[U]);
@@ -64,7 +64,7 @@ try {
   assert.equal(ficha.estado,'ingreso_registrado');count++;
   ficha=await scalar('select registrar_entrada_qr_evento($1,$2) v',[token,R]);
   assert.equal(ficha.estado,'ya_ingreso');assert.equal(await scalar('select count(*)::int v from accesos'),1);count++;
-  await fail('select validar_pago_admin_chiapas($1,$2,null,$3)',[PR,'aprobar',U],/Chiapas|evento/i);
+  await fail('select validar_pago_admin_chiapas($1,$2,null,$3)',[PR,'aprobar',U],/inexistente|no existe/i);
   await db.exec('BEGIN');
   await db.query('select validar_pago_admin_chiapas($1,$2,$3,$4)',[PC,'rechazar','Comprobante de prueba incorrecto',U]);
   assert.equal(await scalar('select estado v from pagos where id=$1',[PC]),'rechazado');count++;

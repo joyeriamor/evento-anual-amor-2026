@@ -1,0 +1,1215 @@
+{
+  "tables": [
+    {
+      "nombre": "accesos",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "asesores",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres,anon=r/postgres}"
+    },
+    {
+      "nombre": "auditoria",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "configuracion_cupo_evento",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=rDxtm/postgres}"
+    },
+    {
+      "nombre": "eventos",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "invitaciones",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "limites_inicio_sesion",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "limites_registro",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "pagos",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "promotoras",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "registros",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "usuarios",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwDxtm/postgres}"
+    },
+    {
+      "nombre": "usuarios_eventos",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres,authenticated=r/postgres}"
+    }
+  ],
+  "columns": [
+    {
+      "tabla": "accesos",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "invitacion_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "operador_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "ingresado_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "asesores",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "asesores",
+      "nombre": "nombre",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "asesores",
+      "nombre": "activo",
+      "tipo": "boolean",
+      "not_null": true,
+      "defecto": "true"
+    },
+    {
+      "tabla": "asesores",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "id",
+      "tipo": "bigint",
+      "not_null": true,
+      "defecto": null,
+      "identidad": "a"
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "usuario_id",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "accion",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "entidad",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "entidad_id",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "detalles",
+      "tipo": "jsonb",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "evento_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "cupo_maximo",
+      "tipo": "integer",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "actualizado_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "nombre",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "descripcion",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "fecha_inicio",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "sede",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "cuota_fija",
+      "tipo": "numeric(12,2)",
+      "not_null": true,
+      "defecto": "0"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "estado",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": "'borrador'::text"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "registro_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "token_hash",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "estado",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": "'activa'::text"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "emitida_por",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "emitida_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "revocada_at",
+      "tipo": "timestamp with time zone",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "token_vault_id",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "limites_inicio_sesion",
+      "nombre": "clave_hash",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "limites_inicio_sesion",
+      "nombre": "ventana_inicio",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "limites_inicio_sesion",
+      "nombre": "intentos",
+      "tipo": "integer",
+      "not_null": true,
+      "defecto": "0"
+    },
+    {
+      "tabla": "limites_registro",
+      "nombre": "clave",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "limites_registro",
+      "nombre": "intentos",
+      "tipo": "integer",
+      "not_null": true,
+      "defecto": "0"
+    },
+    {
+      "tabla": "limites_registro",
+      "nombre": "ventana_inicio",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "registro_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "importe",
+      "tipo": "numeric(12,2)",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "comprobante_path",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "referencia",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "estado",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": "'pendiente'::text"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "validado_por",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "validado_at",
+      "tipo": "timestamp with time zone",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "cuenta_destino",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "nombres",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "apellidos",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "telefono_whatsapp",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "estado_residencia",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "foto_path",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "updated_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "tipo_participante",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": "gen_random_uuid()"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "evento_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "promotora_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "asesor_id",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "estado",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": "'pendiente'::text"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "exento_pago",
+      "tipo": "boolean",
+      "not_null": true,
+      "defecto": "false"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "folio",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "solicitud_id",
+      "tipo": "uuid",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "privacidad_aceptada_at",
+      "tipo": "timestamp with time zone",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "privacidad_version",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "aviso_privacidad_aceptado_at",
+      "tipo": "timestamp with time zone",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "registros",
+      "nombre": "es_prueba",
+      "tipo": "boolean",
+      "not_null": true,
+      "defecto": "false"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "grupo_ruta",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "nombre",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "rol",
+      "tipo": "text",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "activo",
+      "tipo": "boolean",
+      "not_null": true,
+      "defecto": "true"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "nombre_usuario",
+      "tipo": "text",
+      "not_null": false,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "usuario_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "evento_id",
+      "tipo": "uuid",
+      "not_null": true,
+      "defecto": null
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "activo",
+      "tipo": "boolean",
+      "not_null": true,
+      "defecto": "true"
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "created_at",
+      "tipo": "timestamp with time zone",
+      "not_null": true,
+      "defecto": "now()"
+    }
+  ],
+  "constraints": [
+    {
+      "tabla": "invitaciones",
+      "nombre": "invitaciones_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "invitaciones_token_hash_key",
+      "tipo": "u",
+      "definicion": "UNIQUE (token_hash)"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "invitaciones_registro_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (registro_id) REFERENCES registros(id)"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "invitaciones_emitida_por_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (emitida_por) REFERENCES auth.users(id)"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "eventos_cuota_fija_check",
+      "tipo": "c",
+      "definicion": "CHECK ((cuota_fija >= (0)::numeric))"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "accesos_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "accesos_invitacion_id_key",
+      "tipo": "u",
+      "definicion": "UNIQUE (invitacion_id)"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "accesos_invitacion_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (invitacion_id) REFERENCES invitaciones(id)"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "eventos_estado_check",
+      "tipo": "c",
+      "definicion": "CHECK ((estado = ANY (ARRAY['borrador'::text, 'activo'::text, 'cerrado'::text, 'cancelado'::text])))"
+    },
+    {
+      "tabla": "eventos",
+      "nombre": "eventos_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "asesores",
+      "nombre": "asesores_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "promotoras_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_folio_key",
+      "tipo": "u",
+      "definicion": "UNIQUE (folio)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_evento_id_promotora_id_key",
+      "tipo": "u",
+      "definicion": "UNIQUE (evento_id, promotora_id)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_evento_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (evento_id) REFERENCES eventos(id)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_promotora_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (promotora_id) REFERENCES promotoras(id)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_asesor_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (asesor_id) REFERENCES asesores(id)"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_importe_check",
+      "tipo": "c",
+      "definicion": "CHECK ((importe >= (0)::numeric))"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_estado_check",
+      "tipo": "c",
+      "definicion": "CHECK ((estado = ANY (ARRAY['pendiente'::text, 'revision'::text, 'validado'::text, 'rechazado'::text, 'exento'::text])))"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_registro_id_key",
+      "tipo": "u",
+      "definicion": "UNIQUE (registro_id)"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_registro_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (registro_id) REFERENCES registros(id)"
+    },
+    {
+      "tabla": "pagos",
+      "nombre": "pagos_validado_por_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (validado_por) REFERENCES auth.users(id)"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "accesos_operador_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (operador_id) REFERENCES auth.users(id)"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "usuarios_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "usuarios_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (id) REFERENCES auth.users(id)"
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "auditoria_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (id)"
+    },
+    {
+      "tabla": "auditoria",
+      "nombre": "auditoria_usuario_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (usuario_id) REFERENCES auth.users(id)"
+    },
+    {
+      "tabla": "limites_registro",
+      "nombre": "limites_registro_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (clave)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_estado_check",
+      "tipo": "c",
+      "definicion": "CHECK ((estado = ANY (ARRAY['pendiente'::text, 'aprobado'::text, 'rechazado'::text, 'cancelado'::text, 'confirmado'::text])))"
+    },
+    {
+      "tabla": "invitaciones",
+      "nombre": "invitaciones_estado_check",
+      "tipo": "c",
+      "definicion": "CHECK ((estado = ANY (ARRAY['activa'::text, 'revocada'::text, 'emitida'::text])))"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "usuarios_rol_check",
+      "tipo": "c",
+      "definicion": "CHECK ((rol = ANY (ARRAY['administrador'::text, 'validador'::text, 'recepcion'::text, 'acceso'::text])))"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "usuarios_nombre_usuario_formato",
+      "tipo": "c",
+      "definicion": "CHECK (((nombre_usuario IS NULL) OR (nombre_usuario ~ '^[a-z][a-z0-9._-]{2,31}$'::text)))"
+    },
+    {
+      "tabla": "promotoras",
+      "nombre": "promotoras_tipo_participante_check",
+      "tipo": "c",
+      "definicion": "CHECK ((tipo_participante = ANY (ARRAY['vendedora'::text, 'promotora'::text])))"
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "configuracion_cupo_evento_cupo_maximo_check",
+      "tipo": "c",
+      "definicion": "CHECK (((cupo_maximo >= 1) AND (cupo_maximo <= 100000)))"
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "configuracion_cupo_evento_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (evento_id)"
+    },
+    {
+      "tabla": "configuracion_cupo_evento",
+      "nombre": "configuracion_cupo_evento_evento_id_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE"
+    },
+    {
+      "tabla": "limites_inicio_sesion",
+      "nombre": "limites_inicio_sesion_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (clave_hash)"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_grupo_ruta_longitud_chk",
+      "tipo": "c",
+      "definicion": "CHECK (((grupo_ruta IS NULL) OR ((char_length(btrim(grupo_ruta)) >= 2) AND (char_length(btrim(grupo_ruta)) <= 60))))"
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "usuarios_eventos_pkey",
+      "tipo": "p",
+      "definicion": "PRIMARY KEY (usuario_id, evento_id)"
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "usuarios_eventos_usuario_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE"
+    },
+    {
+      "tabla": "usuarios_eventos",
+      "nombre": "usuarios_eventos_evento_fkey",
+      "tipo": "f",
+      "definicion": "FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE RESTRICT"
+    }
+  ],
+  "triggers": [
+    {
+      "tabla": "registros",
+      "nombre": "trg_evitar_registro_duplicado",
+      "definicion": "CREATE TRIGGER trg_evitar_registro_duplicado BEFORE INSERT OR UPDATE OF evento_id, promotora_id ON public.registros FOR EACH ROW EXECUTE FUNCTION evitar_registro_duplicado()"
+    },
+    {
+      "tabla": "accesos",
+      "nombre": "trg_evitar_acceso_duplicado",
+      "definicion": "CREATE TRIGGER trg_evitar_acceso_duplicado BEFORE INSERT ON public.accesos FOR EACH ROW EXECUTE FUNCTION evitar_acceso_duplicado()"
+    },
+    {
+      "tabla": "registros",
+      "nombre": "registros_impedir_sobrecupo",
+      "definicion": "CREATE TRIGGER registros_impedir_sobrecupo BEFORE INSERT OR UPDATE OF estado, evento_id, es_prueba ON public.registros FOR EACH ROW EXECUTE FUNCTION impedir_sobrecupo_evento()"
+    },
+    {
+      "tabla": "usuarios",
+      "nombre": "trg_proteger_ultimo_administrador",
+      "definicion": "CREATE TRIGGER trg_proteger_ultimo_administrador AFTER DELETE OR UPDATE OF rol, activo ON public.usuarios FOR EACH ROW EXECUTE FUNCTION proteger_ultimo_administrador_activo()"
+    }
+  ],
+  "policies": [
+    {
+      "schemaname": "public",
+      "tablename": "asesores",
+      "policyname": "Consultar asesores activos",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "cmd": "SELECT",
+      "qual": "(activo = true)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios_eventos",
+      "policyname": "usuarios_eventos_leer_propios",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "cmd": "SELECT",
+      "qual": "(usuario_id = ( SELECT auth.uid() AS uid))",
+      "with_check": null
+    }
+  ],
+  "indexes": [
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "registros_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX registros_pkey ON public.registros USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "registros_folio_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX registros_folio_key ON public.registros USING btree (folio)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "registros_evento_id_promotora_id_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX registros_evento_id_promotora_id_key ON public.registros USING btree (evento_id, promotora_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "idx_registros_evento",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_registros_evento ON public.registros USING btree (evento_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "idx_registros_solicitud_id",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX idx_registros_solicitud_id ON public.registros USING btree (solicitud_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "registros",
+      "indexname": "idx_registros_evento_promotora",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_registros_evento_promotora ON public.registros USING btree (evento_id, promotora_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "eventos",
+      "indexname": "eventos_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX eventos_pkey ON public.eventos USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "asesores",
+      "indexname": "asesores_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX asesores_pkey ON public.asesores USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios",
+      "indexname": "usuarios_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios",
+      "indexname": "usuarios_nombre_usuario_unico",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX usuarios_nombre_usuario_unico ON public.usuarios USING btree (lower(nombre_usuario)) WHERE (nombre_usuario IS NOT NULL)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "pagos",
+      "indexname": "pagos_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX pagos_pkey ON public.pagos USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "pagos",
+      "indexname": "pagos_registro_id_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX pagos_registro_id_key ON public.pagos USING btree (registro_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "limites_registro",
+      "indexname": "limites_registro_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX limites_registro_pkey ON public.limites_registro USING btree (clave)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promotoras",
+      "indexname": "promotoras_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX promotoras_pkey ON public.promotoras USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promotoras",
+      "indexname": "idx_promotoras_telefono",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_promotoras_telefono ON public.promotoras USING btree (telefono_whatsapp)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "promotoras",
+      "indexname": "idx_promotoras_whatsapp_normalizado",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_promotoras_whatsapp_normalizado ON public.promotoras USING btree (regexp_replace(telefono_whatsapp, '[^0-9]'::text, ''::text, 'g'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "accesos",
+      "indexname": "accesos_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX accesos_pkey ON public.accesos USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "accesos",
+      "indexname": "accesos_invitacion_id_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX accesos_invitacion_id_key ON public.accesos USING btree (invitacion_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "auditoria",
+      "indexname": "auditoria_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX auditoria_pkey ON public.auditoria USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "invitaciones_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX invitaciones_pkey ON public.invitaciones USING btree (id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "invitaciones_token_hash_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX invitaciones_token_hash_key ON public.invitaciones USING btree (token_hash)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "idx_invitacion_activa",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX idx_invitacion_activa ON public.invitaciones USING btree (registro_id) WHERE (estado = 'activa'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "invitaciones_una_emitida_por_registro",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX invitaciones_una_emitida_por_registro ON public.invitaciones USING btree (registro_id) WHERE (estado = 'emitida'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "invitaciones_una_vigente_por_registro",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX invitaciones_una_vigente_por_registro ON public.invitaciones USING btree (registro_id) WHERE (estado = ANY (ARRAY['activa'::text, 'emitida'::text]))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "invitaciones",
+      "indexname": "invitaciones_token_vault_id_key",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX invitaciones_token_vault_id_key ON public.invitaciones USING btree (token_vault_id) WHERE (token_vault_id IS NOT NULL)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_cupo_evento",
+      "indexname": "configuracion_cupo_evento_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX configuracion_cupo_evento_pkey ON public.configuracion_cupo_evento USING btree (evento_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios_eventos",
+      "indexname": "usuarios_eventos_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX usuarios_eventos_pkey ON public.usuarios_eventos USING btree (usuario_id, evento_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios_eventos",
+      "indexname": "idx_usuarios_eventos_evento_activo",
+      "tablespace": null,
+      "indexdef": "CREATE INDEX idx_usuarios_eventos_evento_activo ON public.usuarios_eventos USING btree (evento_id, activo, usuario_id)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "limites_inicio_sesion",
+      "indexname": "limites_inicio_sesion_pkey",
+      "tablespace": null,
+      "indexdef": "CREATE UNIQUE INDEX limites_inicio_sesion_pkey ON public.limites_inicio_sesion USING btree (clave_hash)"
+    }
+  ],
+  "extensions": [
+    {
+      "extname": "plpgsql",
+      "extversion": "1.0"
+    },
+    {
+      "extname": "pg_stat_statements",
+      "extversion": "1.11"
+    },
+    {
+      "extname": "uuid-ossp",
+      "extversion": "1.1"
+    },
+    {
+      "extname": "pgcrypto",
+      "extversion": "1.3"
+    },
+    {
+      "extname": "supabase_vault",
+      "extversion": "0.3.1"
+    },
+    {
+      "extname": "pg_cron",
+      "extversion": "1.6.4"
+    }
+  ],
+  "buckets": [
+    {
+      "id": "fotos-promotoras",
+      "public": false
+    },
+    {
+      "id": "comprobantes-pago",
+      "public": false
+    }
+  ]
+}

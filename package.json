@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "test:security": "node scripts/test-seguridad.cjs",
     "test:sql": "node tests/chiapas/sql-eventos.integration.mjs",
-    "test:e2e": "node tests/chiapas/frontend-eventos.e2e.mjs"
+    "test:e2e": "node scripts/test-e2e-local.cjs",
+    "test:catalog": "node tests/chiapas/catalogo.integration.mjs",
+    "check:edge": "node scripts/check-edge.cjs",
+    "prepare:migration": "node scripts/preparar-migracion-eventos.mjs",
+    "test:local": "node scripts/verificar-local.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
@@ -32,6 +36,9 @@
     "globals": "^17.12.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "@electric-sql/pglite": "0.5.11",
+    "playwright": "1.62.1",
+    "deno": "2.9.6"
   }
 }
