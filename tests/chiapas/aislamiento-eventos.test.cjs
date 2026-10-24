@@ -1,0 +1,103 @@
+// Executes real TypeScript handlers with simulated Supabase. No production traffic.
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const http = require('node:http');
+const ts = require('../../node_modules/typescript/lib/typescript.js');
+const RADEVS = '43e67bda-d19d-4c0e-a639-e85f2d62f294';
+const CHIAPAS = '3dc92160-79af-4bf7-b770-263038e88900';
+const USER = 'aa111111-1111-4111-8111-111111111111';
+const ID = 'bb111111-1111-4111-8111-111111111111';
+const endpoints = ['validar-pago','administrar-invitacion','bandejas-admin','bandeja-personal',
+  'validar-pago-chiapas','administrar-invitacion-chiapas','bandejas-admin-chiapas','bandeja-personal-chiapas',
+  'listar-participantes','detalle-participante','consultar-acceso','consultar-acceso-evento',
+  'resumen-accesos','gestionar-usuarios','registrar-prueba-admin','resumen-cupo-evento','verificar-personal'];
+function entorno(nombre, estado = {}) {
+  let handler;
+  const queries = [], rpc = [], signed = [];
+  function from(tabla) {
+    const filters = [];
+    const q = { tabla, filters }; queries.push(q);
+    const builder = {};
+    for (const metodo of ['select','eq','neq','in','order','limit','range','or','ilike']) {
+      builder[metodo] = (...args) => { filters.push([metodo,...args]); return builder; };
+    }
+    const result = () => {
+      if (tabla === 'usuarios') return { data: { id: USER, rol: estado.rol || 'administrador', activo: estado.activo !== false }, error: null };
+      if (tabla === 'usuarios_eventos') return { data: estado.asignacion === false ? null : { usuario_id: USER }, error: estado.errorAsignacion ? { message: 'fail' } : null };
+      if (tabla === 'pagos' || tabla === 'registros') return { data: estado.objetivo ? { id: ID, evento_id: estado.evento || RADEVS } : null, error: null, count: 0 };
+      return { data: [], error: null, count: 0 };
+    };
+    builder.single = builder.maybeSingle = async () => result();
+    builder.then = (resolve,reject) => Promise.resolve(result()).then(resolve,reject);
+    return builder;
+  }
+  const db = { from, auth: { getUser: async token => ({ data: { user: estado.invalido || token === 'invalid' ? null : { id: USER } }, error: null }) },
+    rpc: async (name,args) => { rpc.push([name,args]); return { data: { ok: true, total: 0, registros: [], capacidad: 500 }, error: null }; },
+    storage: { from: bucket => ({ createSignedUrl: async p => { signed.push([bucket,p]); return { data: { signedUrl: 'signed' } }; } }) } };
+  function load(file) {
+    const output = ts.transpileModule(fs.readFileSync(file,'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
+    const exports = {};
+    vm.runInNewContext(output.outputText, { exports, require: name => name.includes('supabase-js') ? { createClient: () => db } : load(path.resolve(path.dirname(file),name)),
+      Deno: { serve: f => { handler = f; }, env: { get: () => 'local-test-only' } },
+      Request, Response, Headers, TextDecoder, TextEncoder, Uint8Array, console,
+    }, { filename: file });
+    return exports;
+  }
+  load(path.resolve('supabase/functions',nombre,'index.ts'));
+  return { call: (body = {}, headers = {}, method = 'POST') => handler(new Request('http://local.test', {
+    method, headers: { 'content-type': 'application/json', ...headers }, ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
+  })), queries,rpc,signed };
+}
+let count = 0;
+async function check(name, state, body, headers, expected) {
+  const e = entorno(name,state); const res = await e.call(body,headers);
+  assert.equal(res.status,expected,`${name}: ${await res.clone().text()}`);
+  if (expected >= 400) { assert.equal(e.rpc.length,0); assert.equal(e.signed.length,0); }
+  count++; return e;
+}
+(async () => {
+  for (const name of endpoints) {
+    await check(name,{}, {},{},401);
+    await check(name,{invalido:true},{},{Authorization:'Bearer invalid'},401);
+    await check(name,{activo:false},{},{Authorization:'Bearer valid'},403);
+    await check(name,{rol:'asesor'},{},{Authorization:'Bearer valid'},403);
+    if (name!=='registrar-prueba-admin') {
+      await check(name,{},[],{Authorization:'Bearer valid'},400);
+      await check(name,{}, {relleno:'x'.repeat(17000)},{Authorization:'Bearer valid'},413);
+    }
+    await check(name,{asignacion:false},{},{Authorization:'Bearer valid'},403);
+    await check(name,{errorAsignacion:true},{},{Authorization:'Bearer valid'},503);
+    await check(name,{}, {evento_id:'00000000-0000-0000-0000-000000000000'},{Authorization:'Bearer valid'}, name==='registrar-prueba-admin' ? 503 : 403);
+    const e=entorno(name); assert.equal((await e.call({}, {},'OPTIONS')).status,204); assert.equal(e.queries.length,0);count++;
+    assert.equal((await e.call({}, {},'GET')).status,405);count++;
+  }
+  for (const name of ['validar-pago','validar-pago-chiapas','administrar-invitacion','administrar-invitacion-chiapas']) {
+    const event = name.endsWith('chiapas') ? CHIAPAS : RADEVS;
+    const e=await check(name,{}, { pago_id:ID,registro_id:ID,accion:name.startsWith('validar')?'aprobar':'cortesia' },{Authorization:'Bearer valid'},404);
+    const target=e.queries.find(q=>q.tabla===(name.startsWith('validar')?'pagos':'registros'));
+    assert.ok(target.filters.some(f=>f[0]==='eq' && f[1]===(name.startsWith('validar')?'registros.evento_id':'evento_id') && f[2]===event));count++;
+  }
+  for (const event of [RADEVS,CHIAPAS]) {
+    const e=entorno('verificar-personal');
+    const res=await e.call({evento_id:event,admin_id:'attacker'},{Authorization:'Bearer valid','x-evento-autorizado':'forged'});
+    assert.equal(res.status,200); assert.equal((await res.json()).evento_id,event);
+    assert.ok(e.queries.find(q=>q.tabla==='usuarios_eventos').filters.some(f=>f[1]==='usuario_id'&&f[2]===USER));count++;
+  }
+  // Actual loopback HTTP transport; backend remains simulated, explicitly.
+  const e=entorno('verificar-personal');
+  const server=http.createServer(async (req,res)=>{
+    const chunks=[];for await(const c of req)chunks.push(c);
+    const response=await e.call(JSON.parse(Buffer.concat(chunks).toString()||'{}'),req.headers);
+    res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try {
+    const url=`http://127.0.0.1:${server.address().port}`;
+    assert.equal((await fetch(url,{method:'POST',body:'{}'})).status,401);count++;
+    const res=await fetch(url,{method:'POST',headers:{Authorization:'Bearer valid'},body:JSON.stringify({evento_id:CHIAPAS})});
+    assert.equal(res.status,200);assert.equal((await res.json()).evento_id,CHIAPAS);count++;
+  } finally { await new Promise(resolve=>server.close(resolve)); }
+  console.log(`${count} comprobaciones aprobadas. Supabase simulado; transporte HTTP local real.`);
+})().catch(e=>{console.error(e);process.exitCode=1;});

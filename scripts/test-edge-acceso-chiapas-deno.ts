@@ -5,10 +5,13 @@ const CHIAPAS = "3dc92160-79af-4bf7-b770-263038e88900";
 const RADEVS = "43e67bda-d19d-4c0e-a639-e85f2d62f294";
 const FUENTE = "supabase/functions/consultar-acceso-evento/index.ts";
 
-const original = await Deno.readTextFile(FUENTE);
+// Legacy QR-handler test; shared guard has a separate executable matrix.
+const original = (await Deno.readTextFile(FUENTE))
+  .replace(/^import .*_shared\/evento[^\n]*\n/m, '')
+  .replace(/serveEvento\(\{[^\n]+?\}, /, 'Deno.serve(');
 
 const importOriginal =
-  "import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';";
+  "import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';";
 
 const inicioOriginal = "Deno.serve(async req=>{";
 
@@ -19,11 +22,11 @@ assert(/\}\);\s*$/.test(original));
 const codigo = original
   .replace(
     importOriginal,
-    "const createClient = (globalThis as any).__crearClientePrueba;"
+    "const createClient = (globalThis as typeof globalThis & { __crearClientePrueba: unknown }).__crearClientePrueba;"
   )
   .replace(
     inicioOriginal,
-    "(globalThis as any).__manejadorEdge = async (req: Request) => {"
+    "(globalThis as typeof globalThis & { __manejadorEdge: (req: Request) => Promise<Response> }).__manejadorEdge = async (req: Request) => {"
   )
   .replace(/\}\);\s*$/, "};");
 
@@ -43,7 +46,7 @@ function consulta(data: unknown) {
   };
 }
 
-(globalThis as any).__crearClientePrueba = (
+(globalThis as typeof globalThis & { __crearClientePrueba: unknown }).__crearClientePrueba = (
   _url: string,
   clave: string
 ) => {
@@ -102,7 +105,7 @@ try {
 
   await import(pathToFileURL(temporal).href);
 
-  const manejar = (globalThis as any).__manejadorEdge;
+  const manejar = (globalThis as typeof globalThis & { __manejadorEdge: (req: Request) => Promise<Response> }).__manejadorEdge;
 
   assert.equal(typeof manejar, "function");
 

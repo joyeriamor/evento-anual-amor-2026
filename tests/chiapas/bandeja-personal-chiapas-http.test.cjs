@@ -292,6 +292,8 @@ function entorno(caso) {
   vm.runInNewContext(compilacion.outputText, {
     exports: {},
     require(nombre) {
+    // Legacy handler unit tests; the real shared guard is tested by aislamiento-eventos.test.cjs.
+    if (nombre.includes('_shared/evento')) return { CHIAPAS: '3dc92160-79af-4bf7-b770-263038e88900', RADEVS: '43e67bda-d19d-4c0e-a639-e85f2d62f294', serveEvento: (_opciones, fn) => { manejar = fn; } };
       if (nombre.includes("supabase-js")) {
         return { createClient };
       }

@@ -7,7 +7,10 @@ const CHIAPAS = "3dc92160-79af-4bf7-b770-263038e88900";
 const RADEVS = "43e67bda-d19d-4c0e-a639-e85f2d62f294";
 const ruta = "supabase/functions/consultar-acceso-evento/index.ts";
 
-const fuente = fs.readFileSync(ruta, "utf8");
+// Legacy QR-handler unit test; shared guard is exercised by aislamiento-eventos.test.cjs.
+const fuente = fs.readFileSync(ruta, "utf8")
+  .replace(/^import .*_shared\/evento[^\n]*\n/m, '')
+  .replace(/serveEvento\(\{[^\n]+?\}, /, 'Deno.serve(');
 const importacion = /^import \{ createClient \} from ['"][^'"]+['"];?/m;
 
 assert.match(fuente, importacion);
