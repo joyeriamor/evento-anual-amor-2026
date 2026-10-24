@@ -18,24 +18,32 @@ Deno.serve(async req=>{
     if(!perfil?.activo||!['administrador','acceso'].includes(perfil.rol))return json({ok:false,error:'Sin permiso'},403);
     const {token,evento_id:eventoId}=await req.json();
 
-    const eventosPermitidos = [
-      "43e67bda-d19d-4c0e-a639-e85f2d62f294",
-      "3dc92160-79af-4bf7-b770-263038e88900"
-    ];
+    // Esta Edge Function es exclusiva de Chiapas.
+    const EVENTO_CHIAPAS = "3dc92160-79af-4bf7-b770-263038e88900";
 
-    if (!eventosPermitidos.includes(eventoId)) {
-      return new Response(
-        JSON.stringify({
-          ok:false,
-          error:"Evento no valido"
-        }),
-        {
-          status:400,
-          headers:{"Content-Type":"application/json"}
-        }
-      );
-    };
-    if(typeof token!=='string'|| !/^[a-fA-F0-9]{64}$/.test(token))return json({ok:true,ficha:{ok:false,estado:'qr_invalido'}});
+    if(eventoId !== EVENTO_CHIAPAS){
+      return json({ok:false,error:"Evento no permitido"},400);
+    }
+
+    // Comprobar la asignacion real del operador.
+    const {data:permiso,error:errorPermiso}=await admin
+      .from('usuarios_eventos')
+      .select('usuario_id')
+      .eq('usuario_id',user.id)
+      .eq('evento_id',EVENTO_CHIAPAS)
+      .eq('activo',true)
+      .maybeSingle();
+
+    if(errorPermiso)throw errorPermiso;
+
+    if(!permiso){
+      return json({ok:false,error:"Sin permiso para Chiapas"},403);
+    }
+
+    // El SQL volvera a validar operador, evento y QR.
+    if(typeof token!=='string'|| !/^[a-fA-F0-9]{64}$/.test(token)){
+      return json({ok:true,ficha:{ok:false,estado:'qr_invalido'}});
+    }
     const {data:ficha,error}=await auth.rpc('consultar_qr_acceso_evento',{
       p_token:token,
       p_evento_id:eventoId
