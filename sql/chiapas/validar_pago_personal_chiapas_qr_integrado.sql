@@ -74,11 +74,11 @@ BEGIN
         RAISE EXCEPTION 'Motivo demasiado largo';
     END IF;
 
-    SELECT *
+    SELECT p.*
     INTO v_pago
-    FROM public.pagos
-    WHERE id = p_pago_id
-    FOR UPDATE;
+    FROM public.pagos p JOIN public.registros r ON r.id=p.registro_id
+    WHERE p.id=p_pago_id AND r.evento_id='3dc92160-79af-4bf7-b770-263038e88900'::uuid
+    FOR UPDATE OF p;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'El pago no existe';

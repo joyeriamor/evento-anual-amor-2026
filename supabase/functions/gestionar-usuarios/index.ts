@@ -140,21 +140,15 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
         user_metadata: { nombre },
       });
       if (createError || !creado.user) return respond({ ok: false, error: 'No se pudo crear el usuario.' }, 400);
-      const { error: insertError } = await db.from('usuarios').upsert({
-        id: creado.user.id, nombre, nombre_usuario: nombreUsuario, rol, activo: true,
-      }, { onConflict: 'id' });
+      const { error: insertError } = await db.rpc('crear_perfil_evento_interno', {
+        p_admin_id: user.id, p_evento_id: eventoId, p_usuario_id: creado.user.id,
+        p_nombre: nombre, p_nombre_usuario: nombreUsuario, p_rol: rol,
+      });
       if (insertError) {
         const { error: deleteError } = await db.auth.admin.deleteUser(creado.user.id);
-        if (deleteError) console.error('No se pudo revertir creación incompleta:', deleteError.message);
-        return respond({ ok: false, error: insertError.code === '23505' ? 'Ese usuario ya existe.' : 'No se pudo guardar el empleado.' }, 400);
+        if (deleteError) console.error('No se pudo revertir creación Auth:', deleteError.message);
+        return respond({ ok: false, error: insertError.code === '23505' ? 'Ese usuario ya existe.' : 'No se pudo crear el perfil y su asignación.' }, 400);
       }
-      const { error: asignacionError } = await db.from('usuarios_eventos').insert({ usuario_id: creado.user.id, evento_id: eventoId, activo: true });
-      if (asignacionError) {
-        await db.from('usuarios').delete().eq('id', creado.user.id);
-        await db.auth.admin.deleteUser(creado.user.id);
-        return respond({ ok: false, error: 'No se pudo asignar el usuario al evento' }, 503);
-      }
-      await auditar('crear_usuario', creado.user.id, { nombre, nombre_usuario: nombreUsuario, rol });
       return respond({ ok: true, id: creado.user.id });
     }
 

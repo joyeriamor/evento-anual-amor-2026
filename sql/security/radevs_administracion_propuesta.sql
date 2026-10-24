@@ -86,11 +86,11 @@ BEGIN
     END IF;
 
     -- Bloquear el pago durante la operación.
-    SELECT *
+    SELECT p.*
     INTO v_pago
-    FROM public.pagos
-    WHERE id = p_pago_id
-    FOR UPDATE;
+    FROM public.pagos p JOIN public.registros r ON r.id=p.registro_id
+    WHERE p.id=p_pago_id AND r.evento_id='43e67bda-d19d-4c0e-a639-e85f2d62f294'::uuid
+    FOR UPDATE OF p;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Pago inexistente';
@@ -435,7 +435,7 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM public.usuarios_eventos ue
         JOIN public.usuarios u ON u.id=ue.usuario_id
-        WHERE ue.usuario_id = p_admin_id AND u.activo IS TRUE AND u.rol='administrador'
+        WHERE ue.usuario_id = p_admin_id AND u.activo IS TRUE AND u.rol IN ('administrador','validador')
           AND ue.evento_id = '43e67bda-d19d-4c0e-a639-e85f2d62f294'::uuid
           AND ue.activo IS TRUE
     ) THEN RAISE EXCEPTION 'Sin asignacion activa RADEVS'; END IF;
@@ -638,7 +638,6 @@ REVOKE ALL ON FUNCTION public.autorizar_cortesia_admin(uuid,uuid) FROM PUBLIC, a
 GRANT EXECUTE ON FUNCTION public.autorizar_cortesia_admin(uuid,uuid) TO service_role;
 REVOKE ALL ON FUNCTION public.recuperar_invitacion_admin(uuid,uuid,boolean) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.recuperar_invitacion_admin(uuid,uuid,boolean) TO service_role;
-REVOKE ALL ON FUNCTION public.emitir_invitacion_admin_interna(uuid,uuid,boolean) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.emitir_invitacion_admin_interna(uuid,uuid,boolean) TO service_role;
+REVOKE ALL ON FUNCTION public.emitir_invitacion_admin_interna(uuid,uuid,boolean) FROM PUBLIC, anon, authenticated, service_role;
 
 COMMIT;
