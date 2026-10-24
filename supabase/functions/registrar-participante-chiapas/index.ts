@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.117.3";
 
 // Este endpoint es público porque no requiere cuenta; la protección obligatoria
 // es Turnstile + validaciones de servidor y un interruptor independiente.
@@ -127,7 +127,7 @@ async function hashLimite(ip: string, secreto: string): Promise<string> {
   return Array.from(firma, byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function comprobarLimiteRegistro(req: Request, supabase: ReturnType<typeof createClient>): Promise<
+async function comprobarLimiteRegistro(req: Request, supabase: SupabaseClient): Promise<
   "permitido" | "limitado" | "error"
 > {
   const secreto = Deno.env.get("REGISTRO_RATE_LIMIT_SECRET");

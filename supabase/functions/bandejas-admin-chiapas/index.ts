@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serveEvento, CHIAPAS } from "../_shared/evento.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +15,7 @@ function json(payload: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
+serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: cors });
   }

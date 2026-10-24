@@ -1,6 +1,7 @@
+import { serveEvento, CHIAPAS } from "../_shared/evento.ts";
 
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+
+import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +23,7 @@ function responder(
   });
 }
 
-serve(async (req) => {
+serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -299,6 +300,12 @@ serve(async (req) => {
       );
     }
 
+
+    const { data: objetivo, error: objetivoError } = await admin.from("pagos")
+      .select("id,registros!inner(evento_id)").eq("id", pagoId)
+      .eq("registros.evento_id", CHIAPAS).maybeSingle();
+    if (objetivoError) return responder({ ok: false, error: "No se pudo verificar el pago" }, 503);
+    if (!objetivo) return responder({ ok: false, error: "Pago no encontrado" }, 404);
 
     // RPC protegida: únicamente service_role.
     // PostgreSQL comprueba nuevamente el rol

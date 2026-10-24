@@ -1,7 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serveEvento, CHIAPAS } from "../_shared/evento.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 const cors = {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json'}})}
-Deno.serve(async req=>{
+serveEvento({ roles: ['administrador', 'acceso'], evento: CHIAPAS }, async req=>{
   if(req.method==='OPTIONS')return new Response(null,{headers:cors});
   if(req.method!=='POST')return json({ok:false,error:'Método no permitido'},405);
   try {
@@ -50,7 +51,7 @@ Deno.serve(async req=>{
     });
     if(error)throw error;
     if(!ficha?.ok)return json({ok:true,ficha});
-    const {data:registro}=await admin.from('registros').select('promotora_id,asesor_id').eq('id',ficha.registro_id).single();
+    const {data:registro}=await admin.from('registros').select('promotora_id,asesor_id').eq('id',ficha.registro_id).eq('evento_id',CHIAPAS).single();
     if(!registro)return json({ok:false,error:'Registro inexistente'},404);
     const {data:promotora}=await admin.from('promotoras').select('nombres,apellidos,telefono_whatsapp,foto_path').eq('id',registro.promotora_id).single();
     let asesor='';

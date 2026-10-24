@@ -1,6 +1,7 @@
+import { serveEvento, CHIAPAS } from "../_shared/evento.ts";
 
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+
+import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,7 +29,7 @@ const uuidRegex =
 
 type Accion = "cortesia" | "recuperar" | "reemitir";
 
-serve(async (req) => {
+serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -222,6 +223,11 @@ serve(async (req) => {
       );
     }
 
+
+    const { data: objetivo, error: objetivoError } = await admin.from("registros")
+      .select("id").eq("id", registroId).eq("evento_id", CHIAPAS).maybeSingle();
+    if (objetivoError) return responder({ ok: false, error: "No se pudo verificar la inscripción" }, 503);
+    if (!objetivo) return responder({ ok: false, error: "Inscripción no encontrada" }, 404);
 
     let resultado: unknown;
     let errorRPC: { message: string } | null = null;

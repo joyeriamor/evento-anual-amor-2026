@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serveEvento, CHIAPAS } from "../_shared/evento.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ const LIMITE = 20;
 const MAX_CONSULTA = 500;
 const EVENTO_CHIAPAS_ID = '3dc92160-79af-4bf7-b770-263038e88900';
 
-Deno.serve(async req => {
+serveEvento({ roles: ['administrador', 'validador', 'recepcion'], evento: CHIAPAS }, async req => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
   if (req.method !== 'POST') return json({ ok: false, error: 'Método no permitido' }, 405);
   try {
@@ -112,7 +113,12 @@ Deno.serve(async req => {
         fecha: r.created_at,
       };
     };
-    let filas = tipo === 'pagos'
+    type FilaBandeja = ReturnType<typeof fila> & {
+      pago_id: string | null; pago_estado: string | null;
+      importe: number | null | undefined; referencia: string | null | undefined;
+      comprobante_path: string | null | undefined;
+    };
+    let filas: FilaBandeja[] = tipo === 'pagos'
       ? bases.flatMap(p => {
           const r = registroPorId.get(p.registro_id);
           return r ? [{ ...fila(r), pago_id: p.id, pago_estado: p.estado, importe: p.importe,
