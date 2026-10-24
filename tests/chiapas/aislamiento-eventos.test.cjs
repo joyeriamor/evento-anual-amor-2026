@@ -12,7 +12,7 @@ const ID = 'bb111111-1111-4111-8111-111111111111';
 const endpoints = ['validar-pago','administrar-invitacion','bandejas-admin','bandeja-personal',
   'validar-pago-chiapas','administrar-invitacion-chiapas','bandejas-admin-chiapas','bandeja-personal-chiapas',
   'listar-participantes','detalle-participante','consultar-acceso','consultar-acceso-evento',
-  'resumen-accesos','gestionar-usuarios','registrar-prueba-admin','resumen-cupo-evento','verificar-personal'];
+  'resumen-accesos','gestionar-usuarios','registrar-prueba-admin','resumen-cupo-evento','verificar-personal','verificar-admin','probar-limite-registro'];
 function entorno(nombre, estado = {}) {
   let handler;
   const queries = [], rpc = [], signed = [];
@@ -34,14 +34,14 @@ function entorno(nombre, estado = {}) {
     return builder;
   }
   const db = { from, auth: { getUser: async token => ({ data: { user: estado.invalido || token === 'invalid' ? null : { id: USER } }, error: null }) },
-    rpc: async (name,args) => { rpc.push([name,args]); return { data: { ok: true, total: 0, registros: [], capacidad: 500 }, error: null }; },
+    rpc: async (name,args) => { rpc.push([name,args]); return { data: name === 'comprobar_limite_registro' ? estado.limitePermitido !== false : { ok: true, total: 0, registros: [], capacidad: 500 }, error: null }; },
     storage: { from: bucket => ({ createSignedUrl: async p => { signed.push([bucket,p]); return { data: { signedUrl: 'signed' } }; } }) } };
   function load(file) {
     const output = ts.transpileModule(fs.readFileSync(file,'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
     const exports = {};
     vm.runInNewContext(output.outputText, { exports, require: name => name.includes('supabase-js') ? { createClient: () => db } : load(path.resolve(path.dirname(file),name)),
       Deno: { serve: f => { handler = f; }, env: { get: () => 'local-test-only' } },
-      Request, Response, Headers, TextDecoder, TextEncoder, Uint8Array, console,
+      Request, Response, Headers, TextDecoder, TextEncoder, Uint8Array, console, crypto,
     }, { filename: file });
     return exports;
   }
@@ -84,6 +84,24 @@ async function check(name, state, body, headers, expected) {
     const res=await e.call({evento_id:event,admin_id:'attacker'},{Authorization:'Bearer valid','x-evento-autorizado':'forged'});
     assert.equal(res.status,200); assert.equal((await res.json()).evento_id,event);
     assert.ok(e.queries.find(q=>q.tabla==='usuarios_eventos').filters.some(f=>f[1]==='usuario_id'&&f[2]===USER));count++;
+  }
+  for (const event of [RADEVS,CHIAPAS]) {
+    const e=entorno('verificar-admin');
+    const response=await e.call({evento_id:event,admin_id:ID},{Authorization:'Bearer valid'});
+    assert.equal(response.status,200);const payload=await response.json();
+    assert.equal(payload.autorizado,true);assert.equal(payload.usuario.id,USER);
+    assert.ok(e.queries.find(q=>q.tabla==='usuarios_eventos').filters.some(f=>f[1]==='evento_id'&&f[2]===event));count++;
+  }
+  await check('probar-limite-registro',{}, {evento_id:CHIAPAS},{Authorization:'Bearer valid'},403);
+  for(const allowed of [true,false]) {
+    const e=entorno('probar-limite-registro',{limitePermitido:allowed});
+    const response=await e.call({}, {Authorization:'Bearer valid','x-forwarded-for':'127.0.0.1'});
+    assert.equal(response.status,allowed?200:429);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal(e.rpc.length,1);assert.equal(e.rpc[0][0],'comprobar_limite_registro');
+    const key=await crypto.subtle.importKey('raw',new TextEncoder().encode('local-test-only'),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+    const hash=Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(`prueba:registro:${RADEVS}:ip:127.0.0.1`)))).map(b=>b.toString(16).padStart(2,'0')).join('');
+    assert.equal(e.rpc[0][1].p_clave,hash);count++;
   }
   // Actual loopback HTTP transport; backend remains simulated, explicitly.
   const e=entorno('verificar-personal');

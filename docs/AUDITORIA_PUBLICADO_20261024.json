@@ -1,0 +1,469 @@
+{
+  "proyecto": "rkjlqxxmxbiciuhtpnpf",
+  "fecha_utc": "2026-10-24T22:58:32.780Z",
+  "alcance": "Solo catálogo y código; sin filas reales, secretos o invocaciones de negocio.",
+  "catalogo_coincide": true,
+  "comparacion_catalogo": {
+    "tables": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "columns": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "constraints": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "triggers": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "policies": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "indexes": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "extensions": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "buckets": {
+      "faltan": [],
+      "adicionales": []
+    },
+    "functions": {
+      "faltan": [],
+      "adicionales": []
+    }
+  },
+  "edge": [
+    {
+      "nombre": "probar-limite-registro",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "d614a899a796e65aad93f0fe93ec4faebf5b9fb57e2f80420c76c57ba5b665fa",
+      "sha256_local": "105c1ab27ba38938e1ae6fa85eceb43978cb27629ba26e77a4d7b336db7543ea",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "comprobar_limite_registro"
+      ],
+      "rpc_locales": [
+        "comprobar_limite_registro"
+      ],
+      "tablas_publicadas": [],
+      "tablas_locales": [],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "verificar-admin",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "6651a04d3264f68bd6e6dc79012177fa0184612ec3637ddd66428ca71049c18a",
+      "sha256_local": "dfeff03e789ba28c1b394a7dee847aa3e77898e4d8e63d3e4663549c14d31fd4",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "listar-participantes",
+      "version": 7,
+      "verify_jwt": true,
+      "sha256_publicado": "4005ec5fbacd08781bf5ddd523d9d6cbd0ba92ba99f95c1b5f9d34844f52967c",
+      "sha256_local": "6012c5ee14dbd3d90ad9f51b2df777229b927966b5bb7097f4c6c87bf37a56b8",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "detalle-participante",
+      "version": 8,
+      "verify_jwt": true,
+      "sha256_publicado": "5a64974213d55996a6c205e69cfc8bfe313408021d4a20983ddd21c0b5856c84",
+      "sha256_local": "29daf65063fb5e547765e8a788a67b4951e7e1431b48c9b4822c6d7eae2e2ec7",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "asesores",
+        "eventos",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "asesores",
+        "eventos",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "validar-pago",
+      "version": 10,
+      "verify_jwt": true,
+      "sha256_publicado": "a45f9daff6a994bfddfaa53bf31dfe05e6e118adae7ab2efd147524eb4799c88",
+      "sha256_local": "fa6569d4c9bfc9b95bbaec0f2589c7d49171f4db301353f803dea1764f4dac8c",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "validar_pago_admin"
+      ],
+      "rpc_locales": [
+        "validar_pago_admin"
+      ],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "pagos",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "administrar-invitacion",
+      "version": 8,
+      "verify_jwt": true,
+      "sha256_publicado": "9f68c6b0bc2dfbfb9b36a76c106f423175760d441a13945d951629b1d0ec1646",
+      "sha256_local": "e2ff89f0744b02b379f30b8ce67360c579e1ba5f608ad9eb80d4807986f02344",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "autorizar_cortesia_admin",
+        "recuperar_invitacion_admin"
+      ],
+      "rpc_locales": [
+        "autorizar_cortesia_admin",
+        "recuperar_invitacion_admin"
+      ],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "consultar-acceso",
+      "version": 7,
+      "verify_jwt": true,
+      "sha256_publicado": "1eed25a404b914873c8e0f79b6696f3cff611f01e43896c2c30bd4903dfa782e",
+      "sha256_local": "92d1155412905d9ebbc82425bf93b5055bbf51f6008e0cb2b6dc1a8012b4047c",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "consultar_qr_acceso"
+      ],
+      "rpc_locales": [
+        "consultar_qr_acceso"
+      ],
+      "tablas_publicadas": [
+        "asesores",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "asesores",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "resumen-accesos",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "c1fc2df332bfcded15404cc7c029b523c4d7bc90ae3e572424213d2a088159ef",
+      "sha256_local": "07a9fef272dce8ce1fec5c493b9b34b71520e673fd86112c730cb340c156273b",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "accesos",
+        "asesores",
+        "invitaciones",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "accesos",
+        "asesores",
+        "invitaciones",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "bandejas-admin",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "7fdebcce47f2cde90a7af92d6102f29d18b8838a627c92e582cae9e405f61478",
+      "sha256_local": "b72a31b867f4169776e5680e8ef2968db21df4c6fad79718a11b3c772f0013d9",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [
+        "bandejas_admin_paginadas"
+      ],
+      "tablas_publicadas": [
+        "asesores",
+        "invitaciones",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "gestionar-usuarios",
+      "version": 9,
+      "verify_jwt": true,
+      "sha256_publicado": "c6b20691ee61ebb1126bd20d1d5091b428e0f3bcd9a5a9322ef01828eb4d282d",
+      "sha256_local": "8715563f93f79cdbcaa86635752edaa1bb2bde69ef1bc8e249f60fd9a7c5926e",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [
+        "crear_perfil_evento_interno"
+      ],
+      "tablas_publicadas": [
+        "auditoria",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "auditoria",
+        "usuarios",
+        "usuarios_eventos"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "verificar-personal",
+      "version": 7,
+      "verify_jwt": true,
+      "sha256_publicado": "31555aa0fabd5a8410ea57d9c3d4196203364d61579124a34e3fda5313a15027",
+      "sha256_local": "51eb45505c3e77327f92e8f532609b188f0d8e2e05a21a43ec772d96a97cd7c3",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "bandeja-personal",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "d166db83c4f3ced213d74df25b1ed41d0346a8445cf56f03a6518d15ded08ad8",
+      "sha256_local": "38e73a3145f24783d1a35edd92e70480963a37dd8ad00cb07fc4313cc4155e81",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "comprobantes-pago",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "comprobantes-pago",
+        "pagos",
+        "promotoras",
+        "registros",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "iniciar-sesion-usuario",
+      "version": 10,
+      "verify_jwt": false,
+      "sha256_publicado": "ef2b2a7500562cdcd08f0894cfdef4a2026fea417d751506a835d72c079a467b",
+      "sha256_local": "80b04163340d7f2a088121bf69a4a03dba330aa412993dabfb67fb5fcffd37d2",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "comprobar_limite_login"
+      ],
+      "rpc_locales": [
+        "comprobar_limite_login"
+      ],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "usuarios",
+        "usuarios_eventos"
+      ],
+      "guard_local": false,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "registrar-participante-v2",
+      "version": 9,
+      "verify_jwt": false,
+      "sha256_publicado": "8ef5ba20a9b25af81d6c98d0dc23995f40f7670a686478148466b79481a5cc70",
+      "sha256_local": "87ad01db8f19dad97cd97131af48bd6c1a4e0c688b624e642b4d762f6ea6ce99",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "comprobar_limite_registro",
+        "crear_registro_publico_v3"
+      ],
+      "rpc_locales": [
+        "comprobar_limite_registro",
+        "crear_registro_publico_v3"
+      ],
+      "tablas_publicadas": [
+        "asesores"
+      ],
+      "tablas_locales": [
+        "asesores"
+      ],
+      "guard_local": false,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "listar-asesores-registro",
+      "version": 6,
+      "verify_jwt": false,
+      "sha256_publicado": "feb148371996fab1b067fa967e932a5fcdda4130a7b753fa18b50c7dcb86ebf2",
+      "sha256_local": "f130152a697e5f8e32301ecd17cd8ba3ccfd9b247b2086da8ffe283b3bb890b7",
+      "mismo_contenido": false,
+      "rpc_publicadas": [],
+      "rpc_locales": [],
+      "tablas_publicadas": [
+        "asesores"
+      ],
+      "tablas_locales": [
+        "asesores"
+      ],
+      "guard_local": false,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "registrar-prueba-admin",
+      "version": 7,
+      "verify_jwt": true,
+      "sha256_publicado": "19174eadf703a91ee590d26c9d6d1bac851a0298c783442a088eb97b02040612",
+      "sha256_local": "14ab0c6126ef3387dbe0d3ac34cffa6cb75c3cdb144e76952114b6ed37ef6e3e",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "crear_registro_prueba_admin_v2"
+      ],
+      "rpc_locales": [
+        "crear_registro_prueba_admin_v2"
+      ],
+      "tablas_publicadas": [
+        "asesores",
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "asesores",
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    },
+    {
+      "nombre": "resumen-cupo-evento",
+      "version": 6,
+      "verify_jwt": true,
+      "sha256_publicado": "2e0f2c56c6a50f40125be5dc8759dc64ac6d0e8090cde2f0f737f150813b83e3",
+      "sha256_local": "402db448ccb6d33f186c73616f446e7b460dae2e1a5f7eb95bf688902f871398",
+      "mismo_contenido": false,
+      "rpc_publicadas": [
+        "resumen_cupo_evento_interno"
+      ],
+      "rpc_locales": [
+        "resumen_cupo_evento_interno"
+      ],
+      "tablas_publicadas": [
+        "usuarios"
+      ],
+      "tablas_locales": [
+        "usuarios"
+      ],
+      "guard_local": true,
+      "asignacion_directa_publicada": false,
+      "observacion": "Comparación estática; revisar contratos y dependencias antes de publicar."
+    }
+  ],
+  "solo_local": [
+    "administrar-invitacion-chiapas",
+    "bandeja-personal-chiapas",
+    "bandejas-admin-chiapas",
+    "consultar-acceso-evento",
+    "registrar-participante",
+    "registrar-participante-chiapas",
+    "validar-pago-chiapas"
+  ],
+  "solo_publicado": [],
+  "limites": "La revisión estática no prueba Auth/Storage/Vault ni el frontend publicado. No acredita ausencia de vulnerabilidades."
+}

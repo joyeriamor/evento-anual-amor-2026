@@ -72,3 +72,7 @@ La ejecución completa de `scripts/verificar-local.cjs` finalizó con código 0:
 Al comprobar los rollback por etapas se detectó que el constructor local del catálogo omitía el privilegio PostgreSQL `MAINTAIN`; se incorporó para reproducir el ACL catalogado y comparar la restauración completa. Esto modifica exclusivamente el entorno de pruebas, no los permisos en producción.
 
 Queda terminado el desarrollo local y la preparación separada. Faltan la comparación final de versiones publicadas, el acceso administrativo seguro para pruebas reales, su ejecución y limpieza, la aprobación concreta de las etapas compartida/RADEV’S y la publicación coordinada de SQL, Edge y frontend. Las inscripciones de Chiapas no se habilitan con esta entrega.
+
+## Revisión posterior de lo publicado
+
+La comparación de catálogo y las 17 Edge activas se documenta en `REVISION_PUBLICADO_CHIAPAS_2026.md`. Se incorporaron localmente las dos rutas antiguas faltantes: `verificar-admin` (comprobación compartida por evento) y `probar-limite-registro` (herramienta original RADEV’S restringida a administradores y con contador de pruebas separado). No se publicaron. La revisión detectó un perfil activo sin asignación activa y ausencia de cuentas activas asignadas a Chiapas; deben resolverse antes de publicar.
