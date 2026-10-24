@@ -1,0 +1,18 @@
+{
+  "resultado": "APROBADO",
+  "casos": 31,
+  "rollback_sin_tablas_de_ensayo": true,
+  "alcance": "Solo pg_temp y datos ficticios; Vault simulado; sin Auth/Storage ni escrituras en public",
+  "fecha": "2026-10-24",
+  "proyecto": "FIESTAANUAL26",
+  "tipo": "Ensayo SQL ejecutado en PostgreSQL de Supabase; objetos exclusivamente pg_temp",
+  "sql": "sql/security/ensayo_multievento_pg_temp_rollback.sql",
+  "sql_sha256": "7502dec439d991305643153cedd02d364c8c49787787f8d11cbfe1c5ff320308",
+  "funciones_public_y_acl_sin_cambios": "Verificado dentro de los 31 casos por huella del catálogo antes/después",
+  "limites": [
+    "Vault simulado con tabla temporal",
+    "Claims JWT ficticios para comprobar reglas SQL; no son usuarios ni sesiones Auth reales",
+    "Sin llamadas a Auth o Storage",
+    "No aplica la migración ni publica Edge Functions"
+  ]
+}

@@ -7,7 +7,7 @@ Repositorio: `C:\PROYECTOS\FIESTAANUAL26`, montado en `/Volumes/Proyectos/FIESTA
 
 **El usuario eligió expresamente terminar solo el desarrollo local y rechazó crear una rama Supabase con costo.** Se completa ese alcance: código, migración y rollback locales, pruebas reproducibles y plan de despliegue. Esto no declara que el código nuevo esté desplegado ni que los servicios de producción hayan sido validados con él.
 
-No se modificaron registros reales, estados de inscripción, esquema remoto, funciones publicadas ni almacenamiento real. Se realizaron consultas de catálogo en modo lectura. No se creó ninguna rama/proyecto Supabase, no hubo push, merge ni despliegue. Se conservaron los `.bak`, archivos sin seguimiento y cambios ajenos a esta entrega. No se copiaron filas personales, tokens de invitación ni secretos de producción a las fixtures.
+No se modificaron registros reales, estados de inscripción, esquema persistente, funciones publicadas ni almacenamiento real. Se realizaron consultas de catálogo en modo lectura. No se creó ninguna rama/proyecto Supabase, no hubo push, merge ni despliegue. Se conservaron los `.bak`, archivos sin seguimiento y cambios ajenos a esta entrega. No se copiaron filas personales, tokens de invitación ni secretos de producción a las fixtures.
 
 ## Operación implementada
 
@@ -69,7 +69,7 @@ Snapshots estructurales, sin filas reales: `tests/fixtures/catalogo_esquema_2026
 
 Las 77 comprobaciones nuevas incluyen la migración íntegra **sin omitir preflights**, altas de ambos eventos con mismo teléfono, duplicados dentro del evento, perfiles atómicos, grupo ajeno, aprobación por ambos validadores, recuperación y reemisión, QR revocado/ajeno/duplicado, cifrado real en reposo mediante pgcrypto, máximos 1500/500 aun con configuración excesiva, rollback completo con comparación de hashes/ACL y rechazo sin efectos de una migración ante drift deliberado.
 
-Auth, Storage y Vault en la integración SQL son **adaptadores locales**. El adaptador Vault cifra realmente mediante pgcrypto, pero no es la extensión Supabase Vault. Las pruebas no acreditan servicios Supabase reales ni concurrencia multisesión. No se ejecutaron operaciones de ensayo sobre producción, tampoco con ROLLBACK.
+Auth, Storage y Vault en la integración SQL son **adaptadores locales**. El adaptador Vault cifra realmente mediante pgcrypto, pero no es la extensión Supabase Vault. Las pruebas no acreditan servicios Supabase reales ni concurrencia multisesión. Posteriormente, con autorización del usuario para continuar con el método de ensayos con ROLLBACK, se ejecutó el ensayo aislado descrito abajo. No se escribió en tablas de producción ni se reemplazaron funciones de public.
 
 ## Reproducción
 
@@ -95,3 +95,17 @@ Comandos individuales: `npm run test:security`, `npm run test:sql`, `npm run tes
 6. Ante regresión, restaurar las versiones previas de frontend/Edge y ejecutar el rollback estructural exacto. El rollback no es una reversión de operaciones de negocio posteriores al despliegue: no borra pagos ni accesos.
 
 **Cierre:** desarrollo local completado y probado dentro del alcance elegido. Publicación, pruebas contra servicios Supabase reales y apertura de registros permanecen fuera de la autorización.
+
+## Ensayo posterior autorizado con ROLLBACK
+
+El usuario autorizó continuar con los ensayos SQL existentes. Se revisaron: algunos reemplazaban funciones de public o escribían en tablas reales antes del rollback; otros usaban versiones anteriores de los cuerpos de función. No se ejecutaron esos archivos antiguos sobre el servidor.
+
+Se generó `sql/security/ensayo_multievento_pg_temp_rollback.sql` a partir de las funciones finales ya migradas en la base local. Sus tablas se clonan sin filas mediante LIKE en pg_temp, sus funciones y triggers apuntan explícitamente a pg_temp y los bloqueos consultivos usan un prefijo de ensayo con el PID de conexión. Se comprueba que la secuencia de auditoría también sea temporal. Las referencias a Vault se sustituyen por una tabla temporal. Los actores, solicitudes y registros son ficticios.
+
+**Resultado real de la ejecución en PostgreSQL de Supabase: APROBADO, 31 casos, `rollback_sin_tablas_de_ensayo=true`.** Se comprobó dentro de la transacción que las definiciones y ACL de todas las funciones de public conservaran la huella inicial. No se aplicó la migración, se modificaron filas reales ni se invocaron Auth, Storage o Vault reales.
+
+Incluye registros independientes, teléfono repetido entre eventos, duplicado dentro del evento, cuota $300, empleado rechazado en Chiapas, archivo ajeno, aprobación por validadores, pagos cruzados invisibles, recuperación/reemisión, cortesías, bandejas aisladas, QR ajeno/revocado/duplicado, asignación inactiva y conservación de estados/cupos. Después del ROLLBACK la respuesta confirmó la desaparición de las tablas temporales.
+
+Evidencia estructurada y SHA-256 del SQL ejecutado: `docs/RESULTADO_ENSAYO_ROLLBACK_20261024.json`. El generador `scripts/preparar-ensayo-rollback.mjs` no conecta a servicios remotos. La prueba local de este ensayo comprueba su aislamiento y el rollback. El ensayo real acredita lógica SQL en PostgreSQL de Supabase; mantiene los límites de Vault simulado y claims ficticios y no equivale a pruebas HTTP de Auth/Storage o a un despliegue.
+
+Reproducción del ensayo aislado: `npm run prepare:rollback` lo genera en local y `npm run test:rollback` lo prueba en PostgreSQL embebido. Ninguno de esos comandos conecta a Supabase. La ejecución en el servidor se realizó únicamente con la autorización del usuario en esta conversación.

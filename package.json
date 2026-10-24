@@ -14,7 +14,9 @@
     "test:catalog": "node tests/chiapas/catalogo.integration.mjs",
     "check:edge": "node scripts/check-edge.cjs",
     "prepare:migration": "node scripts/preparar-migracion-eventos.mjs",
-    "test:local": "node scripts/verificar-local.cjs"
+    "test:local": "node scripts/verificar-local.cjs",
+    "prepare:rollback": "node scripts/preparar-ensayo-rollback.mjs",
+    "test:rollback": "node tests/chiapas/rollback-pg-temp.integration.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
