@@ -109,3 +109,7 @@ Incluye registros independientes, teléfono repetido entre eventos, duplicado de
 Evidencia estructurada y SHA-256 del SQL ejecutado: `docs/RESULTADO_ENSAYO_ROLLBACK_20261024.json`. El generador `scripts/preparar-ensayo-rollback.mjs` no conecta a servicios remotos. La prueba local de este ensayo comprueba su aislamiento y el rollback. El ensayo real acredita lógica SQL en PostgreSQL de Supabase; mantiene los límites de Vault simulado y claims ficticios y no equivale a pruebas HTTP de Auth/Storage o a un despliegue.
 
 Reproducción del ensayo aislado: `npm run prepare:rollback` lo genera en local y `npm run test:rollback` lo prueba en PostgreSQL embebido. Ninguno de esos comandos conecta a Supabase. La ejecución en el servidor se realizó únicamente con la autorización del usuario en esta conversación.
+
+## Continuación: entrega separada y autorización vigente
+
+El contexto adjunto posterior del usuario confirma el desarrollo local y exige aprobación específica antes de publicar. No se ha desplegado el paquete consolidado. La separación solicitada, su orden, rollback, clasificación de Edge y permisos necesarios para pruebas reales se documentan en `ENTREGA_POR_ETAPAS_CHIAPAS_2026.md`. Los paquetes alternativos están en `sql/entrega_por_etapas/`; no se deben ejecutar junto con la migración consolidada.

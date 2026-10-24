@@ -1,0 +1,179 @@
+[
+  {
+    "etapa": "01_chiapas",
+    "fuentes": [
+      "sql/chiapas/emitir_invitacion_chiapas_interna.sql",
+      "sql/chiapas/validar_pago_personal_chiapas_qr_integrado.sql",
+      "sql/chiapas/funciones_administrativas_chiapas_propuesta.sql",
+      "sql/chiapas/bandejas_admin_chiapas_paginadas_propuesta.sql"
+    ],
+    "funciones": [
+      {
+        "firma": "public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "135f86cefa4b34ed9cb6302f3cc09375"
+      },
+      {
+        "firma": "public.validar_pago_personal_chiapas(uuid, text, text)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "2d22b71f07d8661304e60bbe46cd59c5"
+      },
+      {
+        "firma": "public.validar_pago_admin_chiapas(uuid, text, text, uuid)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "10d34ed9636f053015fe0b74677876f3"
+      },
+      {
+        "firma": "public.autorizar_cortesia_admin_chiapas(uuid, uuid)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "947a07ffa5b7e4585c0fd355b702c61e"
+      },
+      {
+        "firma": "public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "71e455ee200057e400cfba23ede11156"
+      },
+      {
+        "firma": "public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "1ea175e3895e4a43f4d6976355c74ca3"
+      }
+    ]
+  },
+  {
+    "etapa": "02_compartidos",
+    "fuentes": [
+      "sql/security/qr_eventos_propuesta.sql",
+      "sql/security/perfiles_evento_propuesta.sql",
+      "sql/security/registro_multievento_propuesta.sql",
+      "sql/security/rls_storage_propuesta.sql"
+    ],
+    "funciones": [
+      {
+        "firma": "public.consultar_grupo_registro_admin(uuid)",
+        "nueva": false,
+        "hash_anterior": "ba8405ff156013c5047e079a785bd1da",
+        "hash_posterior": "a4a785d99c425830295d4bc84aee456b"
+      },
+      {
+        "firma": "public.consultar_qr_acceso_evento(text, uuid)",
+        "nueva": false,
+        "hash_anterior": "f08bf7cdab85b1e3e6020a21d95db833",
+        "hash_posterior": "9074d35dee4c5514f26871b912974b30"
+      },
+      {
+        "firma": "public.crear_inscripcion(uuid, text, text, text, text, uuid, text, text, text, uuid, text)",
+        "nueva": false,
+        "hash_anterior": "d9d29d0dd97dd4315d6bb89e1cae236d",
+        "hash_posterior": "6548f2b5ddcee0180825593dff7f1327"
+      },
+      {
+        "firma": "public.crear_registro_prueba_admin(uuid, uuid, text, text, text, text, text, text, text, text, integer)",
+        "nueva": false,
+        "hash_anterior": "2bf39bf3243dd41d716378e0c03e70a8",
+        "hash_posterior": "3bd15e646e98b325c9cd811aeb1025ea"
+      },
+      {
+        "firma": "public.crear_registro_prueba_admin_v2(uuid, uuid, text, text, text, text, text, text, text, text, text, integer)",
+        "nueva": false,
+        "hash_anterior": "cca17c5b9588046217be3807f87fba66",
+        "hash_posterior": "6cc3145ef78297cd2147a54ad6462780"
+      },
+      {
+        "firma": "public.crear_registro_publico_v2(uuid, uuid, text, text, text, text, text, text, text, text, integer)",
+        "nueva": false,
+        "hash_anterior": "f9ae24bcb095e58a2d4ed7da8bf9d8a1",
+        "hash_posterior": "af8929df22a403410f70618984d715a2"
+      },
+      {
+        "firma": "public.crear_registro_publico_v3(uuid, uuid, text, text, text, text, text, text, text, text, text, integer)",
+        "nueva": false,
+        "hash_anterior": "dd57bf93778f2bd9ed4ed53d06c4a5c7",
+        "hash_posterior": "d6e69ef8e46433f4c716c4f2937c2399"
+      },
+      {
+        "firma": "public.impedir_sobrecupo_evento()",
+        "nueva": false,
+        "hash_anterior": "a38aedde23f7ed6d098d7763d7273bf0",
+        "hash_posterior": "4f98f10af7302e9483b0c1849534d898"
+      },
+      {
+        "firma": "public.registrar_entrada_qr_evento(text, uuid)",
+        "nueva": false,
+        "hash_anterior": "eb6d3905e76f6782b628533ed959b7ec",
+        "hash_posterior": "5d72ed6a0c02dc471ba37450f5eabffd"
+      },
+      {
+        "firma": "public.crear_perfil_evento_interno(uuid, uuid, uuid, text, text, text)",
+        "nueva": true,
+        "hash_anterior": null,
+        "hash_posterior": "e473dbdaaa5acdaf065c43dbf633e064"
+      }
+    ]
+  },
+  {
+    "etapa": "03_protecciones_radevs",
+    "fuentes": [
+      "sql/security/radevs_administracion_propuesta.sql",
+      "sql/security/radevs_personal_propuesta.sql",
+      "sql/security/radevs_bandejas_propuesta.sql",
+      "sql/chiapas/qr_legacy_compatibilidad.sql"
+    ],
+    "funciones": [
+      {
+        "firma": "public.autorizar_cortesia_admin(uuid, uuid)",
+        "nueva": false,
+        "hash_anterior": "4d53670065863b2915614991c74cc2f6",
+        "hash_posterior": "0163964b993c1e7d83a846e8bc22c652"
+      },
+      {
+        "firma": "public.bandejas_admin_paginadas(text, integer, text, uuid)",
+        "nueva": false,
+        "hash_anterior": "5ceb57ad2bcdf48b25be363597e31466",
+        "hash_posterior": "6bddbbd7787e275ed6af6298b84da5de"
+      },
+      {
+        "firma": "public.consultar_qr_acceso(text)",
+        "nueva": false,
+        "hash_anterior": "810c49ef2297ac3e82fd3c168bd8b136",
+        "hash_posterior": "0d0666c19b59809b4cc650a159c50b8c"
+      },
+      {
+        "firma": "public.emitir_invitacion_admin_interna(uuid, uuid, boolean)",
+        "nueva": false,
+        "hash_anterior": "1447b79ee3ac3bf82835f1f2e0490bef",
+        "hash_posterior": "3d679752dd7c41a724632cbce7dfea89"
+      },
+      {
+        "firma": "public.recuperar_invitacion_admin(uuid, uuid, boolean)",
+        "nueva": false,
+        "hash_anterior": "ca42ec72b3b0f2b482d6c3b8e4a760ca",
+        "hash_posterior": "d0669dcc050f30b80099c236add900f0"
+      },
+      {
+        "firma": "public.registrar_entrada_qr(text)",
+        "nueva": false,
+        "hash_anterior": "7ddff3b8899841bf5df7aa09cbe0c168",
+        "hash_posterior": "40e39b0fae55216f851eb559e5881137"
+      },
+      {
+        "firma": "public.validar_pago_admin(uuid, text, text, uuid)",
+        "nueva": false,
+        "hash_anterior": "1d9dda43554b32a8f75ecec77e17fcfe",
+        "hash_posterior": "e2ebb198a3cea3f6983d07e3721d5f3b"
+      },
+      {
+        "firma": "public.validar_pago_personal(uuid, text, text)",
+        "nueva": false,
+        "hash_anterior": "d6f4bab8e43fa8a99dca3d2e1508d14e",
+        "hash_posterior": "2e7308ee690263aea10c3dd3e92cb4f7"
+      }
+    ]
+  }
+]

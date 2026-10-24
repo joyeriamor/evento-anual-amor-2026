@@ -51,7 +51,7 @@ export async function crearBaseCatalogo() {
   await db.exec(`REVOKE ALL ON public.${qi(table.nombre)} FROM PUBLIC,anon,authenticated,service_role`);
   for(const role of ['anon','authenticated','service_role']) {
    const letters=table.acl?.match(new RegExp(role+'=([^/]*)/'))?.[1]||'';
-   const perms=Object.entries({a:'INSERT',r:'SELECT',w:'UPDATE',d:'DELETE',D:'TRUNCATE',x:'REFERENCES',t:'TRIGGER'}).filter(([letter])=>letters.includes(letter)).map(([,perm])=>perm);
+   const perms=Object.entries({a:'INSERT',r:'SELECT',w:'UPDATE',d:'DELETE',D:'TRUNCATE',x:'REFERENCES',t:'TRIGGER',m:'MAINTAIN'}).filter(([letter])=>letters.includes(letter)).map(([,perm])=>perm);
    if(perms.length) await db.exec(`GRANT ${perms.join(',')} ON public.${qi(table.nombre)} TO ${role}`);
   }
  }
