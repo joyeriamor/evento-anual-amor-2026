@@ -1,4 +1,5 @@
-import { supabase } from './supabase';
+import { invocarEvento } from './evento';
+
 
 /** El servidor asigna el rol; nunca se confía en el nombre de usuario ni en metadata del navegador. */
 export type RolPantalla = 'admin' | 'validador' | 'recepcion' | 'acceso';
@@ -39,7 +40,7 @@ export async function verificarRolAccesoDetallado(token: string): Promise<Result
   if (!token) return { rol: null, error: 'La sesión no tiene un token válido.' };
 
   // La función de personal contempla TODOS los roles, incluidos administradores.
-  const { data: personal, error: errorPersonal } = await supabase.functions.invoke('verificar-personal', {
+  const { data: personal, error: errorPersonal } = await invocarEvento('verificar-personal', {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: {},

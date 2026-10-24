@@ -1,3 +1,5 @@
+import { esChiapas } from '../lib/evento';
+import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { ClipboardCheck, LogOut, RefreshCw, Search, Users, ChevronLeft, ChevronRight, ShieldCheck, Printer, Download } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -47,23 +49,18 @@ export default function PanelPersonal({ rol, onSalir }: { rol: Rol; onSalir: () 
   // El token se recibe solo una vez. Preparamos automáticamente una invitación
   // navideña imprimible y descargable antes de permitir cerrar el QR.
   useEffect(() => {
-    if (!qr) { setImagenQR(null); setErrorImagenQR(''); return; }
+    if (!qr) return;
 
     let activa = true;
     let url: string | null = null;
-    setImagenQR(null);
-    setErrorImagenQR('');
 
     const svg = document.querySelector<SVGSVGElement>('#qr-validacion-empleado');
-    if (!svg) {
-      setErrorImagenQR('No se pudo preparar el QR. Intenta actualizar la vista.');
-      return;
-    }
+    if (!svg) return;
 
     void generarInvitacionNavidena({ qrSvg: svg, nombre: qr.nombre, folio: qr.folio })
       .then((blob) => {
         url = URL.createObjectURL(blob);
-        if (activa) setImagenQR({ token: qr.token, url, blob });
+        if (activa) { setErrorImagenQR(''); setImagenQR({ token: qr.token, url, blob }); }
         else URL.revokeObjectURL(url);
       })
       .catch((e: unknown) => {
@@ -106,7 +103,7 @@ export default function PanelPersonal({ rol, onSalir }: { rol: Rol; onSalir: () 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Tu sesión terminó. Cierra la sesión e ingresa de nuevo.');
-      const { data, error: fallo } = await supabase.functions.invoke('bandeja-personal', {
+      const { data, error: fallo } = await invocarEvento('bandeja-personal', {
         body: { tipo: pagos ? 'pagos' : 'participantes', pagina, busqueda: filtro },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
@@ -123,6 +120,7 @@ export default function PanelPersonal({ rol, onSalir }: { rol: Rol; onSalir: () 
     }
   }, [pagos, pagina, filtro]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
   useEffect(() => { void cargar(); }, [cargar]);
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -141,11 +139,11 @@ export default function PanelPersonal({ rol, onSalir }: { rol: Rol; onSalir: () 
     } else if (!window.confirm(`¿Confirmas la aprobación del pago de ${fila.nombre} por ${dinero(fila.importe)}?`)) return;
 
     setOperando(fila.pago_id);
-    setMensaje(''); setError(''); setQr(null);
+    setMensaje(''); setError(''); setErrorImagenQR(''); setQr(null);
     try {
       // La función SQL verifica auth.uid, que el rol sea validador y el estado pendiente;
       // bloquea la fila para impedir dos aprobaciones y registra la auditoría.
-      const { data, error: fallo } = await supabase.rpc('validar_pago_personal', {
+      const { data, error: fallo } = await supabase.rpc(esChiapas ? 'validar_pago_personal_chiapas' : 'validar_pago_personal', {
         p_pago_id: fila.pago_id,
         p_accion: accion,
         p_motivo: motivo || null,

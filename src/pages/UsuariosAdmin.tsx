@@ -1,3 +1,4 @@
+import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { Eye, EyeOff, KeyRound, Pencil, UserPlus, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -54,7 +55,7 @@ export default function UsuariosAdmin() {
   const ejecutar = useCallback(async (accion: string, extras: Record<string, unknown> = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('La sesión terminó. Entra de nuevo.');
-    const { data, error: fallo } = await supabase.functions.invoke('gestionar-usuarios', {
+    const { data, error: fallo } = await invocarEvento('gestionar-usuarios', {
       body: { accion, ...extras },
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
@@ -82,6 +83,7 @@ export default function UsuariosAdmin() {
     }
   }, [ejecutar]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
   useEffect(() => { void cargar(); }, [cargar]);
 
   function validar(form: Formulario, requierePassword: boolean): boolean {

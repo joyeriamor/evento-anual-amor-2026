@@ -1,3 +1,4 @@
+import { invocarEvento } from '../lib/evento';
 
 import { useState, type FormEvent } from "react";
 import {
@@ -47,7 +48,7 @@ export default function LoginAdmin({
         accessToken = data.session.access_token;
       } else {
         // El empleado nunca necesita un correo para ingresar.
-        const { data, error: fallo } = await supabase.functions.invoke('iniciar-sesion-usuario', {
+        const { data, error: fallo } = await invocarEvento('iniciar-sesion-usuario', {
           body: { usuario: usuario.trim(), password },
         });
         if (fallo || !data?.ok || !data?.access_token || !data?.refresh_token) {

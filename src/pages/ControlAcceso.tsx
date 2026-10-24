@@ -1,3 +1,5 @@
+import { esChiapas, eventoActual } from '../lib/evento';
+import { invocarEvento } from '../lib/evento';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, CheckCircle2, ScanLine, ShieldAlert } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -12,7 +14,7 @@ const DetectorClass = (globalThis as typeof globalThis & {BarcodeDetector?: new 
 const card: React.CSSProperties = {background:'#fff',border:'1px solid #efd5df',borderRadius:18,padding:22,marginBottom:16};
 const btn: React.CSSProperties = {background:'#a33460',color:'white',border:0,borderRadius:10,padding:'13px 18px',cursor:'pointer',fontWeight:700};
 
-export default function ControlAcceso({ eventoId }: { eventoId?: string }) {
+export default function ControlAcceso({ eventoId = esChiapas ? eventoActual.id : undefined }: { eventoId?: string }) {
   const [entrada,setEntrada] = useState('');
   const [token,setToken] = useState('');
   const [ficha,setFicha] = useState<Ficha|null>(null);
@@ -36,7 +38,7 @@ export default function ControlAcceso({ eventoId }: { eventoId?: string }) {
        const cuerpoConsulta = eventoId
          ? {token:limpio,evento_id:eventoId}
          : {token:limpio};
-       const {data,error}=await supabase.functions.invoke(
+       const {data,error}=await invocarEvento(
          funcionConsulta,
          {body:cuerpoConsulta}
        );

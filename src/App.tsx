@@ -1,3 +1,4 @@
+import { esChiapas, eventoActual } from './lib/evento';
 
 import { useEffect, useState } from "react";
 
@@ -36,12 +37,9 @@ export default function App() {
 }
 
 function AppPrincipal() {
-  const rutaActual = window.location.pathname.replace(/\/+$/, "");
-  const esChiapas = rutaActual.endsWith("/chiapas");
 
-  if (esChiapas) {
-    return <PaginaChiapas />;
-  }
+
+
   const [pantalla, setPantalla] =
     useState<Pantalla>("inicio");
 
@@ -182,9 +180,13 @@ function AppPrincipal() {
         </div>
       </header>
 
+      <nav aria-label="Seleccionar evento" style={{ padding: 16, textAlign: 'center' }}>
+        <a href={import.meta.env.BASE_URL}>RADEV'S · Minatitlán</a> · <a href={`${import.meta.env.BASE_URL}chiapas`}>Chiapas</a>
+        <p><strong>Operando: {eventoActual.nombre}</strong></p>
+      </nav>
       <main className="principal">
         {pantalla === "inicio" ? (
-          <section className="tarjeta">
+          esChiapas ? <PaginaChiapas /> : <section className="tarjeta">
             <div className="distintivo">
               <Sparkles size={16} />
               UN EVENTO ESPECIAL
@@ -249,7 +251,7 @@ function AppPrincipal() {
             </div>
           </section>
         ) : (
-          <Registro onVolver={volverInicio} />
+          <Registro evento={esChiapas ? "chiapas" : undefined} onVolver={volverInicio} />
         )}
       </main>
 

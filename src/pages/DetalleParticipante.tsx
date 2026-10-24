@@ -1,3 +1,5 @@
+import { esChiapas, eventoActual } from '../lib/evento';
+import { invocarEvento } from '../lib/evento';
 
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
@@ -152,7 +154,7 @@ export default function DetalleParticipante({
       throw new Error("Tu sesión ha terminado.");
     }
     const { data, error: errorFuncion } =
-      await supabase.functions.invoke(
+      await invocarEvento(
         "detalle-participante",
         {
           method: "POST",
@@ -179,12 +181,6 @@ export default function DetalleParticipante({
   }, [registroId]);
   useEffect(() => {
     let vigente = true;
-    setCargando(true);
-    setError("");
-    setMensaje("");
-    setParticipante(null);
-    setRechazandoId(null);
-    setMotivo("");
     cargar()
       .then((datos) => {
         if (vigente) setParticipante(datos);
@@ -224,7 +220,7 @@ export default function DetalleParticipante({
       const { data: sesion, error: errorSesion } = await supabase.auth.getSession();
       if (errorSesion || !sesion.session) throw new Error("Tu sesión ha terminado.");
 
-      const { data, error: errorFuncion } = await supabase.functions.invoke(
+      const { data, error: errorFuncion } = await invocarEvento(
         "administrar-invitacion",
         {
           method: "POST",
@@ -373,15 +369,15 @@ export default function DetalleParticipante({
     copo(561, 1130, 15);
     ctx.font = "bold 33px Georgia, 'Times New Roman', serif";
     ctx.fillStyle = "#91692e";
-    ctx.fillText("6 DE DICIEMBRE DE 2026", 561, 1190, 830);
+    ctx.fillText(eventoActual.fecha.toUpperCase(), 561, 1190, 830);
     ctx.font = "23px Arial, sans-serif";
     ctx.fillStyle = "#5d5354";
     ctx.fillText("Presenta este código al ingresar al evento", 561, 1244, 820);
     ctx.font = "21px Arial, sans-serif";
     ctx.fillText("Invitación personal • Un solo acceso", 561, 1281, 820);
     ctx.font = "19px Arial, sans-serif";
-    ctx.fillText("Salón RADEV'S 1 · Minatitlán, Veracruz", 561, 1320, 840);
-    ctx.fillText("Recepción: 1:00 p.m.", 561, 1352, 840);
+    ctx.fillText((esChiapas ? "Tuxtla Gutiérrez, Chiapas · Salón por definir" : "Salón RADEV'S 1 · Minatitlán, Veracruz"), 561, 1320, 840);
+    ctx.fillText(esChiapas ? "Horario por definir" : "Recepción: 1:00 p.m.", 561, 1352, 840);
 
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {
@@ -558,7 +554,7 @@ export default function DetalleParticipante({
         throw new Error("Tu sesión ha terminado.");
       }
       const { data, error: errorFuncion } =
-        await supabase.functions.invoke(
+        await invocarEvento(
           "validar-pago",
           {
             method: "POST",

@@ -1,3 +1,4 @@
+import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, Search, ChevronLeft, ChevronRight, TicketCheck, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -29,7 +30,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
-      const { data, error: fallo } = await supabase.functions.invoke('bandejas-admin', {
+      const { data, error: fallo } = await invocarEvento('bandejas-admin', {
         body: { tipo, pagina, busqueda: filtro },
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
@@ -39,8 +40,9 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
     finally { setCargando(false); }
   }, [tipo, pagina, filtro]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
   useEffect(() => { void cargar(); }, [cargar]);
-  useEffect(() => { setPagina(1); setTexto(''); setFiltro(''); setSeleccionado(null); }, [tipo]);
+
   const pagos = tipo === 'pagos';
   const titulo = pagos ? 'Validación de pagos' : 'Invitaciones QR';
   return <section style={{ color: '#493640' }}>
@@ -74,6 +76,6 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
         <button type="button" style={secondary} disabled={pagina * 20 >= total || cargando} onClick={() => setPagina(p => p + 1)}>Siguiente <ChevronRight size={15} style={{ verticalAlign: 'middle' }} /></button>
       </div>
     </div>
-    {seleccionado && <DetalleParticipante registroId={seleccionado} onCerrar={() => { setSeleccionado(null); void cargar(); }} onPagoActualizado={() => void cargar()} />}
+    {seleccionado && <DetalleParticipante key={seleccionado} registroId={seleccionado} onCerrar={() => { setSeleccionado(null); void cargar(); }} onPagoActualizado={() => void cargar()} />}
   </section>;
 }

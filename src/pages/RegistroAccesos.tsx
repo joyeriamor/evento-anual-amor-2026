@@ -1,6 +1,7 @@
+import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState } from 'react';
 import { Download, RefreshCw, Search } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+
 
 export type Resumen = { participantes: number; confirmados: number; pendientes: number; pagos_pendientes: number; ingresos: number };
 type Ingreso = { id: string; nombre: string; folio: string; asesor: string; operador: string; ingresado_at: string; foto_url: string | null };
@@ -18,12 +19,13 @@ export default function RegistroAccesos() {
   const cargar = useCallback(async () => {
     setCargando(true); setError('');
     try {
-      const { data, error: fallo } = await supabase.functions.invoke('resumen-accesos', { body: { pagina, busqueda: filtro } });
+      const { data, error: fallo } = await invocarEvento('resumen-accesos', { body: { pagina, busqueda: filtro } });
       if (fallo || !data?.ok) throw new Error(data?.error || fallo?.message || 'No se pudo consultar el historial');
       setResultado(data as Resultado);
     } catch (e) { setError(e instanceof Error ? e.message : 'Error al consultar'); }
     finally { setCargando(false); }
   }, [pagina, filtro]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
   useEffect(() => { void cargar(); }, [cargar]);
   useEffect(() => { const id = window.setInterval(() => { void cargar(); }, 30000); return () => window.clearInterval(id); }, [cargar]);
   function exportar() {

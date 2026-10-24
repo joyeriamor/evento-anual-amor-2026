@@ -1,3 +1,4 @@
+import { invocarEvento } from '../lib/evento';
 
 import {
   useCallback,
@@ -218,7 +219,7 @@ export default function ParticipantesAdmin() {
         const {
           data,
           error: errorFuncion,
-        } = await supabase.functions.invoke(
+        } = await invocarEvento(
           "listar-participantes",
           {
             method: "POST",
@@ -305,6 +306,7 @@ export default function ParticipantesAdmin() {
     []
   );
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
     void consultar(pagina, filtro);
     return () => {
       solicitudActual.current += 1;
@@ -843,6 +845,7 @@ export default function ParticipantesAdmin() {
       {/* VENTANA DE DETALLE */}
       {registroSeleccionado && (
         <DetalleParticipante
+          key={registroSeleccionado}
           registroId={registroSeleccionado}
           onCerrar={() => {
             setRegistroSeleccionado(null);

@@ -149,18 +149,12 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
   // Evita enviar varias veces mientras se espera respuesta.
   const envioEnCurso = useRef(false);
 
-  useEffect(() => {
-    if (!foto) {
-      setVistaPrevia(null);
-      return;
-    }
+  useEffect(() => () => { if (vistaPrevia) URL.revokeObjectURL(vistaPrevia); }, [vistaPrevia]);
 
-    const url = URL.createObjectURL(foto);
-
-    setVistaPrevia(url);
-
-    return () => URL.revokeObjectURL(url);
-  }, [foto]);
+  function guardarFoto(archivo: File | null) {
+    setFoto(archivo);
+    setVistaPrevia(archivo ? URL.createObjectURL(archivo) : null);
+  }
 
   function validarArchivo(
     event: ChangeEvent<HTMLInputElement>,
@@ -329,7 +323,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
       setRegistroCortesia(esCortesia);
       setFolioRegistrado(data.folio);
       formulario.reset();
-      setFoto(null);
+      guardarFoto(null);
       setComprobante(null);
       setTipoParticipante("");
       setGrupoRuta("");
@@ -596,7 +590,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
             accept="image/jpeg,image/png,image/webp"
             capture="user"
             onChange={(e) =>
-              validarArchivo(e, setFoto)
+              validarArchivo(e, guardarFoto)
             }
             style={{ display: "none" }}
           />
@@ -607,7 +601,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={(e) =>
-              validarArchivo(e, setFoto)
+              validarArchivo(e, guardarFoto)
             }
             style={{ display: "none" }}
           />

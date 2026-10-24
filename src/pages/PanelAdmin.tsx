@@ -1,3 +1,5 @@
+import { eventoActual } from '../lib/evento';
+import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState } from 'react';
 import { Users, ClipboardCheck, QrCode, ScanLine, LogOut, History, RefreshCw, CheckCircle2, Clock3, UserCog } from 'lucide-react';
 import ParticipantesAdmin from './ParticipantesAdmin';
@@ -35,12 +37,12 @@ export default function PanelAdmin({ onSalir }: Props) {
   const actualizar = useCallback(async () => {
     setCargando(true);
     try {
-      const { data, error: fallo } = await supabase.functions.invoke('resumen-accesos', { body: { solo_resumen: true } });
+      const { data, error: fallo } = await invocarEvento('resumen-accesos', { body: { solo_resumen: true } });
       if (fallo || !data?.ok) throw new Error(data?.error || fallo?.message || 'No se pudo cargar el resumen');
       setResumen(data.resumen as Resumen); setError('');
     } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo cargar el resumen'); }
     try {
-      const { data, error: fallo } = await supabase.functions.invoke('resumen-cupo-evento', { body: {} });
+      const { data, error: fallo } = await invocarEvento('resumen-cupo-evento', { body: {} });
       if (fallo || !data?.ok || !data.cupo) throw new Error(data?.error || fallo?.message || 'No se pudo consultar el cupo');
       setCupo(data.cupo as CupoEvento);
       setErrorCupo('');
@@ -49,6 +51,7 @@ export default function PanelAdmin({ onSalir }: Props) {
       setErrorCupo(e instanceof Error ? e.message : 'No se pudo actualizar el cupo');
     } finally { setCargando(false); }
   }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
   useEffect(() => { void supabase.auth.getUser().then(({ data }) => { if (data.user?.email) setNombre(data.user.email); }); void actualizar(); }, [actualizar]);
   useEffect(() => { const id = window.setInterval(() => { void actualizar(); }, 30000); return () => window.clearInterval(id); }, [actualizar]);
   async function salir() { if (saliendo) return; setSaliendo(true); const { error: fallo } = await supabase.auth.signOut(); if (fallo) { setSaliendo(false); alert('No se pudo cerrar sesión'); return; } onSalir(); }
@@ -69,7 +72,7 @@ export default function PanelAdmin({ onSalir }: Props) {
   ];
   return <main style={{ minHeight: '100vh', background: '#fff6f9', padding: 24, color: '#4b3440' }}>
     <header style={{ maxWidth: 1100, margin: '0 auto 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-      <div><h1 style={{ color: '#a33460', margin: 0 }}>JOYERÍA AMOR</h1><p style={{ marginTop: 6, color: '#826b75' }}>Evento Anual 2026 · {nombre}</p></div>
+      <div><h1 style={{ color: '#a33460', margin: 0 }}>JOYERÍA AMOR</h1><p style={{ marginTop: 6, color: '#826b75' }}>{eventoActual.nombre} · {nombre}</p></div>
       <button type="button" onClick={() => void salir()} disabled={saliendo} style={{ ...boton, background: '#fff', color: '#a33460', border: '1px solid #e5bdcc' }}><LogOut size={17} style={{ verticalAlign: 'middle' }} /> {saliendo ? 'Cerrando...' : 'Cerrar sesión'}</button>
     </header>
     <section style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -80,7 +83,7 @@ export default function PanelAdmin({ onSalir }: Props) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14, marginBottom: 24 }}>{indicadores.map(i => <div key={i.titulo} style={baseCard}><div style={{ display: 'flex', justifyContent: 'space-between', color: '#a33460' }}><span>{i.titulo}</span>{i.icono}</div><strong style={{ display: 'block', fontSize: 34, marginTop: 10 }}>{i.valor ?? (cargando ? '…' : '—')}</strong></div>)}</div>
         <section aria-label="Cupo real del evento" style={{ ...baseCard, marginBottom: 24, border: '1px solid #decfa4' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <h2 style={{ margin: 0, color: '#805c31', fontSize: 22 }}>Cupo del Evento Anual · 1,500 personas</h2>
+            <h2 style={{ margin: 0, color: '#805c31', fontSize: 22 }}>Cupo del evento · {eventoActual.capacidad.toLocaleString("es-MX")} personas</h2>
             {cupo && <strong style={{ color: cupo.disponibles === 0 ? '#a02940' : '#176747' }}>{cupo.disponibles === 0 ? 'Cupo completo' : `${cupo.disponibles.toLocaleString('es-MX')} lugares disponibles`}</strong>}
           </div>
           <p style={{ color: '#74666d', margin: '10px 0 14px', fontSize: 14 }}>Incluye inscripciones con cuota y cortesías, aun con pago pendiente. No incluye registros cancelados ni rechazados.</p>
@@ -110,8 +113,8 @@ export default function PanelAdmin({ onSalir }: Props) {
       </>}
 
       {vista === 'participantes' && <ParticipantesAdmin />}
-      {vista === 'pagos' && <BandejaAdmin tipo="pagos" />}
-      {vista === 'invitaciones' && <BandejaAdmin tipo="invitaciones" />}
+      {vista === 'pagos' && <BandejaAdmin key="pagos" tipo="pagos" />}
+      {vista === 'invitaciones' && <BandejaAdmin key="invitaciones" tipo="invitaciones" />}
       {vista === 'escaner' && <ControlAcceso />}
       {vista === 'historial' && <RegistroAccesos />}
       {vista === 'usuarios' && <UsuariosAdmin />}

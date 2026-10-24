@@ -1,3 +1,4 @@
+import { esChiapas, eventoActual } from './evento';
 /**
  * Generador de invitaciones para el personal validador.
  * Mantiene exactamente la composición del boceto navideño aprobado en
@@ -118,14 +119,14 @@ export async function generarInvitacionNavidena({
     copo(561, 1130, 15);
     ctx.font = "bold 33px Georgia, 'Times New Roman', serif";
     ctx.fillStyle = "#91692e";
-    ctx.fillText("6 DE DICIEMBRE DE 2026", 561, 1190, 830);
+    ctx.fillText(eventoActual.fecha.toUpperCase(), 561, 1190, 830);
     ctx.font = "23px Arial, sans-serif";
     ctx.fillStyle = "#5d5354";
     ctx.fillText("Presenta este código al ingresar al evento", 561, 1244, 820);
     ctx.font = "21px Arial, sans-serif";
     ctx.fillText("Invitación personal • Un solo acceso", 561, 1281, 820);
     ctx.font = "19px Arial, sans-serif";
-    ctx.fillText("Salón RADEV'S 1 · Minatitlán, Veracruz", 561, 1320, 840);
+    ctx.fillText((esChiapas ? "Tuxtla Gutiérrez, Chiapas · Salón por definir" : "Salón RADEV'S 1 · Minatitlán, Veracruz"), 561, 1320, 840);
 
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {

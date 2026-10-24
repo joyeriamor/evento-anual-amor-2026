@@ -26,18 +26,16 @@ export default function PruebaTurnstile() {
   const widgetId = useRef<string | null>(null);
 
   const [token, setToken] = useState("");
-  const [mensaje, setMensaje] = useState("");
+  const [mensaje, setMensaje] = useState(SITE_KEY ? "" : "Falta VITE_TURNSTILE_SITE_KEY en .env.local");
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     if (!SITE_KEY) {
-      setMensaje("Falta VITE_TURNSTILE_SITE_KEY en .env.local");
       return;
     }
 
     let cancelado = false;
     let intentos = 0;
-    let intervalo: ReturnType<typeof setInterval> | undefined;
 
     const iniciar = () => {
       if (
@@ -73,7 +71,7 @@ export default function PruebaTurnstile() {
 
     document.head.appendChild(script);
 
-    intervalo = setInterval(() => {
+    const intervalo = setInterval(() => {
       iniciar();
       intentos++;
 
