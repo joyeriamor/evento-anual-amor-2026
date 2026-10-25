@@ -27,5 +27,11 @@
   "cuenta_auth_ficticia": "Eliminada; cero sesiones, perfiles y asignaciones",
   "commit_frontend": "43c51c558c5feaed2632476ed517320cff63ea5b",
   "ejecucion_pages": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40168327700",
-  "excepcion_temporal_retirada": true
+  "excepcion_temporal_retirada": true,
+  "administracion_chiapas": {
+    "usuario": "hugo",
+    "asignacion_activa": true,
+    "login_publicado_verificado": true,
+    "asignaciones_radevs_sin_cambios": true
+  }
 }

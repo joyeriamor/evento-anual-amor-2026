@@ -1,3 +1,5 @@
+> Informe histórico del cierre local. Para el estado publicado y los pendientes vigentes, consultar [ENTREGA_FINAL_FIESTAANUAL26_20261025.md](ENTREGA_FINAL_FIESTAANUAL26_20261025.md). Las restricciones de aquella fase no describen las autorizaciones y despliegues posteriores.
+
 # FIESTAANUAL26 — cierre del desarrollo local
 
 24 de octubre de 2026. Rama `feature/chiapas-evento-2026`.

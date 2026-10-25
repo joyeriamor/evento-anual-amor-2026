@@ -1,3 +1,5 @@
+> Estado vigente: [entrega final del 25 de octubre](ENTREGA_FINAL_FIESTAANUAL26_20261025.md). Este documento conserva la cronología de publicación.
+
 # Publicación backend del 24 de octubre de 2026
 
 Autorización explícita del usuario: etapas 01 Chiapas, 02 compartida, 03 RADEV’S, 24 Edge y pruebas ficticias con limpieza. Frontend aún sin publicar; Chiapas cerrado.
@@ -39,3 +41,7 @@ El usuario autorizo publicar 43c51c5 y añadir temporalmente la rama exacta feat
 Verificacion HTTP real: inicio RADEV’S, /chiapas/ y /chiapas/acceso/ responden 200; JavaScript y CSS publicados coinciden byte por byte con el candidato probado. Navegador real: RADEV’S muestra evento del 6 de diciembre y registro disponible; Chiapas muestra 19 de diciembre e inscripciones cerradas; acceso Chiapas solicita login. Servidor publico Chiapas devuelve 403 al registro cerrado. Consulta SQL confirma RADEV’S activo/cupo1500 y Chiapas borrador/cupo500.
 
 No se realizo merge a main, no se abrieron inscripciones de Chiapas y no se crearon nuevos datos de ensayo para esta comprobacion publica. Las menciones anteriores a frontend pendiente describen fases previas; este apartado y CIERRE_PUBLICACION_PAGES_20261025.json registran el estado final. El commit documental posterior es local; el sitio publicado corresponde exactamente a 43c51c5.
+
+## Habilitación administrativa autorizada
+
+El usuario designo a hugo como administrador de Chiapas. Se agrego unicamente esa asignacion activa, con comprobacion del perfil administrador activo y cuenta Auth vigente. No se altero perfil ni contraseña. Las asignaciones RADEV’S conservan identica huella antes y despues. El usuario inicio sesion real en Chiapas publicado y se verificaron panel/cupo/usuarios/participantes del evento. No se abrieron inscripciones.
