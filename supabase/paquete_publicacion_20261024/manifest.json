@@ -26,9 +26,20 @@
   ],
   "alternativa_a": "supabase/migrations/20261024221610_aislar_eventos_radevs_chiapas.sql",
   "no_aplicar_ambas_rutas": true,
-  "publicado": false,
-  "bloqueo": "Operador sube rama desde VM; falta acceso Auth Admin para pruebas integrales.",
-  "autorizacion": "Usuario: ok hazlo y debes realizar las pruebas",
+  "publicado": true,
+  "bloqueo": null,
+  "autorizacion": "Usuario autorizo explicitamente etapas 01, 02, 03, 24 Edge y pruebas ficticias; frontend excluido",
   "ruta_elegida": "por_etapas",
-  "nota": "Paquete aislado: no ejecutar supabase db push desde la raiz porque conserva la ruta consolidada alternativa."
+  "nota": "Paquete aislado: no ejecutar supabase db push desde la raiz porque conserva la ruta consolidada alternativa.",
+  "versiones_servidor": {
+    "01_chiapas": "20261025031017",
+    "02_compartidos": "20261025031024",
+    "03_protecciones_radevs": "20261025031032"
+  },
+  "incremental_aplicada": {
+    "fuente": "supabase/migrations/20261025031900_registro_prueba_independiente_chiapas.sql",
+    "version_servidor": "20261025031937",
+    "sha256": "416b5a3c6766ba68ff0aca17ad1425f0641c7265aa4719a2dffc651900028dfd"
+  },
+  "frontend_publicado": false
 }
