@@ -14,7 +14,7 @@ try {
   await page.getByRole('link', { name: 'Chiapas', exact: true }).click();
   await page.getByText('Inscripciones abiertas').waitFor(); checks++;
   assert.equal(await page.getByRole('link',{name:"RADEV'S · Minatitlán",exact:true}).count(),0);checks++;
-  await page.getByText('SALÓN BLANCO',{exact:true}).waitFor(); checks++;
+  await page.getByText('SALÓN BIANCO',{exact:true}).waitFor(); checks++;
   await page.getByText('Horario por confirmar',{exact:true}).waitFor(); checks++;
   await page.getByRole('button', { name: 'Registrarme en Chiapas' }).click();
   assert.equal(await page.locator('button[type="submit"]:enabled').count(),0);checks++;

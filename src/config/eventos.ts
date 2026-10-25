@@ -18,7 +18,7 @@ export const EVENTOS = {
     clave: "chiapas",
     nombre: "Fiesta Anual AMOR 2026 - Chiapas",
     ciudad: "Tuxtla Gutiérrez, Chiapas",
-    sede: "SALÓN BLANCO",
+    sede: "SALÓN BIANCO",
     horario: "Horario por confirmar",
     inscripcionesHabilitadas: true,
     fecha: "2026-12-19",

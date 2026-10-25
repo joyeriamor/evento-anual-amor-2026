@@ -126,7 +126,7 @@ export async function generarInvitacionNavidena({
     ctx.font = "21px Arial, sans-serif";
     ctx.fillText("Invitación personal • Un solo acceso", 561, 1281, 820);
     ctx.font = "19px Arial, sans-serif";
-    ctx.fillText((esChiapas ? "SALÓN BLANCO · Tuxtla Gutiérrez, Chiapas" : "Salón RADEV'S 1 · Minatitlán, Veracruz"), 561, 1320, 840);
+    ctx.fillText((esChiapas ? "SALÓN BIANCO · Tuxtla Gutiérrez, Chiapas" : "Salón RADEV'S 1 · Minatitlán, Veracruz"), 561, 1320, 840);
 
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {
