@@ -32,8 +32,8 @@ try {
       if (req.method()==='OPTIONS') return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});
       let data={id:'aa111111-1111-4111-8111-111111111111',email:'local@example.test'};
       if(req.url().includes('/functions/')) {
-        seen.push({name,body}); assert.equal(body.evento_id,event);
-        data=name==='verificar-personal'?{ok:true,autorizado:true,evento_id:event,usuario:{rol:'administrador'}}:
+        seen.push({name,body}); if(name==='listar-asesores-registro'){assert.deepEqual(body,{});assert.equal(req.headers().authorization,undefined);}else assert.equal(body.evento_id,event);
+        data=name==='listar-asesores-registro'?{ok:true,asesores:[]}:name==='verificar-personal'?{ok:true,autorizado:true,evento_id:event,usuario:{rol:'administrador'}}:
           name==='resumen-accesos'?{ok:true,resumen:{participantes:0,confirmados:0,pendientes:0,pagos_pendientes:0,ingresos:0}}:
           name==='resumen-cupo-evento'?{ok:true,cupo:{capacidad:suffix?500:1500,ocupados:0,disponibles:suffix?500:1500,con_pago:0,cortesias:0,cortesias_pendientes:0,pendientes:0,porcentaje:0}}:
           {ok:true,registros:[],total:0,pagina:1,limite:20,participantes:[]};
@@ -47,6 +47,12 @@ try {
     await p.getByRole('heading',{name:'Validación de pagos'}).waitFor();
     await p.waitForTimeout(100);
     assert.ok(seen.some(x=>x.name===(suffix?'bandejas-admin-chiapas':'bandejas-admin')));checks++;
+    await p.getByRole('button',{name:'← Volver al panel',exact:true}).click();
+    if(suffix){
+      await p.getByRole('button',{name:'Registrar prueba de Chiapas',exact:true}).click();
+      await p.getByRole('heading',{name:'Registro de prueba · Administración',exact:true}).waitFor();checks++;
+      await p.getByText('Confirmo que es una prueba con datos ficticios y sin transferencia real.').waitFor();checks++;
+    }else{assert.equal(await p.getByRole('button',{name:'Registrar prueba de Chiapas',exact:true}).count(),0);checks++;}
     await context.close();
   }
   console.log(`${checks} comprobaciones E2E aprobadas. Navegador real; Supabase HTTP simulado.`);

@@ -240,6 +240,21 @@
       ]
     },
     {
+      "nombre": "registrar-prueba-admin-chiapas",
+      "verify_jwt": true,
+      "entrypoint": "registrar-prueba-admin-chiapas/index.ts",
+      "archivos": [
+        {
+          "ruta": "registrar-prueba-admin-chiapas/index.ts",
+          "sha256": "4f62515bb110ea32d8c5c5d1d5dc0f3ee84424090f1234ba1283a2b070f1d0a6"
+        },
+        {
+          "ruta": "_shared/evento.ts",
+          "sha256": "32dbc04bad014c87bb044689ee255b7de7f81545de6d6fa9ed017c57ac0ff9a4"
+        }
+      ]
+    },
+    {
       "nombre": "resumen-accesos",
       "verify_jwt": true,
       "entrypoint": "resumen-accesos/index.ts",

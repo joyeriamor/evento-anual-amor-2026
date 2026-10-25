@@ -109,7 +109,7 @@ type Props = {
 };
 
 export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "minatitlan" }: Props) {
-  const formularioHabilitado = evento === "chiapas" ? false : (modoPruebaAdmin || REGISTROS_HABILITADOS);
+  const formularioHabilitado = modoPruebaAdmin || (evento !== "chiapas" && REGISTROS_HABILITADOS);
   const camaraRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
 
@@ -303,7 +303,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
         opciones.headers = { Authorization: `Bearer ${sesion.session.access_token}` };
       }
       const { data, error: fallo } = await supabase.functions.invoke(
-        modoPruebaAdmin ? "registrar-prueba-admin" : evento === "chiapas" ? "registrar-participante-chiapas" : "registrar-participante-v2",
+        modoPruebaAdmin ? (evento === "chiapas" ? "registrar-prueba-admin-chiapas" : "registrar-prueba-admin") : evento === "chiapas" ? "registrar-participante-chiapas" : "registrar-participante-v2",
         opciones
       );
       if (fallo) {
