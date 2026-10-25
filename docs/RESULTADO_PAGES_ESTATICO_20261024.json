@@ -1,0 +1,44 @@
+{
+  "fecha_utc": "2026-10-25T01:15:40.158067+00:00",
+  "base_commit": "6c2ee82",
+  "rama": "feature/chiapas-evento-2026",
+  "suite_local_completa": {
+    "exit_code": 0,
+    "log_sha256": "f7650a57d6fa9002f0a108040d33f9638688d5a42f89eb15439a02bad7daf4d5",
+    "checks": [
+      "lint",
+      "tsc -b",
+      "build Vite con configuración ficticia",
+      "Deno check frozen",
+      "pruebas admin y bandejas 17/14/19",
+      "aislamiento 224",
+      "perfiles 10",
+      "acceso legacy 8",
+      "SQL sintético 33",
+      "catálogo 77",
+      "etapas 17",
+      "pg_temp local 31",
+      "verificador solo lectura 11",
+      "frontend Vite/Chrome 10",
+      "frontend estático/Chrome 21"
+    ]
+  },
+  "html_generados": {
+    "index.html": "cb93f1b63cca2bd98b8be01fd9f2fbef5772b97de2977803824d354c6e12374a",
+    "chiapas/index.html": "cb93f1b63cca2bd98b8be01fd9f2fbef5772b97de2977803824d354c6e12374a",
+    "chiapas/acceso/index.html": "cb93f1b63cca2bd98b8be01fd9f2fbef5772b97de2977803824d354c6e12374a"
+  },
+  "regresion_sin_rutas": {
+    "resultado": "Fallo esperado",
+    "exit_code": 1,
+    "mensaje": "Falta HTML físico: chiapas/",
+    "alcance": "Copia temporal del build omitiendo entradas Chiapas; no modifica el repositorio."
+  },
+  "restricciones": [
+    "Sin cuentas nuevas",
+    "Sin tráfico Supabase real en las pruebas nuevas",
+    "Sin despliegue ni modificaciones RADEVS",
+    "Build de prueba ficticio: NO publicar dist de esta suite"
+  ],
+  "pendiente": "Reconstruir con configuración pública aprobada y aprobar dependencias SQL/Edge antes de publicar."
+}

@@ -4,11 +4,15 @@ const commands=[
  ['node_modules/typescript/bin/tsc','-b'],
  ['node_modules/vite/bin/vite.js','build'],
  ['tests/chiapas/servicios-solo-lectura.test.mjs'],['scripts/check-edge.cjs'],['scripts/test-seguridad.cjs'],['scripts/test-edge-acceso-chiapas.cjs'],
- ['tests/chiapas/sql-eventos.integration.mjs'],['tests/chiapas/catalogo.integration.mjs'],['tests/chiapas/entrega-etapas.integration.mjs'],['tests/chiapas/rollback-pg-temp.integration.mjs'],['scripts/test-e2e-local.cjs'],
+ ['tests/chiapas/sql-eventos.integration.mjs'],['tests/chiapas/catalogo.integration.mjs'],['tests/chiapas/entrega-etapas.integration.mjs'],['tests/chiapas/rollback-pg-temp.integration.mjs'],['scripts/test-e2e-local.cjs'],['scripts/test-pages-estatico.cjs'],
 ];
 for(const args of commands){
  console.log(`VERIFICANDO: ${args[0]}`);
- const result=spawnSync(process.execPath,args,{stdio:'inherit',env:process.env});
+ // Test builds use fictitious settings; never publish dist produced by this suite.
+ const env=args[0]==='node_modules/vite/bin/vite.js'
+  ?{...process.env,VITE_SUPABASE_URL:'http://127.0.0.1:54321',VITE_SUPABASE_PUBLISHABLE_KEY:'local-test-only'}
+  :process.env;
+ const result=spawnSync(process.execPath,args,{stdio:'inherit',env});
  if(result.error)throw result.error;
  if(result.status!==0)process.exit(result.status??1);
 }
