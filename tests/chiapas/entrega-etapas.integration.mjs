@@ -1,7 +1,7 @@
 // Real embedded PostgreSQL; reconstructed catalog, no remote services or real rows.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { crearBaseCatalogo } from './base-catalogo.mjs';
+import { crearBaseCatalogo, funciones } from './base-catalogo.mjs';
 const dir='sql/entrega_por_etapas';
 const packageRoot=process.argv[2];
 const stages=packageRoot?JSON.parse(fs.readFileSync(`${packageRoot}/manifest.json`,'utf8')).archivos:JSON.parse(fs.readFileSync(`${dir}/manifest.json`,'utf8'));
@@ -19,6 +19,8 @@ const split=await crearBaseCatalogo(),combined=await crearBaseCatalogo();let che
 const eq=(a,b)=>{assert.deepEqual(a,b);checks++};
 try{
  const initial=await state(split),before=[];
+ // Regression: every original ACL, including NULL defaults, must match the real catalog.
+ for(const fn of funciones)eq((await split.query('select proacl::text acl from pg_proc where oid=to_regprocedure($1)',['public.'+fn.firma])).rows[0].acl,fn.acl);
  for(const stage of stages){
   before.push(await state(split));
   await split.exec(readStage(stage));

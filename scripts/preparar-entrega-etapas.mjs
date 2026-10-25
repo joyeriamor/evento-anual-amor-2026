@@ -24,7 +24,7 @@ async function snapshot(db){return (await db.query(`select 'public.'||quote_iden
  md5(pg_get_functiondef(p.oid)) as hash,p.proacl::text as acl
  from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' order by p.oid`)).rows;}
 function guard(rows,absent=[]){return `DO $stage_guard$ BEGIN\n`+rows.map(f=>`IF to_regprocedure(${literal(f.sig)}) IS NULL OR md5(pg_get_functiondef(to_regprocedure(${literal(f.sig)}))) IS DISTINCT FROM ${literal(f.hash)} OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure(${literal(f.sig)})) IS DISTINCT FROM ${f.acl===null?'NULL':literal(f.acl)} THEN RAISE EXCEPTION 'Drift: ${f.sig}'; END IF;`).join('\n')+'\n'+absent.map(f=>`IF to_regprocedure(${literal(f.sig)}) IS NOT NULL THEN RAISE EXCEPTION 'Already exists: ${f.sig}'; END IF;`).join('\n')+'\nEND; $stage_guard$;\n';}
-function restore(f){let sql=f.def+';\n'+`REVOKE ALL ON FUNCTION ${f.sig} FROM PUBLIC,anon,authenticated,service_role;\n`;
+function restore(f){if(f.acl===null)return f.def+';\n';let sql=f.def+';\n'+`REVOKE ALL ON FUNCTION ${f.sig} FROM PUBLIC,anon,authenticated,service_role;\n`;
  if(f.acl===null||/(?:\{|,)=X\//.test(f.acl))sql+=`GRANT EXECUTE ON FUNCTION ${f.sig} TO PUBLIC;\n`;
  for(const role of ['anon','authenticated','service_role'])if(f.acl?.includes(role+'=X/'))sql+=`GRANT EXECUTE ON FUNCTION ${f.sig} TO ${role};\n`;
  return sql;}

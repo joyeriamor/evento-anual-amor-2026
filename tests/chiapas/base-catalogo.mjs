@@ -39,6 +39,8 @@ export async function crearBaseCatalogo() {
  }
  for(const fn of funciones) {
   await db.exec(fn.definicion);
+  // NULL proacl means PostgreSQL defaults (owner + PUBLIC); preserve it exactly.
+  if(fn.acl===null)continue;
   const sig='public.'+fn.firma;
   await db.exec(`REVOKE ALL ON FUNCTION ${sig} FROM PUBLIC,anon,authenticated,service_role`);
   if(fn.acl)for(const role of ['anon','authenticated','service_role']) {

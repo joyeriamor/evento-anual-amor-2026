@@ -29,6 +29,8 @@ rollback+=fs.readFileSync('sql/security/rollback_rls_storage.sql','utf8').replac
 for(const fn of catalog) {
  if(fn.nombre==='rls_auto_enable')continue;
  const sig='public.'+fn.firma;rollback+='\n'+fn.definicion+';\n';
+ // These default-ACL trigger functions retain NULL ACL throughout the migration.
+ if(fn.acl===null){rollback+=`DO $acl_default$ BEGIN IF (SELECT proacl FROM pg_proc WHERE oid=to_regprocedure(${literal(sig)})) IS NOT NULL THEN RAISE EXCEPTION 'ACL default cambio: ${sig}'; END IF; END; $acl_default$;\n`;continue;}
  rollback+=`REVOKE ALL ON FUNCTION ${sig} FROM PUBLIC,anon,authenticated,service_role;\n`;
  if(fn.acl===null)rollback+=`GRANT EXECUTE ON FUNCTION ${sig} TO PUBLIC;\n`;
  else for(const role of ['anon','authenticated','service_role']) if(fn.acl.includes(role+'=X/'))rollback+=`GRANT EXECUTE ON FUNCTION ${sig} TO ${role};\n`;

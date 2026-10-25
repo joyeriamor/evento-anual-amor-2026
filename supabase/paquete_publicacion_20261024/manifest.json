@@ -12,9 +12,9 @@
     {
       "etapa": "02_compartidos",
       "migracion": "20261025013244_aislamiento_compartido_eventos.sql",
-      "sha256": "a0822714ff8c4c8881dd4ed0806065d3a27ce2dab8125bcbb2111276081ad05f",
+      "sha256": "0a9461d84fa45814336c387a5dd533cad8ea963d53e95b5541fdb13f0abfb5ae",
       "rollback": "02_compartidos_rollback.sql",
-      "rollback_sha256": "ed79ca26c38040628966fbd67cccd214d41b7b81bb65bbbc4db018c8c025de29"
+      "rollback_sha256": "b9c2d60de21d677a76681e5209396aad01e9354ac4508289119ce7ffd9c4ba84"
     },
     {
       "etapa": "03_protecciones_radevs",

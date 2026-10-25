@@ -1305,8 +1305,7 @@ BEGIN
 END;
 $function$
 ;
-REVOKE ALL ON FUNCTION public.evitar_acceso_duplicado() FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION public.evitar_acceso_duplicado() TO PUBLIC;
+DO $acl_default$ BEGIN IF (SELECT proacl FROM pg_proc WHERE oid=to_regprocedure('public.evitar_acceso_duplicado()')) IS NOT NULL THEN RAISE EXCEPTION 'ACL default cambio: public.evitar_acceso_duplicado()'; END IF; END; $acl_default$;
 
 CREATE OR REPLACE FUNCTION public.evitar_registro_duplicado()
  RETURNS trigger
@@ -1351,8 +1350,7 @@ BEGIN
 END;
 $function$
 ;
-REVOKE ALL ON FUNCTION public.evitar_registro_duplicado() FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION public.evitar_registro_duplicado() TO PUBLIC;
+DO $acl_default$ BEGIN IF (SELECT proacl FROM pg_proc WHERE oid=to_regprocedure('public.evitar_registro_duplicado()')) IS NOT NULL THEN RAISE EXCEPTION 'ACL default cambio: public.evitar_registro_duplicado()'; END IF; END; $acl_default$;
 
 CREATE OR REPLACE FUNCTION public.impedir_sobrecupo_evento()
  RETURNS trigger
@@ -1424,8 +1422,7 @@ BEGIN
 END;
 $function$
 ;
-REVOKE ALL ON FUNCTION public.impedir_sobrecupo_evento() FROM PUBLIC,anon,authenticated,service_role;
-GRANT EXECUTE ON FUNCTION public.impedir_sobrecupo_evento() TO PUBLIC;
+DO $acl_default$ BEGIN IF (SELECT proacl FROM pg_proc WHERE oid=to_regprocedure('public.impedir_sobrecupo_evento()')) IS NOT NULL THEN RAISE EXCEPTION 'ACL default cambio: public.impedir_sobrecupo_evento()'; END IF; END; $acl_default$;
 
 CREATE OR REPLACE FUNCTION public.limpiar_limites_inicio_sesion()
  RETURNS integer
