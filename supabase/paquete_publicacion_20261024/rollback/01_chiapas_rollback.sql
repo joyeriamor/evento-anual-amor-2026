@@ -1,0 +1,19 @@
+-- REVIEW ONLY. Requires separate explicit production approval.
+-- Alternative to the consolidated migration: NEVER apply both routes.
+BEGIN;
+DO $stage_guard$ BEGIN
+IF to_regprocedure('public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean)'))) IS DISTINCT FROM '135f86cefa4b34ed9cb6302f3cc09375' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean)')) IS DISTINCT FROM '{postgres=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean)'; END IF;
+IF to_regprocedure('public.validar_pago_personal_chiapas(uuid, text, text)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.validar_pago_personal_chiapas(uuid, text, text)'))) IS DISTINCT FROM '2d22b71f07d8661304e60bbe46cd59c5' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.validar_pago_personal_chiapas(uuid, text, text)')) IS DISTINCT FROM '{postgres=X/postgres,authenticated=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.validar_pago_personal_chiapas(uuid, text, text)'; END IF;
+IF to_regprocedure('public.validar_pago_admin_chiapas(uuid, text, text, uuid)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.validar_pago_admin_chiapas(uuid, text, text, uuid)'))) IS DISTINCT FROM '10d34ed9636f053015fe0b74677876f3' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.validar_pago_admin_chiapas(uuid, text, text, uuid)')) IS DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.validar_pago_admin_chiapas(uuid, text, text, uuid)'; END IF;
+IF to_regprocedure('public.autorizar_cortesia_admin_chiapas(uuid, uuid)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.autorizar_cortesia_admin_chiapas(uuid, uuid)'))) IS DISTINCT FROM '947a07ffa5b7e4585c0fd355b702c61e' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.autorizar_cortesia_admin_chiapas(uuid, uuid)')) IS DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.autorizar_cortesia_admin_chiapas(uuid, uuid)'; END IF;
+IF to_regprocedure('public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean)'))) IS DISTINCT FROM '71e455ee200057e400cfba23ede11156' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean)')) IS DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean)'; END IF;
+IF to_regprocedure('public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid)') IS NULL OR md5(pg_get_functiondef(to_regprocedure('public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid)'))) IS DISTINCT FROM '1ea175e3895e4a43f4d6976355c74ca3' OR (SELECT proacl::text FROM pg_proc WHERE oid=to_regprocedure('public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid)')) IS DISTINCT FROM '{postgres=X/postgres,service_role=X/postgres}' THEN RAISE EXCEPTION 'Drift: public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid)'; END IF;
+
+END; $stage_guard$;
+DROP FUNCTION public.bandejas_admin_chiapas_paginadas(text, integer, text, uuid);
+DROP FUNCTION public.recuperar_invitacion_admin_chiapas(uuid, uuid, boolean);
+DROP FUNCTION public.autorizar_cortesia_admin_chiapas(uuid, uuid);
+DROP FUNCTION public.validar_pago_admin_chiapas(uuid, text, text, uuid);
+DROP FUNCTION public.validar_pago_personal_chiapas(uuid, text, text);
+DROP FUNCTION public.emitir_invitacion_chiapas_interna(uuid, uuid, boolean);
+COMMIT;

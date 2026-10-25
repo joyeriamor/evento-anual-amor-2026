@@ -1,0 +1,34 @@
+{
+  "proyecto": "rkjlqxxmxbiciuhtpnpf",
+  "base_commit": "8f2b8a9",
+  "archivos": [
+    {
+      "etapa": "01_chiapas",
+      "migracion": "20261025013242_chiapas_funciones_independientes.sql",
+      "sha256": "e51f61b2f891dee9ec96934122114e6f98573bd47bf559bf8bb3a6003d393c50",
+      "rollback": "01_chiapas_rollback.sql",
+      "rollback_sha256": "022e29d3180d49635da6c47036b619bd71a55f1987a7d63449d7ec5721463f74"
+    },
+    {
+      "etapa": "02_compartidos",
+      "migracion": "20261025013244_aislamiento_compartido_eventos.sql",
+      "sha256": "a0822714ff8c4c8881dd4ed0806065d3a27ce2dab8125bcbb2111276081ad05f",
+      "rollback": "02_compartidos_rollback.sql",
+      "rollback_sha256": "ed79ca26c38040628966fbd67cccd214d41b7b81bb65bbbc4db018c8c025de29"
+    },
+    {
+      "etapa": "03_protecciones_radevs",
+      "migracion": "20261025013246_protecciones_radevs.sql",
+      "sha256": "495556106675d3e26877b8b088594674fef986ffedac5cb136e056c7d5602bcf",
+      "rollback": "03_protecciones_radevs_rollback.sql",
+      "rollback_sha256": "e6b57372c695c077c3705ddb9c2a0d72d23b5ed5bd174c77b48beeab35f138d9"
+    }
+  ],
+  "alternativa_a": "supabase/migrations/20261024221610_aislar_eventos_radevs_chiapas.sql",
+  "no_aplicar_ambas_rutas": true,
+  "publicado": false,
+  "bloqueo": "Operador sube rama desde VM; falta acceso Auth Admin para pruebas integrales.",
+  "autorizacion": "Usuario: ok hazlo y debes realizar las pruebas",
+  "ruta_elegida": "por_etapas",
+  "nota": "Paquete aislado: no ejecutar supabase db push desde la raiz porque conserva la ruta consolidada alternativa."
+}

@@ -1,0 +1,39 @@
+{
+  "fecha_utc": "2026-10-25T01:43:18.165487+00:00",
+  "base_commit": "8f2b8a9",
+  "autorizacion_publicar_recibida": true,
+  "subida_rama": "Manual por el usuario desde VM",
+  "github_conector": {
+    "usuario": "iBoss170589",
+    "pull": true,
+    "push": false
+  },
+  "git_dry_run": "Sin credenciales HTTPS; no se subieron referencias",
+  "auth_admin": "Panel requiere iniciar sesion; conector sin operaciones Auth Admin",
+  "migraciones_aplicadas": false,
+  "edge_publicadas": false,
+  "frontend_publicado": false,
+  "catalogo_sin_drift": {
+    "funciones": 29,
+    "edge": 17,
+    "incluye": [
+      "ACL y hashes de funciones",
+      "flags/permisos tablas",
+      "politicas",
+      "buckets"
+    ]
+  },
+  "pruebas": {
+    "etapas_revision": 17,
+    "paquete_cli": 17,
+    "lint_exit_code": 0,
+    "build_candidato_exit_code": 0,
+    "chrome_candidato_estatico": 21,
+    "red_externa_chrome": "bloqueada"
+  },
+  "respaldo_local_ignorado_git": "RESPALDO_PUBLICACION_20261024.local",
+  "frontend_anterior_archivos": 6,
+  "paquete": "supabase/paquete_publicacion_20261024",
+  "no_registros_reales_modificados": true,
+  "no_inscripciones_habilitadas": true
+}
