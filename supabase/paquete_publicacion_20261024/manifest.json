@@ -41,5 +41,8 @@
     "version_servidor": "20261025031937",
     "sha256": "416b5a3c6766ba68ff0aca17ad1425f0641c7265aa4719a2dffc651900028dfd"
   },
-  "frontend_publicado": false
+  "frontend_publicado": true,
+  "commit_frontend": "43c51c558c5feaed2632476ed517320cff63ea5b",
+  "ejecucion_pages": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40168327700",
+  "excepcion_temporal_retirada": true
 }

@@ -1,9 +1,9 @@
 {
   "base_commit": "a0204c3",
-  "publicacion_completa": false,
+  "publicacion_completa": true,
   "edge_publicadas": true,
-  "frontend_publicado": false,
-  "estado_estructural": "Backend publicado y verificado; ensayo eliminado por autorizacion explicita; frontend pendiente",
+  "frontend_publicado": true,
+  "estado_estructural": "Backend y frontend publicados; ensayo eliminado; proteccion de Pages restaurada a main",
   "verificaciones": {
     "funciones_sql_coincidentes": 24,
     "edge_fuentes_coincidentes": 24,
@@ -24,5 +24,8 @@
     "structuredContent": null,
     "isError": false
   },
-  "cuenta_auth_ficticia": "Eliminada; cero sesiones, perfiles y asignaciones"
+  "cuenta_auth_ficticia": "Eliminada; cero sesiones, perfiles y asignaciones",
+  "commit_frontend": "43c51c558c5feaed2632476ed517320cff63ea5b",
+  "ejecucion_pages": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40168327700",
+  "excepcion_temporal_retirada": true
 }

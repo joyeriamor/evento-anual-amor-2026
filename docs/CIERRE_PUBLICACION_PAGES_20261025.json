@@ -1,0 +1,74 @@
+{
+  "run": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40168327700",
+  "commit": "43c51c558c5feaed2632476ed517320cff63ea5b",
+  "branch": "feature/chiapas-evento-2026",
+  "environment": "github-pages",
+  "temporary_rule_added": false,
+  "must_remove_temporary_rule": false,
+  "main_rule_preserved": true,
+  "previo_rechazado": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40167868661",
+  "temporary_rule_removed": true,
+  "status": "success",
+  "fecha_local": "2026-10-25",
+  "http": [
+    {
+      "ruta": "",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-DKDvfbzY.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "ruta": "chiapas/",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-DKDvfbzY.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "ruta": "chiapas/acceso/",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-DKDvfbzY.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "asset": "/evento-anual-amor-2026/assets/index-DKDvfbzY.js",
+      "status": 200,
+      "bytes": 578551,
+      "sha256": "f809e3c39ee45069dd52239ff0fd6a63f1d62d128283c14f816f2147467d52f4",
+      "coincide_candidato_probado": true
+    },
+    {
+      "asset": "/evento-anual-amor-2026/assets/index-u63JbaS2.css",
+      "status": 200,
+      "bytes": 10180,
+      "sha256": "49342504179ba5095328a650a57e48203c72bb1f8d0654c4f40e0cc5bcf424b9",
+      "coincide_candidato_probado": true
+    }
+  ],
+  "inscripciones_chiapas": {
+    "status": 403,
+    "inscripciones_chiapas": "cerradas",
+    "mensaje": "Las inscripciones todavía no están habilitadas."
+  },
+  "regla_final": {
+    "ramas": [
+      "main"
+    ],
+    "tags": 0,
+    "excepcion_chiapas_retirada": true
+  },
+  "verificacion_navegador": [
+    "RADEV’S: inicio y registro público disponibles",
+    "Chiapas: inicio publicado y aviso de inscripciones cerradas",
+    "Chiapas/acceso: login requerido"
+  ],
+  "limites": [
+    "Verificacion publica posterior sin iniciar sesion real RADEVS; flujos privados probados previamente con cuenta ficticia Chiapas y servicios reales",
+    "No merge a main; no datos reales modificados durante despliegue frontend"
+  ]
+}
