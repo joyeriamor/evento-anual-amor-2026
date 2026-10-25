@@ -12,8 +12,10 @@ try {
   await page.goto(base);
   await page.getByRole('button', { name: 'Registrarme al evento' }).waitFor(); checks++;
   await page.getByRole('link', { name: 'Chiapas', exact: true }).click();
-  await page.getByText('Las inscripciones para Chiapas todavía no están habilitadas.').waitFor(); checks++;
-  await page.getByRole('button', { name: 'Ver formulario de Chiapas' }).click();
+  await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor(); checks++;
+  await page.getByText('SALÓN BLANCO',{exact:true}).waitFor(); checks++;
+  await page.getByText('Horario por confirmar',{exact:true}).waitFor(); checks++;
+  await page.getByRole('button', { name: 'Registrarme en Chiapas' }).click();
   assert.equal(await page.locator('button[type="submit"]:enabled').count(),0);checks++;
   assert.deepEqual(errors, []);checks++;
   await page.close();

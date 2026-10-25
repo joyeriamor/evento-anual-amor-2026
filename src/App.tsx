@@ -1,3 +1,4 @@
+import { EVENTOS as CONFIGURACION_EVENTOS } from "./config/eventos";
 import { esChiapas, eventoActual } from './lib/evento';
 
 import { useEffect, useState } from "react";
@@ -305,15 +306,17 @@ function PaginaChiapas() {
         <h2>Chiapas</h2>
         <p><strong>Tuxtla Gutiérrez, Chiapas</strong></p>
         <p>Sábado 19 de diciembre de 2026</p>
-        <p>Salón y horario por definir</p>
+        <p><strong>{CONFIGURACION_EVENTOS.chiapas.sede}</strong></p>
+        <p>{CONFIGURACION_EVENTOS.chiapas.horario}</p>
         <p style={{
           marginTop: 24,
           padding: 14,
           background: "#fff0f5",
           borderRadius: 10
         }}>
-          Las inscripciones para Chiapas todavía
-          no están habilitadas.
+          {CONFIGURACION_EVENTOS.chiapas.inscripcionesHabilitadas
+            ? "Inscripciones abiertas · Cupo de 500 participantes"
+            : "Las inscripciones para Chiapas todavía no están habilitadas."}
         </p>
         <button
           type="button"
@@ -328,7 +331,7 @@ function PaginaChiapas() {
             marginTop: 14
           }}
         >
-          Ver formulario de Chiapas
+          Registrarme en Chiapas
         </button>
       </section>
     </main>

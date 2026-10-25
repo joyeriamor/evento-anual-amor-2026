@@ -1,3 +1,4 @@
+import { EVENTOS as CONFIGURACION_EVENTOS } from "../config/eventos";
 
 import {
   useEffect,
@@ -109,7 +110,9 @@ type Props = {
 };
 
 export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "minatitlan" }: Props) {
-  const formularioHabilitado = modoPruebaAdmin || (evento !== "chiapas" && REGISTROS_HABILITADOS);
+  const formularioHabilitado = modoPruebaAdmin || (evento === "chiapas"
+    ? CONFIGURACION_EVENTOS.chiapas.inscripcionesHabilitadas
+    : REGISTROS_HABILITADOS);
   const camaraRef = useRef<HTMLInputElement>(null);
   const galeriaRef = useRef<HTMLInputElement>(null);
 
@@ -765,7 +768,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
           }}
         />
 
-        {!modoPruebaAdmin && (REGISTROS_HABILITADOS || import.meta.env.DEV) && (
+        {!modoPruebaAdmin && (formularioHabilitado || import.meta.env.DEV) && (
   <TurnstileRegistro key={intentoTurnstile} onToken={setTokenSeguridad} />
 )}
 

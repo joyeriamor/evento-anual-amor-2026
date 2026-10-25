@@ -39,10 +39,12 @@ try{
  const favicon=await page.locator('link[rel="icon"]').getAttribute('href');
  eq(favicon,'/evento-anual-amor-2026/favicon.svg');eq((await fetch(new URL(favicon,base))).status,200);
  await page.getByRole('link',{name:'Chiapas',exact:true}).click();
- await page.getByText('Las inscripciones para Chiapas todavía no están habilitadas.').waitFor();checks++;
+ await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor();checks++;
  eq((await page.reload()).status(),200);
- await page.getByText('Las inscripciones para Chiapas todavía no están habilitadas.').waitFor();checks++;
- await page.getByRole('button',{name:'Ver formulario de Chiapas'}).click();
+ await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor();checks++;
+ await page.getByRole('button',{name:'Registrarme en Chiapas'}).click();
+ await page.getByRole('heading',{name:'Registro de participantes',exact:true}).waitFor();checks++;
+ eq(await page.getByText('Las inscripciones todavía no están habilitadas.',{exact:true}).count(),0);
  eq(await page.locator('button[type="submit"]:enabled').count(),0);
  eq((await page.goto(base+'chiapas/acceso')).status(),200);
  await page.getByRole('heading',{name:'Acceso AMOR',exact:true}).waitFor();checks++;
