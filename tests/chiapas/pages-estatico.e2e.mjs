@@ -39,10 +39,10 @@ try{
  const favicon=await page.locator('link[rel="icon"]').getAttribute('href');
  eq(favicon,'/evento-anual-amor-2026/favicon.svg');eq((await fetch(new URL(favicon,base))).status,200);
  await page.getByRole('link',{name:'Chiapas',exact:true}).click();
- await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor();checks++;
+ await page.getByText('Inscripciones abiertas').waitFor();checks++;
   assert.equal(await page.getByRole('link',{name:"RADEV'S · Minatitlán",exact:true}).count(),0);checks++;
  eq((await page.reload()).status(),200);
- await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor();checks++;
+ await page.getByText('Inscripciones abiertas').waitFor();checks++;
  await page.getByRole('button',{name:'Registrarme en Chiapas'}).click();
  await page.getByRole('heading',{name:'Registro de participantes',exact:true}).waitFor();checks++;
  eq(await page.getByText('Las inscripciones todavía no están habilitadas.',{exact:true}).count(),0);

@@ -12,7 +12,7 @@ try {
   await page.goto(base);
   await page.getByRole('button', { name: 'Registrarme al evento' }).waitFor(); checks++;
   await page.getByRole('link', { name: 'Chiapas', exact: true }).click();
-  await page.getByText('Inscripciones abiertas · Cupo de 500 participantes').waitFor(); checks++;
+  await page.getByText('Inscripciones abiertas').waitFor(); checks++;
   assert.equal(await page.getByRole('link',{name:"RADEV'S · Minatitlán",exact:true}).count(),0);checks++;
   await page.getByText('SALÓN BLANCO',{exact:true}).waitFor(); checks++;
   await page.getByText('Horario por confirmar',{exact:true}).waitFor(); checks++;

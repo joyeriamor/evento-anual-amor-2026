@@ -317,7 +317,7 @@ function PaginaChiapas() {
           borderRadius: 10
         }}>
           {CONFIGURACION_EVENTOS.chiapas.inscripcionesHabilitadas
-            ? "Inscripciones abiertas · Cupo de 500 participantes"
+            ? "Inscripciones abiertas"
             : "Las inscripciones para Chiapas todavía no están habilitadas."}
         </p>
         <button
