@@ -1,0 +1,179 @@
+{
+  "commit_publicado": "3247403c36f82accf56f161753c436ed80e6645d",
+  "ejecucion_pages": "https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/40170106870",
+  "pages_estado": "success",
+  "regla_pages_restaurada": [
+    "main"
+  ],
+  "http": [
+    {
+      "funcion": "administrar-invitacion",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "administrar-invitacion-chiapas",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "bandeja-personal",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "bandeja-personal-chiapas",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "bandejas-admin",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "bandejas-admin-chiapas",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "consultar-acceso",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "consultar-acceso-evento",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "detalle-participante",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "gestionar-usuarios",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "listar-participantes",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "probar-limite-registro",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "registrar-participante-chiapas",
+      "status": 415,
+      "aprobado": true
+    },
+    {
+      "funcion": "registrar-prueba-admin",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "registrar-prueba-admin-chiapas",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "resumen-accesos",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "resumen-cupo-evento",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "validar-pago",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "validar-pago-chiapas",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "verificar-admin",
+      "status": 401,
+      "aprobado": true
+    },
+    {
+      "funcion": "verificar-personal",
+      "status": 401,
+      "aprobado": true
+    }
+  ],
+  "assets": [
+    {
+      "ruta": "",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-B7oxyCZ4.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "ruta": "chiapas/",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-B7oxyCZ4.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "ruta": "chiapas/acceso/",
+      "status": 200,
+      "assets": [
+        "/evento-anual-amor-2026/assets/index-B7oxyCZ4.js",
+        "/evento-anual-amor-2026/assets/index-u63JbaS2.css"
+      ]
+    },
+    {
+      "asset": "/evento-anual-amor-2026/assets/index-B7oxyCZ4.js",
+      "status": 200,
+      "bytes": 578804,
+      "sha256": "29650f52d2787f2f513389d662c1b172f3dafb0a95e322d3d6543b0194c8d3b6",
+      "coincide_candidato_probado": true
+    },
+    {
+      "asset": "/evento-anual-amor-2026/assets/index-u63JbaS2.css",
+      "status": 200,
+      "bytes": 10180,
+      "sha256": "49342504179ba5095328a650a57e48203c72bb1f8d0654c4f40e0cc5bcf424b9",
+      "coincide_candidato_probado": true
+    }
+  ],
+  "sql_remoto_rollback": {
+    "qr_vault_acceso": 6,
+    "cortesia": 4,
+    "aprobados": true,
+    "identidad": "claims declarados para probar RPC; no equivalen a un login HTTP"
+  },
+  "navegador_real": {
+    "hugo_admin_alta_pago_qr": true,
+    "formulario_publico_turnstile_cortesia": true
+  },
+  "limpieza_final_verificada": true,
+  "cierre_final": {
+    "chiapas_sede": "SALÓN BLANCO, Tuxtla Gutiérrez, Chiapas",
+    "vault_ensayo": 0,
+    "chiapas_pagos": 0,
+    "chiapas_estado": "activo",
+    "chiapas_accesos": 0,
+    "promotoras_ensayo": 0,
+    "radevs_evento_md5": "d4d8d28273af03c03ba00fcb8f77f716",
+    "archivos_sinteticos": 0,
+    "chiapas_invitaciones": 0,
+    "radevs_participantes": 28,
+    "chiapas_participantes": 0
+  }
+}

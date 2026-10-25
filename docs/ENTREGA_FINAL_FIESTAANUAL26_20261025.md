@@ -1,3 +1,5 @@
+> Actualización posterior: Chiapas fue autorizado para apertura en SALÓN BLANCO. Consulta [la bitácora de apertura y pruebas](APERTURA_CHIAPAS_20261025.md) para el estado vigente. Este documento conserva el cierre de la fase anterior.
+
 # Entrega final FIESTAANUAL26 — 25 de octubre de 2026
 
 ## Estado actual
