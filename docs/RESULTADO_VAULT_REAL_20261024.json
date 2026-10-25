@@ -1,0 +1,14 @@
+{
+  "fecha": "2026-10-24",
+  "proyecto": "rkjlqxxmxbiciuhtpnpf",
+  "sql_sha256": "75f685ece8e54fc1d17fb85becd669781bb692263011ef3ceab1acb6dce13734",
+  "respuesta": [
+    {
+      "resultado": "APROBADO",
+      "comprobaciones": 6,
+      "rollback_sin_secreto_ficticio": true,
+      "alcance": "Solo secreto ficticio de Chiapas; sin QR ni datos reales; Vault real"
+    }
+  ],
+  "limites": "Vault real con secreto ficticio y ROLLBACK; no QR, Auth ni Storage integral. No se descifraron secretos existentes."
+}

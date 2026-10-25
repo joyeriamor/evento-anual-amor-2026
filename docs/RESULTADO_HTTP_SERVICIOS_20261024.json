@@ -1,0 +1,74 @@
+{
+  "fecha_utc": "2026-10-24T23:51:58.135Z",
+  "proyecto": "rkjlqxxmxbiciuhtpnpf",
+  "evento_ficticio": "3dc92160-79af-4bf7-b770-263038e88900",
+  "run_id": "425a3ca7-4acc-4e95-a536-69152ceaf161",
+  "metodo": "GET exclusivamente; sin cuentas, archivos, firmas de URL, RPC o escrituras de negocio.",
+  "aprobado": true,
+  "control_api_valido": true,
+  "resultados": [
+    {
+      "caso": "auth_configuracion_publica",
+      "servicio": "Auth",
+      "status": 200,
+      "codigo": null,
+      "aprobado": true,
+      "alcance": "Control positivo: configuración pública Auth accesible con la clave publicable."
+    },
+    {
+      "caso": "auth_sin_sesion",
+      "servicio": "Auth",
+      "status": 401,
+      "codigo": "401",
+      "aprobado": true,
+      "alcance": "Rechazo real de consulta de usuario sin sesión válida."
+    },
+    {
+      "caso": "auth_token_invalido",
+      "servicio": "Auth",
+      "status": 403,
+      "codigo": "403",
+      "aprobado": true,
+      "alcance": "Rechazo real de consulta de usuario sin sesión válida."
+    },
+    {
+      "caso": "storage_comprobantes-pago_sin_sesion",
+      "servicio": "Storage",
+      "status": 400,
+      "codigo": "NoSuchKey",
+      "aprobado": true,
+      "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+    },
+    {
+      "caso": "storage_comprobantes-pago_token_invalido",
+      "servicio": "Storage",
+      "status": 400,
+      "codigo": "AccessDenied",
+      "aprobado": true,
+      "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+    },
+    {
+      "caso": "storage_fotos-promotoras_sin_sesion",
+      "servicio": "Storage",
+      "status": 400,
+      "codigo": "NoSuchKey",
+      "aprobado": true,
+      "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+    },
+    {
+      "caso": "storage_fotos-promotoras_token_invalido",
+      "servicio": "Storage",
+      "status": 400,
+      "codigo": "AccessDenied",
+      "aprobado": true,
+      "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+    }
+  ],
+  "pendientes": [
+    "Auth con sesión válida, rol/asignación activa y revocación",
+    "Storage con archivo ficticio existente, firma autorizada y denegación por evento",
+    "Vault real: emisión, recuperación y reemisión de QR ficticios",
+    "Flujo integral de frontend contra las versiones aprobadas desplegadas"
+  ],
+  "limites": "No valida la integración de la versión local, todavía no publicada. No se invocaron endpoints de RADEV’S; los servicios Auth y Storage son compartidos. No acredita aislamiento entre eventos ni limpieza tras escrituras. Puede generar registros técnicos de solicitudes en el proveedor."
+}

@@ -75,3 +75,7 @@ No se comprobó el frontend alojado: no se identificó una URL de entrega verifi
 ## Verificación de esta continuación
 
 Pasaron ESLint, Deno check con lock congelado sobre los 24 endpoints locales y la suite de seguridad: administración Chiapas 17/17, bandejas admin 14/14, bandeja personal 19/19, matriz de aislamiento 224 comprobaciones y perfiles atómicos 10. La matriz incluye rechazo por evento ajeno en el limitador, consulta autorizada por evento en verificar-admin y HMAC separado del contador real. El backend de estas pruebas es simulado; dos solicitudes usan transporte HTTP localhost real. No se repitieron build, SQL o E2E porque esta continuación solo modifica dos endpoints Edge, su matriz de pruebas y documentación; esos checks permanecen aprobados en la entrega anterior. No hubo cambios persistentes en producción, despliegue, push, merge ni apertura de inscripciones.
+
+## Actualización posterior autorizada
+
+El usuario decidió dejar sin cambios el perfil sin asignación: no se elimina ni recibe permisos, y seguirá sin acceso con los guards. Se resuelve así ese punto de revisión, sin modificar la base. Se completaron siete sondas HTTP reales y un ensayo de Vault real con ROLLBACK; su alcance, evidencias y límites están en `VALIDACION_SERVICIOS_REALES_CHIAPAS_2026.md`. La provisión administrativa y los flujos integrales siguen pendientes.
