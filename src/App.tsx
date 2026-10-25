@@ -182,7 +182,9 @@ function AppPrincipal() {
       </header>
 
       <nav aria-label="Seleccionar evento" style={{ padding: 16, textAlign: 'center' }}>
-        <a href={import.meta.env.BASE_URL}>RADEV'S · Minatitlán</a> · <a href={`${import.meta.env.BASE_URL}chiapas`}>Chiapas</a>
+        {!esChiapas && <>
+          <a href={import.meta.env.BASE_URL}>RADEV'S · Minatitlán</a> · <a href={`${import.meta.env.BASE_URL}chiapas`}>Chiapas</a>
+        </>}
         <p><strong>Operando: {eventoActual.nombre}</strong></p>
       </nav>
       <main className="principal">
