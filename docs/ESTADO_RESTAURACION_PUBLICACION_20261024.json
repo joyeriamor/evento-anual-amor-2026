@@ -1,0 +1,25 @@
+{
+  "base_commit": "a0204c3",
+  "publicacion_completa": false,
+  "edge_publicadas": true,
+  "frontend_publicado": false,
+  "estado_estructural": "Tres etapas publicadas tras autorización explícita completa; corrección incremental de alta de ensayo Chiapas aplicada",
+  "verificaciones": {
+    "funciones_y_acl_originales": 29,
+    "politicas_originales": 2,
+    "permisos_asignaciones": "restaurados; orden textual de entradas ACL irrelevante",
+    "perfil_cuenta_ficticia": 0
+  },
+  "motivo_bloqueo": null,
+  "historial_tool": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"migrations\":[{\"version\":\"20261025015849\",\"name\":\"chiapas_funciones_independientes\"},{\"version\":\"20261025020022\",\"name\":\"rollback_chiapas_preflight_acl\"},{\"version\":\"20261025020438\",\"name\":\"chiapas_funciones_independientes_verificadas\"},{\"version\":\"20261025020443\",\"name\":\"aislamiento_compartido_eventos_verificado\"},{\"version\":\"20261025030339\",\"name\":\"restaurar_compartidos_estado_previo\"},{\"version\":\"20261025030407\",\"name\":\"restaurar_chiapas_estado_previo\"}]}"
+      }
+    ],
+    "structuredContent": null,
+    "isError": false
+  },
+  "cuenta_auth_ficticia": "Perfil administrador SOLO Chiapas; pruebas y limpieza en curso; sin contraseña en repositorio"
+}

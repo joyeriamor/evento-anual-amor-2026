@@ -116,7 +116,7 @@ async function check(name, state, body, headers, expected) {
     if(state.empleado){assert.equal(e.uploads.length,0);assert.equal(e.rpc.length,0);}
     else {
       assert.equal(e.uploads.length,2);assert.ok(e.uploads.every(x=>x[1].startsWith(CHIAPAS+'/pruebas/')));
-      assert.equal(e.rpc[0][0],'crear_registro_prueba_admin_v2');assert.equal(e.rpc[0][1].p_evento_id,CHIAPAS);
+      assert.equal(e.rpc[0][0],'crear_registro_prueba_admin_chiapas');assert.equal(e.rpc[0][1].p_evento_id,CHIAPAS);
       assert.equal(e.removals.length,state.rpcFalla?2:0);
     }count++;
   }

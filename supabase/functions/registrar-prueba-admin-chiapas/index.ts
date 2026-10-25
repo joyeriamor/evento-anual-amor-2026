@@ -184,7 +184,7 @@ serveEvento({ roles: ['administrador'], evento: CHIAPAS, multipart: true }, asyn
       comprobanteSubido = true;
     }
 
-    const { data, error } = await supabase.rpc("crear_registro_prueba_admin_v2", {
+    const { data, error } = await supabase.rpc("crear_registro_prueba_admin_chiapas", {
       p_evento_id: EVENTO_ID,
       p_asesor_id: asesorId,
       p_nombres: nombres,

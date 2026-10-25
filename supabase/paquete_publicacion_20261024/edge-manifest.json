@@ -246,7 +246,7 @@
       "archivos": [
         {
           "ruta": "registrar-prueba-admin-chiapas/index.ts",
-          "sha256": "4f62515bb110ea32d8c5c5d1d5dc0f3ee84424090f1234ba1283a2b070f1d0a6"
+          "sha256": "d44743a06a9833bd4243495978c3723cf23cdeb638bd04fb7b7a04032a8eef08"
         },
         {
           "ruta": "_shared/evento.ts",
@@ -346,5 +346,6 @@
     }
   ],
   "excluida_no_publicada": "registrar-participante",
-  "publicado": false
+  "publicado": true,
+  "nota": "24 funciones activas verificadas; registrar-prueba-admin-chiapas actualizada a version 2 tras ensayo real."
 }
