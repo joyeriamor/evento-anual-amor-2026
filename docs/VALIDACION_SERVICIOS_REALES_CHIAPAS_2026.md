@@ -64,3 +64,9 @@ El conector disponible permite consultar SQL y administrar Edge, pero no ofrece 
 El requisito concreto para continuar la prueba integral es un entorno administrativo seguro que permita crear y limpiar exclusivamente las cuentas ficticias de Chiapas, o esas cuentas provisionadas por el titular con sus asignaciones. Las claves privadas no deben enviarse por chat. Además, las dependencias SQL/Edge nuevas todavía requieren aprobación concreta antes de publicarse; sin ellas no puede acreditarse el flujo integral del código local.
 
 No quedan verificaciones locales pendientes para este avance. Las pruebas previas de build, aislamiento, catálogo, etapas, rollback y Chrome conservan el alcance documentado en sus informes; las sondas nuevas no las sustituyen ni convierten simulaciones en integración real.
+
+## Reejecución completa solicitada
+
+A petición del usuario se repitió la suite local íntegra desde `4e35cad`: código 0 en lint, tipos, build, Edge, seguridad, SQL, etapas, rollback y Chrome. También se repitieron 7/7 sondas HTTP y 6/6 verificaciones Vault reales, con rollback confirmado. Evidencia: `RESULTADO_REEJECUCION_PRUEBAS_20261024.json`. No se cambió código funcional ni se desplegó.
+
+Se comprobó además el panel Auth en el navegador disponible: redirige a iniciar sesión. Se dejó abierto para acceso directo del titular. No se introdujeron credenciales, se crearon cuentas, se cambiaron asignaciones o se configuraron permisos. Esa sesión administrativa sigue siendo un requisito para las pruebas positivas pendientes; no se presenta como una falta de autorización para repetir los ensayos ya aprobados.

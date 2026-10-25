@@ -1,0 +1,121 @@
+{
+  "fecha_utc": "2026-10-25T00:54:38.012662+00:00",
+  "base_commit": "4e35cad",
+  "rama": "feature/chiapas-evento-2026",
+  "suite_local": {
+    "comando": "node scripts/verificar-local.cjs",
+    "exit_code": 0,
+    "log_sha256": "253957462abaef0c5f580589f614585ae0feb53c6dbfa6a9630d9a194b5b61e4",
+    "resultados": {
+      "lint": "aprobado",
+      "tipos_frontend": "aprobado",
+      "build": "aprobado",
+      "tipos_edge": "aprobado",
+      "seguridad_admin_chiapas": 17,
+      "bandejas_admin_chiapas": 14,
+      "bandeja_personal_chiapas": 19,
+      "aislamiento": 224,
+      "perfiles_atomicos": 10,
+      "acceso_legacy": 8,
+      "sql_sintetico": 33,
+      "catalogo": 77,
+      "etapas_rollback": 17,
+      "pg_temp_local": 31,
+      "chrome_e2e_supabase_simulado": 10,
+      "verificador_solo_lectura_simulado": 11
+    }
+  },
+  "http_real": {
+    "fecha_utc": "2026-10-25T00:52:49.940Z",
+    "proyecto": "rkjlqxxmxbiciuhtpnpf",
+    "evento_ficticio": "3dc92160-79af-4bf7-b770-263038e88900",
+    "run_id": "1fd20005-96c5-41d2-bbe4-f1cf99c3ec7d",
+    "metodo": "GET exclusivamente; sin cuentas, archivos, firmas de URL, RPC o escrituras de negocio.",
+    "aprobado": true,
+    "control_api_valido": true,
+    "resultados": [
+      {
+        "caso": "auth_configuracion_publica",
+        "servicio": "Auth",
+        "status": 200,
+        "codigo": null,
+        "aprobado": true,
+        "alcance": "Control positivo: configuración pública Auth accesible con la clave publicable."
+      },
+      {
+        "caso": "auth_sin_sesion",
+        "servicio": "Auth",
+        "status": 401,
+        "codigo": "401",
+        "aprobado": true,
+        "alcance": "Rechazo real de consulta de usuario sin sesión válida."
+      },
+      {
+        "caso": "auth_token_invalido",
+        "servicio": "Auth",
+        "status": 403,
+        "codigo": "403",
+        "aprobado": true,
+        "alcance": "Rechazo real de consulta de usuario sin sesión válida."
+      },
+      {
+        "caso": "storage_comprobantes-pago_sin_sesion",
+        "servicio": "Storage",
+        "status": 400,
+        "codigo": "NoSuchKey",
+        "aprobado": true,
+        "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+      },
+      {
+        "caso": "storage_comprobantes-pago_token_invalido",
+        "servicio": "Storage",
+        "status": 400,
+        "codigo": "AccessDenied",
+        "aprobado": true,
+        "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+      },
+      {
+        "caso": "storage_fotos-promotoras_sin_sesion",
+        "servicio": "Storage",
+        "status": 400,
+        "codigo": "NoSuchKey",
+        "aprobado": true,
+        "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+      },
+      {
+        "caso": "storage_fotos-promotoras_token_invalido",
+        "servicio": "Storage",
+        "status": 400,
+        "codigo": "AccessDenied",
+        "aprobado": true,
+        "alcance": "Sonda sobre ruta ficticia no creada; rechazo/no encontrado NO prueba RLS de un archivo existente."
+      }
+    ],
+    "pendientes": [
+      "Auth con sesión válida, rol/asignación activa y revocación",
+      "Storage con archivo ficticio existente, firma autorizada y denegación por evento",
+      "Vault real: emisión, recuperación y reemisión de QR ficticios",
+      "Flujo integral de frontend contra las versiones aprobadas desplegadas"
+    ],
+    "limites": "No valida la integración de la versión local, todavía no publicada. No se invocaron endpoints de RADEV’S; los servicios Auth y Storage son compartidos. No acredita aislamiento entre eventos ni limpieza tras escrituras. Puede generar registros técnicos de solicitudes en el proveedor."
+  },
+  "vault_real": {
+    "sql_sha256": "75f685ece8e54fc1d17fb85becd669781bb692263011ef3ceab1acb6dce13734",
+    "respuesta": [
+      {
+        "resultado": "APROBADO",
+        "comprobaciones": 6,
+        "rollback_sin_secreto_ficticio": true,
+        "alcance": "Solo secreto ficticio de Chiapas; sin QR ni datos reales; Vault real"
+      }
+    ]
+  },
+  "limites": [
+    "La suite local simula Auth/Storage/Vault donde corresponde; no es integración real de producción.",
+    "Las sondas Storage usan archivos inexistentes; no prueban autorización sobre objetos existentes.",
+    "Vault real solo prueba un secreto ficticio dentro de una transacción revertida, no el flujo de QR.",
+    "Las pruebas con sesión válida y objetos reales de ensayo siguen pendientes del acceso administrativo y de las dependencias de la versión aprobada."
+  ],
+  "sin_despliegue": true,
+  "sin_modificaciones_radevs": true
+}
