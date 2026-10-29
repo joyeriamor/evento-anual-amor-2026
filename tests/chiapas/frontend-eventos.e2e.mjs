@@ -51,11 +51,11 @@ try {
     await p.waitForTimeout(100);
     assert.ok(seen.some(x=>x.name===(suffix?'bandejas-admin-chiapas':'bandejas-admin')));checks++;
     await p.getByRole('button',{name:'← Volver al panel',exact:true}).click();
-    if(suffix){
-      await p.getByRole('button',{name:'Registrar prueba de Chiapas',exact:true}).click();
-      await p.getByRole('heading',{name:'Registro de prueba · Administración',exact:true}).waitFor();checks++;
-      await p.getByText('Confirmo que es una prueba con datos ficticios y sin transferencia real.').waitFor();checks++;
-    }else{assert.equal(await p.getByRole('button',{name:'Registrar prueba de Chiapas',exact:true}).count(),0);checks++;}
+    assert.equal(await p.getByRole('button',{name:'Registrar prueba de Chiapas',exact:true}).count(),0);checks++;
+    assert.equal(await p.getByRole('heading',{name:'Ensayos de Chiapas',exact:true}).count(),0);checks++;
+    for(const name of ['Ver participantes','Gestionar invitaciones','Abrir escáner','Gestionar usuarios','Ver ingresos']){
+      assert.equal(await p.getByRole('button',{name,exact:true}).count(),1);checks++;
+    }
     await context.close();
   }
   console.log(`${checks} comprobaciones E2E aprobadas. Navegador real; Supabase HTTP simulado.`);
