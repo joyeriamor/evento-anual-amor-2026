@@ -143,6 +143,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
   const [aceptaPrivacidad, setAceptaPrivacidad] =
     useState(false);
   const [confirmaPrueba, setConfirmaPrueba] = useState(false);
+  const [autorizaWhatsApp, setAutorizaWhatsApp] = useState(false);
 
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -282,6 +283,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
       datos.delete("comprobante");
     }
     datos.set("privacidad_aceptada", "true");
+    datos.set("autoriza_whatsapp", !modoPruebaAdmin && autorizaWhatsApp ? "true" : "false");
     if (modoPruebaAdmin) {
       datos.set("confirmar_prueba", "true");
       datos.delete("turnstile_token");
@@ -333,6 +335,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
       setAsesorEmpleado(false);
       setCuentaElegida("");
       setAceptaPrivacidad(false);
+      setAutorizaWhatsApp(false);
       setConfirmaPrueba(false);
       setTokenSeguridad("");
     } catch (err) {
@@ -767,6 +770,37 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
             }
           }}
         />
+
+        {!modoPruebaAdmin && (
+          <label
+            style={{
+              display: "flex", alignItems: "flex-start", gap: 12,
+              margin: "18px 0", padding: 16,
+              border: "1px solid #e6bfc8", background: "#fff8fa",
+              borderRadius: 12, color: "#593742",
+            }}
+          >
+            <input
+              type="checkbox"
+              name="autoriza_whatsapp"
+              checked={autorizaWhatsApp}
+              onChange={(e) => setAutorizaWhatsApp(e.target.checked)}
+              style={{ width: 20, height: 20, flexShrink: 0, marginTop: 2 }}
+            />
+            <span>
+              <strong>Autorización de WhatsApp (opcional)</strong>
+              <span style={{ display: "block", marginTop: 6, fontWeight: 400 }}>
+                Autorizo a Joyería AMOR DE LOS DOS a enviarme por WhatsApp
+                información sobre mi inscripción y mi invitación personal con
+                código QR. Puedo retirar mi autorización cuando lo desee
+                solicitándolo a Joyería AMOR DE LOS DOS.
+              </span>
+              <small style={{ display: "block", marginTop: 6 }}>
+                Puedes registrarte aunque no autorices estos mensajes.
+              </small>
+            </span>
+          </label>
+        )}
 
         {!modoPruebaAdmin && (formularioHabilitado || import.meta.env.DEV) && (
   <TurnstileRegistro key={intentoTurnstile} onToken={setTokenSeguridad} />
