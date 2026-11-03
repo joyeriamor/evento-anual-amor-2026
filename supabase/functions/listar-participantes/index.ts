@@ -274,6 +274,15 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
       );
     }
 
+    // Filtrar por ID, no por el nombre visible (evita ambigüedades).
+    // El filtro se aplica ANTES del count y de .range(), para que el total sea real.
+    const asesorId = parametros.asesor_id;
+    if (asesorId !== undefined && asesorId !== null && asesorId !== "" &&
+        (typeof asesorId !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(asesorId))) {
+      return responder({ ok: false, mensaje: "Asesor inválido" }, 400, corsOrigin);
+    }
+
     // Filtro opcional de evento.
     const eventoId = req.headers.get('x-evento-autorizado')!;
 
@@ -340,6 +349,11 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
         "evento_id",
         eventoId
       );
+    }
+
+    // Para los conteos por asesor, excluir registros ficticios o de prueba.
+    if (typeof asesorId === "string" && asesorId) {
+      consulta = consulta.eq("asesor_id", asesorId).eq("es_prueba", false);
     }
 
     // La búsqueda se realiza por nombre,

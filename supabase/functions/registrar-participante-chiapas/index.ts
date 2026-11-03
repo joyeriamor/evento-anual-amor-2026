@@ -246,7 +246,12 @@ Deno.serve(async (req) => {
   if (!asesor?.activo) {
     return responder(400, { ok: false, mensaje: "Selecciona un asesor válido." });
   }
-  const esEmpleado = String(asesor.nombre).trim().toUpperCase() === "EMPLEADO";
+  // Restricción en servidor: no basta con ocultar opciones en el navegador.
+  const nombreAsesor = String(asesor.nombre).trim().toUpperCase();
+  if (nombreAsesor !== "LUIS" && nombreAsesor !== "VIRIDIANA") {
+    return responder(400, { ok: false, mensaje: "En Chiapas solo se admiten los asesores LUIS y VIRIDIANA." });
+  }
+  const esEmpleado = nombreAsesor === "EMPLEADO";
   if (esEmpleado) {
     return responder(400, {
       ok: false,

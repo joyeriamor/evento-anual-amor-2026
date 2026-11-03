@@ -1,4 +1,4 @@
-import { invocarEvento } from '../lib/evento';
+import { esChiapas, invocarEvento } from '../lib/evento';
 
 import {
   useCallback,
@@ -29,6 +29,7 @@ type Promotora = {
 type Asesor = {
   nombre: string | null;
 };
+type AsesorOpcion = { id: string; nombre: string };
 type Evento = {
   nombre: string | null;
   cuota_fija: number | null;
@@ -179,6 +180,9 @@ export default function ParticipantesAdmin() {
     useState("");
   const [filtro, setFiltro] =
     useState("");
+  const [asesorSeleccionado, setAsesorSeleccionado] = useState("");
+  const [asesoresDisponibles, setAsesoresDisponibles] = useState<AsesorOpcion[]>([]);
+  const [errorAsesores, setErrorAsesores] = useState("");
   const [pagina, setPagina] =
     useState(1);
   const [total, setTotal] =
@@ -198,7 +202,8 @@ export default function ParticipantesAdmin() {
   const consultar = useCallback(
     async (
       paginaActual: number,
-      textoBusqueda: string
+      textoBusqueda: string,
+      asesorId: string
     ) => {
       const solicitud = ++solicitudActual.current;
       setCargando(true);
@@ -231,6 +236,7 @@ export default function ParticipantesAdmin() {
               pagina: paginaActual,
               limite: LIMITE,
               busqueda: textoBusqueda,
+              ...(asesorId ? { asesor_id: asesorId } : {}),
             },
           }
         );
@@ -306,12 +312,37 @@ export default function ParticipantesAdmin() {
     []
   );
   useEffect(() => {
+    if (esChiapas) return;
+    let vigente = true;
+    async function cargarAsesores() {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "listar-asesores-registro", { body: {} }
+        );
+        if (error || data?.ok !== true || !Array.isArray(data.asesores)) {
+          throw new Error("No se pudo cargar la lista de asesores.");
+        }
+        if (vigente) {
+          setAsesoresDisponibles(data.asesores.filter(
+            (a: AsesorOpcion) => typeof a.id === "string" && typeof a.nombre === "string"
+          ));
+          setErrorAsesores("");
+        }
+      } catch {
+        if (vigente) setErrorAsesores("No se cargaron los asesores. Actualiza la página.");
+      }
+    }
+    void cargarAsesores();
+    return () => { vigente = false; };
+  }, []);
+
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
-    void consultar(pagina, filtro);
+    void consultar(pagina, filtro, asesorSeleccionado);
     return () => {
       solicitudActual.current += 1;
     };
-  }, [pagina, filtro, consultar]);
+  }, [pagina, filtro, asesorSeleccionado, consultar]);
   const totalPaginas = Math.max(
     1,
     Math.ceil(total / LIMITE)
@@ -325,7 +356,7 @@ export default function ParticipantesAdmin() {
       pagina === 1 &&
       filtro === nuevoFiltro
     ) {
-      void consultar(1, nuevoFiltro);
+      void consultar(1, nuevoFiltro, asesorSeleccionado);
       return;
     }
     setPagina(1);
@@ -337,7 +368,7 @@ export default function ParticipantesAdmin() {
       pagina === 1 &&
       filtro === ""
     ) {
-      void consultar(1, "");
+      void consultar(1, "", asesorSeleccionado);
       return;
     }
     setPagina(1);
@@ -391,7 +422,7 @@ export default function ParticipantesAdmin() {
         <button
           type="button"
           onClick={() =>
-            void consultar(pagina, filtro)
+            void consultar(pagina, filtro, asesorSeleccionado)
           }
           disabled={cargando}
           style={{
@@ -431,7 +462,7 @@ export default function ParticipantesAdmin() {
               fontSize: 13,
             }}
           >
-            Registros encontrados
+            {asesorSeleccionado ? "Inscripciones reales del asesor" : "Registros encontrados"}
           </span>
           <strong
             style={{
@@ -468,7 +499,7 @@ export default function ParticipantesAdmin() {
           </strong>
         </div>
       </div>
-      {/* BÚSQUEDA */}
+      {/* BÚSQUEDA Y FILTRO DE ASESOR */}
       <form
         onSubmit={buscar}
         style={{
@@ -478,6 +509,22 @@ export default function ParticipantesAdmin() {
           marginBottom: 20,
         }}
       >
+        {!esChiapas && (
+          <label style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 205 }}>
+            <span style={{ color: "#806e76", fontSize: 13 }}>Filtrar por asesor</span>
+            <select
+              aria-label="Filtrar por asesor"
+              value={asesorSeleccionado}
+              onChange={(e) => { setPagina(1); setAsesorSeleccionado(e.target.value); }}
+              style={{ padding: "12px 14px", border: "1px solid #e5bdcc", borderRadius: 10, fontSize: 14 }}
+            >
+              <option value="">Todos los asesores</option>
+              {asesoresDisponibles.map((asesor) => (
+                <option key={asesor.id} value={asesor.id}>{asesor.nombre}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <input
           type="search"
           value={busqueda}
@@ -524,6 +571,9 @@ export default function ParticipantesAdmin() {
           </button>
         )}
       </form>
+      {errorAsesores && !esChiapas && (
+        <p role="alert" style={{ color: "#991b1b" }}>{errorAsesores}</p>
+      )}
       {/* ERRORES */}
       {error && (
         <div
@@ -849,10 +899,10 @@ export default function ParticipantesAdmin() {
           registroId={registroSeleccionado}
           onCerrar={() => {
             setRegistroSeleccionado(null);
-            void consultar(pagina, filtro);
+            void consultar(pagina, filtro, asesorSeleccionado);
           }}
           onPagoActualizado={() => {
-            void consultar(pagina, filtro);
+            void consultar(pagina, filtro, asesorSeleccionado);
           }}
         />
       )}

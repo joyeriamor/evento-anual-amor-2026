@@ -445,7 +445,7 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
             </select>
           </label>
 
-          <SelectorAsesor excluirEmpleados={evento === "chiapas"} onChange={(seleccionado) => {
+          <SelectorAsesor excluirEmpleados={evento === "chiapas"} soloChiapas={evento === "chiapas"} onChange={(seleccionado) => {
             const empleado = seleccionado?.nombre.trim().toLocaleUpperCase("es-MX") === "EMPLEADO";
             setAsesorEmpleado(empleado);
             setTipoParticipante("");

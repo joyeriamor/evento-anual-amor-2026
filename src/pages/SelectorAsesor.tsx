@@ -20,9 +20,11 @@ type Respuesta = {
 export default function SelectorAsesor({
   onChange,
   excluirEmpleados = false,
+  soloChiapas = false,
 }: {
   onChange?: (asesor: Asesor | null) => void;
   excluirEmpleados?: boolean;
+  soloChiapas?: boolean;
 }) {
   const [asesores, setAsesores] = useState<Asesor[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -66,13 +68,11 @@ export default function SelectorAsesor({
         }
 
         if (!control.signal.aborted) {
-          setAsesores(
-            excluirEmpleados
-              ? datos.asesores.filter(
-                  (asesor) => asesor.nombre.trim().toUpperCase() !== "EMPLEADO"
-                )
-              : datos.asesores
-          );
+          setAsesores(datos.asesores.filter((asesor) => {
+            const nombre = asesor.nombre.trim().toUpperCase();
+            if (soloChiapas) return nombre === "LUIS" || nombre === "VIRIDIANA";
+            return !excluirEmpleados || nombre !== "EMPLEADO";
+          }));
         }
       } catch (fallo) {
         if (!montado) return;
@@ -99,7 +99,7 @@ export default function SelectorAsesor({
       montado = false;
       control.abort();
     };
-  }, [intento, excluirEmpleados]);
+  }, [intento, excluirEmpleados, soloChiapas]);
 
   return (
     <label>
