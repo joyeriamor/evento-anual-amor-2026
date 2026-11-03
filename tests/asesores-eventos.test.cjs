@@ -31,9 +31,11 @@ test('filtro backend aplica antes de paginación y excluye pruebas', () => {
   assert.match(s, /serveEvento\(\{ roles: \['administrador'\] \}/);
 });
 
-test('panel ofrece filtro solo a RADEV’S y muestra el total del servidor', () => {
+test('S’S y muestra el total del servidor', () => {
   const s = leer('src/pages/ParticipantesAdmin.tsx');
-  assert.match(s, /!esChiapas && \(/);
+  assert.doesNotMatch(s, /!esChiapas && \(/);
+  assert.doesNotMatch(s, /if \(esChiapas\) return;/);
+  assert.match(s, /\["LUIS", "VIRIDIANA"\]\.includes/);
   assert.match(s, /Filtrar por asesor/);
   assert.match(s, /asesor_id: asesorId/);
   assert.match(s, /setTotal\(/);

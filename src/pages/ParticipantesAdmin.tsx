@@ -312,7 +312,7 @@ export default function ParticipantesAdmin() {
     []
   );
   useEffect(() => {
-    if (esChiapas) return;
+
     let vigente = true;
     async function cargarAsesores() {
       try {
@@ -324,7 +324,8 @@ export default function ParticipantesAdmin() {
         }
         if (vigente) {
           setAsesoresDisponibles(data.asesores.filter(
-            (a: AsesorOpcion) => typeof a.id === "string" && typeof a.nombre === "string"
+            (a: AsesorOpcion) => typeof a.id === "string" && typeof a.nombre === "string" &&
+              (!esChiapas || ["LUIS", "VIRIDIANA"].includes(a.nombre.trim().toUpperCase()))
           ));
           setErrorAsesores("");
         }
@@ -509,7 +510,7 @@ export default function ParticipantesAdmin() {
           marginBottom: 20,
         }}
       >
-        {!esChiapas && (
+        {(
           <label style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 205 }}>
             <span style={{ color: "#806e76", fontSize: 13 }}>Filtrar por asesor</span>
             <select
@@ -571,7 +572,7 @@ export default function ParticipantesAdmin() {
           </button>
         )}
       </form>
-      {errorAsesores && !esChiapas && (
+      {errorAsesores && (
         <p role="alert" style={{ color: "#991b1b" }}>{errorAsesores}</p>
       )}
       {/* ERRORES */}
