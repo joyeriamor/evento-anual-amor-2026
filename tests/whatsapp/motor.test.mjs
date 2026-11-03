@@ -1,0 +1,30 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {procesarUno,cuerpoPlantilla} from '../../supabase/functions/_shared/whatsapp-motor.ts';
+import {transporteMeta} from '../../supabase/functions/_shared/whatsapp-meta.ts';
+const contexto={elegible:true,invitacion_id:'inv',registro_id:'reg',evento_id:'3dc92160-79af-4bf7-b770-263038e88900',
+ token_qr:'token-ficticio-vigente-123456',telefono:'529611234567',folio:'FICTICIO',participante:'PERSONA FICTICIA',
+ evento:'Fiesta Anual AMOR 2026',fecha:'19 de diciembre de 2026',recepcion:'Por confirmar',lugar:'Salón BIANCO'};
+const sim={modo:'simulacion',habilitado:false,plantillaAprobada:false,numeroConfigurado:false,
+ credencialPermanente:false,pruebaAutorizada:false,produccionAutorizada:false};
+const real=Object.fromEntries(Object.keys(sim).map(k=>[k,k==='modo'?'real':true]));
+function fixture(){let libre=true;const resultados=[],llamadas=[];
+ return {resultados,llamadas,cola:{async reservar(){if(!libre)return null;libre=false;return{id:'job',invitacion_id:'inv',reserva_id:'reserva'};},
+ async contexto(){return contexto;},async autorizar(){return contexto;},
+ async finalizar(t,fase,codigo,mensaje){resultados.push({fase,codigo,mensaje});return true;}},
+ async imagen(c){assert.equal(c.token_qr,contexto.token_qr);llamadas.push('imagen');return new Uint8Array([137,80,78,71]);},
+ meta:{async cargar(){llamadas.push('media');return'123';},async enviar(){llamadas.push('enviar');return{id:'wamid.ficticio'};},async eliminar(){llamadas.push('eliminar');}}};}
+test('simulación completa: mismo token y cero llamadas Meta',async()=>{const f=fixture();assert.equal((await procesarUno(sim,f.cola,f.imagen,f.meta)).estado,'simulado');assert.deepEqual(f.llamadas,['imagen']);});
+test('cada autorización faltante bloquea modo real antes de reservar',async()=>{for(const key of Object.keys(sim).filter(k=>k!=='modo')){const f=fixture();assert.equal((await procesarUno({...real,[key]:false},f.cola,f.imagen,f.meta)).estado,'deshabilitado');assert.deepEqual(f.llamadas,[]);}});
+for(const codigo of ['sin_consentimiento','registro_no_elegible','sin_autorizacion','telefono_invalido','qr_no_vigente','qr_no_recuperable'])test(`no envía ${codigo}`,async()=>{const f=fixture();f.cola.contexto=async()=>({elegible:false,codigo});await procesarUno(real,f.cola,f.imagen,f.meta);assert.deepEqual(f.llamadas,[]);});
+test('dos consumidores concurrentes obtienen un solo trabajo del adaptador',async()=>{const f=fixture();const r=await Promise.all([1,2].map(()=>procesarUno(sim,f.cola,f.imagen,f.meta)));assert.deepEqual(r.map(x=>x.estado).sort(),['simulado','sin_trabajos']);});
+test('revocación después de generar imagen impide mensaje',async()=>{const f=fixture();f.cola.autorizar=async()=>({elegible:false,codigo:'sin_consentimiento'});assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'sin_consentimiento');assert(!f.llamadas.includes('enviar'));assert(f.llamadas.includes('eliminar'));});
+test('cambio QR antes de salida cancela sin reemitir',async()=>{const f=fixture();f.cola.autorizar=async()=>({...contexto,token_qr:'otro-token-ficticio-12345'});assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'cancelado');assert(!f.llamadas.includes('enviar'));});
+test('error carga de medio permite fallo seguro',async()=>{const f=fixture();f.meta.cargar=async()=>{throw Error('secreto-no-registrar');};assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'fallido');assert(!JSON.stringify(f.resultados).includes('secreto'));});
+test('timeout mensaje queda incierto, nunca fallido reintentable',async()=>{const f=fixture();f.meta.enviar=async()=>{throw Error('timeout');};assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'incierto');assert(!f.llamadas.includes('eliminar'));});
+test('aceptación guarda wamid sin afirmar entrega',async()=>{const f=fixture();assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'aceptado');assert.equal(f.resultados[0].mensaje,'wamid.ficticio');assert(!JSON.stringify(f.resultados).includes('entregado'));});
+test('plantilla con media_id privado y cinco variables',()=>{const b=cuerpoPlantilla(contexto,'123');assert.equal(b.template.components[0].parameters[0].image.id,'123');assert.equal(b.template.components[1].parameters.length,5);assert(!JSON.stringify(b).includes(contexto.token_qr));assert(!JSON.stringify(b).includes('https://'));});
+test('transporte oficial simulado: multipart y encabezado imagen',async()=>{const calls=[];const http=async(url,init)=>{calls.push({url,init});return Response.json(url.endsWith('/media')?{id:'123'}:{messages:[{id:'wamid.ficticio'}]});};const t=transporteMeta('CREDENCIAL_FICTICIA','123456','v24.0',http);assert.equal(await t.cargar(new Uint8Array([137,80,78,71])),'123');await t.enviar(contexto,'123');assert(calls[0].init.body instanceof FormData);assert.equal(JSON.parse(calls[1].init.body).template.components[0].parameters[0].image.id,'123');});
+const {firmaValida,estadosVerificados}=await import('../../supabase/functions/_shared/whatsapp-webhook.ts');
+test('webhook: HMAC correcto y rechazo de firma/cuerpo alterado',async()=>{const raw=new TextEncoder().encode('{"dato":"ficticio"}');const secret='SECRETO_FICTICIO';const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);const firma='sha256='+Buffer.from(await crypto.subtle.sign('HMAC',key,raw)).toString('hex');assert(await firmaValida(raw,firma,secret));assert(!await firmaValida(new Uint8Array([1]),firma,secret));assert(!await firmaValida(raw,firma,''));});
+test('webhook: solo entregas del número oficial configurado',()=>{const body={object:'whatsapp_business_account',entry:[{changes:[{field:'messages',value:{metadata:{phone_number_id:'123'},statuses:[{id:'wamid.ficticio',status:'delivered',timestamp:String(Math.floor(Date.now()/1000))}]}}]}]};assert.equal(estadosVerificados(body,'123').length,1);assert.equal(estadosVerificados(body,'456').length,0);});

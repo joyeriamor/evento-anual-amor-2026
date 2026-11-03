@@ -1,0 +1,107 @@
+{
+  "fecha": "2026-11-03",
+  "base": "5d6ac8b",
+  "rama": "feature/chiapas-evento-2026",
+  "push": false,
+  "despliegue": false,
+  "envios_reales": false,
+  "auditoria_produccion_completa": false,
+  "archivos": [
+    {
+      "ruta": "docs/WHATSAPP_AUTOMATIZACION_LOCAL_20261103.md",
+      "sha256": "e82c9e8652f17b6f178df6a0d04a6d89d80e8d521eb0bab50e7c55fc3ff0523f"
+    },
+    {
+      "ruta": "sql/whatsapp/01_automatizacion_propuesta.sql",
+      "sha256": "4f6397cf494bb02ccb3aab57b805b8e461a6344403028bcca232c401081c506f"
+    },
+    {
+      "ruta": "sql/whatsapp/02_administracion_propuesta.sql",
+      "sha256": "0580c61cc349349d97773ff4d71b80ac77f59287eb5b136dd8ef25e3b3569def"
+    },
+    {
+      "ruta": "sql/whatsapp/03_webhook_propuesta.sql",
+      "sha256": "1de1b183ec6a4f24ebd4255e7ee4acb15635dd551f5358dadbbb86e38192dded"
+    },
+    {
+      "ruta": "sql/whatsapp/auditoria_solo_lectura.sql",
+      "sha256": "7641407ed0bb918b0cce994713ce77511038416f1bf926b18621106345bbd1fc"
+    },
+    {
+      "ruta": "sql/whatsapp/rollback.sql",
+      "sha256": "2aba3736d23e14b897796c936ff70b6322cb07e29eed1cdcbe434ce58946a9a9"
+    },
+    {
+      "ruta": "src/pages/PanelAdmin.tsx",
+      "sha256": "efce0d7dd1af82509e1546b16a48a87d6271a8e6a44f279dc60fd817930c00b6"
+    },
+    {
+      "ruta": "src/pages/WhatsAppAdmin.tsx",
+      "sha256": "6f07b9ecf7da7b301b81cfbb983abd2f4f86d19b436b36e12ac3f89ca369b1a7"
+    },
+    {
+      "ruta": "supabase/functions/_shared/whatsapp-imagen.ts",
+      "sha256": "e9a4584370c69bd1dae884f1693c47ab8bc3edaf79d4395f6b871af9f2189215"
+    },
+    {
+      "ruta": "supabase/functions/_shared/whatsapp-meta.ts",
+      "sha256": "1113c1be9e2b97c0a1e2bb5fc4f8b1f12a152f88b6ba06e67094343e32b3c564"
+    },
+    {
+      "ruta": "supabase/functions/_shared/whatsapp-motor.ts",
+      "sha256": "7f0a46a3553eaadaf50990fafdb330a57f7a5e7e1ad46dd5398f310177d01859"
+    },
+    {
+      "ruta": "supabase/functions/_shared/whatsapp-webhook.ts",
+      "sha256": "70681a3883056790a5badba4b2f821d08c636d7d323c221ff111fb68e26b0349"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-administrar/index.ts",
+      "sha256": "418376f83b0605c81f5c63c6df046e59050acaea171b4b36872ec960b8614792"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-generar-invitacion-png/index.ts",
+      "sha256": "2e434412c8c07700cf0ea95bf50cb297fc9e4e4c8f3848b0ee3651ecee49f40d"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-generar-qr-png/index.ts",
+      "sha256": "a5e23483f2dabf05328298e0d813592be977518aaac6e0874696bcb91c4d3f4c"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-preparar-invitacion/index.ts",
+      "sha256": "54cfd2c194710a3113ec2191480b22f4b15ebf10aa1e06b1ed7ac3ec93c1f1ef"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-procesar-cola/index.ts",
+      "sha256": "82cb89a47755384dc4e4786593d4fd6cc3c32fcc8838db9560dee290711fd4d6"
+    },
+    {
+      "ruta": "supabase/functions/whatsapp-webhook/index.ts",
+      "sha256": "6a1c3316264714988a7353082141133c5e0c48989adf375ccae4f4e20dc61c30"
+    },
+    {
+      "ruta": "tests/chiapas/aislamiento-eventos.test.cjs",
+      "sha256": "e7b6a7fc6aa61f4c9cc5e3fd5998220f7deec8c6096f6c78b47fd970ab6d6cc2"
+    },
+    {
+      "ruta": "tests/whatsapp/ejecutar-panel.cjs",
+      "sha256": "85d2f17edd3d0f6b93d4c559171cbaaabeb8e0902a5336edc70126e2eca1fcc8"
+    },
+    {
+      "ruta": "tests/whatsapp/imagen.test.ts",
+      "sha256": "59a4bf8866c657b4d1004d49cb8907b6b47934d42269994b712b822738f803e0"
+    },
+    {
+      "ruta": "tests/whatsapp/motor.test.mjs",
+      "sha256": "eee322d9049015e7b53c6c073a52a68f79dd615a09eacccee0ea5861e68f84f1"
+    },
+    {
+      "ruta": "tests/whatsapp/panel.e2e.mjs",
+      "sha256": "78f546091f4e5254390cb54d5ef653c8354883a628ca108cf8f0dc8e11eeee8d"
+    },
+    {
+      "ruta": "tests/whatsapp/sql.integration.mjs",
+      "sha256": "89cdbd613983985f89572eacbc611691ef217ff5503882a9fc19306233558e57"
+    }
+  ]
+}

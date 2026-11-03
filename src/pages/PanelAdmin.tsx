@@ -1,3 +1,4 @@
+import WhatsAppAdmin from './WhatsAppAdmin';
 import { eventoActual } from '../lib/evento';
 import { invocarEvento } from '../lib/evento';
 import { useCallback, useEffect, useState } from 'react';
@@ -22,7 +23,7 @@ type CupoEvento = {
 
   porcentaje: number;
 };
-type Vista = 'inicio' | 'participantes' | 'pagos' | 'invitaciones' | 'escaner' | 'historial' | 'usuarios';
+type Vista = 'inicio' | 'participantes' | 'pagos' | 'invitaciones' | 'escaner' | 'historial' | 'usuarios' | 'whatsapp';
 const baseCard: React.CSSProperties = { background: '#fff', border: '1px solid #f0d5df', borderRadius: 18, padding: 22 };
 const boton: React.CSSProperties = { border: 'none', background: '#a33460', color: 'white', padding: '11px 16px', borderRadius: 10, cursor: 'pointer', fontWeight: 700 };
 export default function PanelAdmin({ onSalir }: Props) {
@@ -61,6 +62,7 @@ export default function PanelAdmin({ onSalir }: Props) {
     { titulo: 'Pagos pendientes', valor: resumen?.pagos_pendientes, icono: <Clock3 size={22} /> },
     { titulo: 'Ya ingresaron', valor: resumen?.ingresos, icono: <ScanLine size={22} /> },
   ];
+  const whatsappVisible = import.meta.env.VITE_WHATSAPP_PANEL_HABILITADO === 'true';
   const modulos: { vista: Vista; titulo: string; descripcion: string; accion: string; icono: React.ReactNode }[] = [
 
     { vista: 'participantes', titulo: 'Participantes', descripcion: 'Buscar inscripciones, consultar fichas y gestionar sus pagos e invitaciones.', accion: 'Ver participantes', icono: <Users size={28} /> },
@@ -70,6 +72,7 @@ export default function PanelAdmin({ onSalir }: Props) {
     { vista: 'usuarios', titulo: 'Administración de usuarios', descripcion: 'Crear usuarios y contraseñas, editar datos, cambiar roles y activar o desactivar cuentas.', accion: 'Gestionar usuarios', icono: <UserCog size={28} /> },
     { vista: 'historial', titulo: 'Registro de accesos', descripcion: 'Ver quién ingresó, a qué hora y quién autorizó.', accion: 'Ver ingresos', icono: <History size={28} /> },
   ];
+  if (whatsappVisible) modulos.push({vista:'whatsapp',titulo:'Invitaciones por WhatsApp',descripcion:'Consultar preparación, aceptación y entrega de invitaciones del evento.',accion:'Consultar WhatsApp',icono:<QrCode size={28}/>});
   return <main style={{ minHeight: '100vh', background: '#fff6f9', padding: 24, color: '#4b3440' }}>
     <header style={{ maxWidth: 1100, margin: '0 auto 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
       <div><h1 style={{ color: '#a33460', margin: 0 }}>JOYERÍA AMOR</h1><p style={{ marginTop: 6, color: '#826b75' }}>{eventoActual.nombre} · {nombre}</p></div>
@@ -117,6 +120,7 @@ export default function PanelAdmin({ onSalir }: Props) {
       {vista === 'invitaciones' && <BandejaAdmin key="invitaciones" tipo="invitaciones" />}
       {vista === 'escaner' && <ControlAcceso />}
       {vista === 'historial' && <RegistroAccesos />}
+      {vista === 'whatsapp' && whatsappVisible && <WhatsAppAdmin />}
       {vista === 'usuarios' && <UsuariosAdmin />}
     </section>
   </main>;

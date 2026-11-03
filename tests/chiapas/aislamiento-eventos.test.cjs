@@ -25,7 +25,7 @@ function entorno(nombre, estado = {}) {
     }
     const result = () => {
       if (tabla === 'usuarios') return { data: { id: USER, rol: estado.rol || 'administrador', activo: estado.activo !== false }, error: null };
-      if (tabla === 'asesores') return { data: {nombre:estado.empleado?'EMPLEADO':'ASESOR FICTICIO',activo:true}, error:null };
+      if (tabla === 'asesores') return { data: {nombre:estado.empleado?'EMPLEADO':estado.asesorNoPermitido?'ASESOR FICTICIO':'LUIS',activo:true}, error:null };
       if (tabla === 'usuarios_eventos') return { data: estado.asignacion === false ? null : { usuario_id: USER }, error: estado.errorAsignacion ? { message: 'fail' } : null };
       if (tabla === 'pagos' || tabla === 'registros') return { data: estado.objetivo ? { id: ID, evento_id: estado.evento || RADEVS } : null, error: null, count: 0 };
       return { data: [], error: null, count: 0 };
@@ -105,15 +105,15 @@ async function check(name, state, body, headers, expected) {
     assert.equal(e.rpc[0][1].p_clave,hash);count++;
   }
   // Real multipart stream, synthetic files and mock backend: Chiapas-only upload/RPC.
-  for(const state of [{sinMax:true},{sinMax:true,rpcFalla:true},{sinMax:true,empleado:true}]) {
+  for(const state of [{sinMax:true},{sinMax:true,rpcFalla:true},{sinMax:true,empleado:true},{sinMax:true,asesorNoPermitido:true}]) {
     const e=entorno('registrar-prueba-admin-chiapas',state),fd=new FormData();
     for(const [key,value] of Object.entries({nombres:'PRUEBA CHIAPAS',apellidos:'FICTICIA',estado:'Chiapas',whatsapp:'5500004173',asesor_id:ID,tipo_participante:'vendedora',grupo_ruta:'ENSAYO',cuenta_destino:'bbva-laura',confirmar_prueba:'true',privacidad_aceptada:'true'}))fd.set(key,value);
     const png=new Uint8Array([137,80,78,71,13,10,26,10,0]);
     fd.set('foto',new File([png],'prueba.png',{type:'image/png'}));
     fd.set('comprobante',new File([png],'prueba-pago.png',{type:'image/png'}));
     const response=await e.call(fd,{Authorization:'Bearer valid'});
-    assert.equal(response.status,state.empleado?400:state.rpcFalla?409:200,await response.clone().text());
-    if(state.empleado){assert.equal(e.uploads.length,0);assert.equal(e.rpc.length,0);}
+    assert.equal(response.status,(state.empleado||state.asesorNoPermitido)?400:state.rpcFalla?409:200,await response.clone().text());
+    if(state.empleado||state.asesorNoPermitido){assert.equal(e.uploads.length,0);assert.equal(e.rpc.length,0);}
     else {
       assert.equal(e.uploads.length,2);assert.ok(e.uploads.every(x=>x[1].startsWith(CHIAPAS+'/pruebas/')));
       assert.equal(e.rpc[0][0],'crear_registro_prueba_admin_chiapas');assert.equal(e.rpc[0][1].p_evento_id,CHIAPAS);
