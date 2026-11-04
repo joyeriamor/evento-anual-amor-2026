@@ -79,6 +79,10 @@
       "sha256": "6f07b9ecf7da7b301b81cfbb983abd2f4f86d19b436b36e12ac3f89ca369b1a7"
     },
     {
+      "ruta": "supabase/functions/_shared/evento.ts",
+      "sha256": "9ef1f996f18ef7223781eb1f7c17603195d8efc7f01588a4329ae6d9e08aca1d"
+    },
+    {
       "ruta": "supabase/functions/_shared/whatsapp-imagen.ts",
       "sha256": "e9a4584370c69bd1dae884f1693c47ab8bc3edaf79d4395f6b871af9f2189215"
     },
@@ -96,7 +100,7 @@
     },
     {
       "ruta": "supabase/functions/registrar-participante-chiapas/index.ts",
-      "sha256": "afa45e835e1e8d020e165ddeaf9bac788d8f1cdf0776f7921b660e0d32a9089c"
+      "sha256": "eaaa9846fc9ace6b20c2d3fc540bab73a3d8db480a04d885873810907b611d36"
     },
     {
       "ruta": "supabase/functions/registrar-participante-v2/index.ts",
@@ -178,5 +182,6 @@
       "ruta": "tests/whatsapp/worker-http.test.cjs",
       "sha256": "6604170bcb67d62855fc22fd3d6d9cab5bb38e9ce2902605759f759c40fb05b9"
     }
-  ]
+  ],
+  "ajuste_empaquetado": "SDK Supabase 2.117.3 vía npm en shared/evento y registro Chiapas; permisos y lógica conservados"
 }

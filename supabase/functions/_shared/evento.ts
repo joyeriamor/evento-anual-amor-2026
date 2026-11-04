@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
+import { createClient } from 'npm:@supabase/supabase-js@2.117.3';
 
 export const RADEVS = '43e67bda-d19d-4c0e-a639-e85f2d62f294';
 export const CHIAPAS = '3dc92160-79af-4bf7-b770-263038e88900';

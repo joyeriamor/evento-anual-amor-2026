@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.117.3";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.117.3";
 
 // Este endpoint es público porque no requiere cuenta; la protección obligatoria
 // es Turnstile + validaciones de servidor y un interruptor independiente.
