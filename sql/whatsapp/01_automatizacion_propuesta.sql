@@ -2,16 +2,23 @@
 -- Usa las tablas existentes. No habilita envíos, no programa trabajos ni reemite QR.
 BEGIN;
 ALTER TABLE public.whatsapp_envios_invitacion
- ADD COLUMN fase_automatizacion text,
+ ADD COLUMN automatizacion_version smallint CHECK (automatizacion_version=1),
  ADD COLUMN reserva_id uuid,
- ADD COLUMN modo_automatizacion text,
+ ADD COLUMN modo_automatizacion text CHECK (modo_automatizacion IN ('simulacion','real')),
  ADD COLUMN inicio_meta_at timestamptz,
- ADD CONSTRAINT whatsapp_fase_automatizacion_check CHECK (fase_automatizacion IN
- ('pendiente','procesando','aceptado','fallido','incierto','simulado','sin_consentimiento','cancelado','entregado','leido')),
- ADD CONSTRAINT whatsapp_modo_automatizacion_check CHECK (modo_automatizacion IN ('simulacion','real'));
--- Las filas históricas conservan fase NULL: no se procesan ni se presume consentimiento.
+ ADD COLUMN meta_media_id text CHECK(meta_media_id ~ '^[0-9]{1,40}$'),
+ ADD COLUMN media_subido_at timestamptz,
+ ADD COLUMN media_eliminado_at timestamptz,
+ ADD COLUMN media_limpieza_reserva uuid,
+ ADD COLUMN media_limpieza_reservada_at timestamptz,
+ ADD COLUMN media_limpieza_intentos integer NOT NULL DEFAULT 0 CHECK(media_limpieza_intentos BETWEEN 0 AND 3);
+-- Reuse audited existing states; only add the explicit non-delivery simulation result.
+ALTER TABLE public.whatsapp_envios_invitacion DROP CONSTRAINT whatsapp_envios_estado_chk;
+ALTER TABLE public.whatsapp_envios_invitacion ADD CONSTRAINT whatsapp_envios_estado_chk CHECK
+ (estado IN ('pendiente_consentimiento','listo','enviando','aceptado_meta','entregado','leido','fallido','cancelado','revision','simulado'));
+-- Historical jobs have no automation version and are never claimed blindly.
 CREATE INDEX whatsapp_cola_automatizacion_idx ON public.whatsapp_envios_invitacion
- (siguiente_intento_at,created_at) WHERE fase_automatizacion='pendiente';
+ (siguiente_intento_at,created_at) WHERE estado='listo';
 
 CREATE FUNCTION public.whatsapp_contexto_interno(p_invitacion_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -60,11 +67,14 @@ DECLARE contexto jsonb;
 BEGIN
  contexto:=public.whatsapp_contexto_interno(p_invitacion_id);
  IF contexto->>'elegible' IS DISTINCT FROM 'true' THEN RETURN false; END IF;
- INSERT INTO public.whatsapp_envios_invitacion
- (invitacion_id,plantilla,idioma,estado,fase_automatizacion,consentimiento_confirmado_at)
- VALUES(p_invitacion_id,'amor_invitacion_confirmada_v1','es_MX','pendiente_consentimiento',
- 'pendiente',(contexto->>'consentimiento_at')::timestamptz)
- ON CONFLICT(invitacion_id,plantilla) DO NOTHING;
+ INSERT INTO public.whatsapp_envios_invitacion AS w
+ (invitacion_id,plantilla,idioma,estado,automatizacion_version,consentimiento_confirmado_at)
+ VALUES(p_invitacion_id,'amor_invitacion_confirmada_v1','es_MX','listo',
+ 1,(contexto->>'consentimiento_at')::timestamptz)
+ ON CONFLICT(invitacion_id,plantilla) DO UPDATE SET
+ estado='listo',automatizacion_version=1,consentimiento_confirmado_at=excluded.consentimiento_confirmado_at,updated_at=now()
+ WHERE w.automatizacion_version IS NULL AND w.estado='pendiente_consentimiento'
+ AND w.intentos=0 AND w.meta_message_id IS NULL AND w.reservado_at IS NULL;
  RETURN FOUND;
 END $$;
 
@@ -95,16 +105,17 @@ DECLARE trabajo public.whatsapp_envios_invitacion%ROWTYPE; reserva uuid;
 BEGIN
  IF p_modo IS NULL OR p_modo NOT IN ('simulacion','real') THEN RAISE EXCEPTION 'modo_invalido'; END IF;
  -- Nunca reencolar reservas caducadas: un proceso pudo haber llamado a Meta.
- UPDATE public.whatsapp_envios_invitacion SET fase_automatizacion='incierto',
+ UPDATE public.whatsapp_envios_invitacion SET estado='revision',
  ultimo_error_codigo='reserva_caducada',ultimo_error_resumen='Requiere conciliación manual',updated_at=now()
- WHERE fase_automatizacion='procesando' AND reservado_at<now()-interval '10 minutes';
+ WHERE estado='enviando' AND automatizacion_version=1 AND reservado_at<now()-interval '10 minutes';
  SELECT * INTO trabajo FROM public.whatsapp_envios_invitacion
- WHERE fase_automatizacion='pendiente' AND intentos<3
+ WHERE estado='listo' AND automatizacion_version=1
+ AND plantilla='amor_invitacion_confirmada_v1' AND idioma='es_MX' AND intentos<3
  AND (siguiente_intento_at IS NULL OR siguiente_intento_at<=now())
  ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 1;
  IF NOT FOUND THEN RETURN NULL; END IF;
  reserva:=gen_random_uuid();
- UPDATE public.whatsapp_envios_invitacion SET fase_automatizacion='procesando',
+ UPDATE public.whatsapp_envios_invitacion SET estado='enviando',
  reserva_id=reserva,reservado_at=now(),modo_automatizacion=p_modo,
  inicio_meta_at=NULL,intentos=intentos+1,updated_at=now() WHERE id=trabajo.id;
  RETURN jsonb_build_object('id',trabajo.id,'invitacion_id',trabajo.invitacion_id,'reserva_id',reserva);
@@ -116,11 +127,13 @@ BEGIN
  IF p_fase IS NULL OR p_fase NOT IN ('aceptado','fallido','incierto','simulado','sin_consentimiento','cancelado')
  OR (p_codigo IS NOT NULL AND p_codigo !~ '^[a-z0-9_]{1,60}$')
  OR (p_fase='aceptado' AND (p_message_id IS NULL OR length(p_message_id)>255)) THEN RAISE EXCEPTION 'resultado_invalido'; END IF;
- UPDATE public.whatsapp_envios_invitacion SET fase_automatizacion=p_fase,
+ UPDATE public.whatsapp_envios_invitacion SET estado=CASE p_fase WHEN 'aceptado' THEN 'aceptado_meta' WHEN 'incierto' THEN 'revision' WHEN 'sin_consentimiento' THEN 'pendiente_consentimiento' ELSE p_fase END,
  meta_message_id=p_message_id,aceptado_at=CASE WHEN p_fase='aceptado' THEN now() END,
  ultimo_error_codigo=p_codigo,ultimo_error_resumen=NULL,updated_at=now()
- WHERE id=p_id AND reserva_id=p_reserva AND fase_automatizacion='procesando';
- RETURN FOUND;
+ WHERE id=p_id AND reserva_id=p_reserva AND estado='enviando';
+ IF NOT FOUND THEN RETURN false; END IF;
+ IF p_fase='aceptado' THEN PERFORM public.whatsapp_conciliar_entrega_interno(p_message_id); END IF;
+ RETURN true;
 END $$;
 
 -- Validación final bajo bloqueos. No elimina la ventana entre COMMIT y la red:
@@ -133,8 +146,9 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'reserva_invalida'; END IF;
  contexto:=public.whatsapp_contexto_interno(trabajo.invitacion_id);
  SELECT * INTO trabajo FROM public.whatsapp_envios_invitacion WHERE id=p_id FOR UPDATE;
- IF NOT FOUND OR trabajo.fase_automatizacion IS DISTINCT FROM 'procesando'
- OR trabajo.reserva_id IS DISTINCT FROM p_reserva OR trabajo.inicio_meta_at IS NOT NULL THEN
+ IF NOT FOUND OR trabajo.estado IS DISTINCT FROM 'enviando'
+ OR trabajo.reserva_id IS DISTINCT FROM p_reserva OR trabajo.inicio_meta_at IS NOT NULL
+ OR trabajo.reservado_at IS NULL OR trabajo.reservado_at<now()-interval '10 minutes' THEN
  RAISE EXCEPTION 'reserva_invalida'; END IF;
  IF contexto->>'elegible'='true' THEN
  UPDATE public.whatsapp_envios_invitacion SET inicio_meta_at=now() WHERE id=p_id;

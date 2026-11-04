@@ -229,6 +229,7 @@ Deno.serve(async (req) => {
   const tipo = texto(datos, "tipo_participante");
   const grupo = texto(datos, "grupo_ruta");
   const cuentaId = texto(datos, "cuenta_destino");
+  const autorizaWhatsApp = texto(datos, "autoriza_whatsapp") === "true";
   const token = texto(datos, "turnstile_token");
   const foto = datos.get("foto");
   const comprobante = datos.get("comprobante");
@@ -251,20 +252,12 @@ Deno.serve(async (req) => {
   if (nombreAsesor !== "LUIS" && nombreAsesor !== "VIRIDIANA") {
     return responder(400, { ok: false, mensaje: "En Chiapas solo se admiten los asesores LUIS y VIRIDIANA." });
   }
-  const esEmpleado = nombreAsesor === "EMPLEADO";
-  if (esEmpleado) {
-    return responder(400, {
-      ok: false,
-      mensaje: "El evento de Chiapas no admite registros de empleados."
-    });
-  }
-  const tipoNormalizado = esEmpleado ? "promotora" : tipo;
-  const requierePago = !esEmpleado && tipoNormalizado === "vendedora";
-  const grupoNormalizado = esEmpleado ? null : grupo;
-  const grupoCorrecto = esEmpleado || (grupo.length >= 2 && grupo.length <= 60);
-  const tipoCorrecto = esEmpleado
-    ? (tipo === "" || tipo === "promotora")
-    : (tipo === "vendedora" || tipo === "promotora");
+  // La lista anterior excluye EMPLEADO; conservar las reglas efectivas sin ramas imposibles.
+  const tipoNormalizado = tipo;
+  const requierePago = tipoNormalizado === "vendedora";
+  const grupoNormalizado = grupo;
+  const grupoCorrecto = grupo.length >= 2 && grupo.length <= 60;
+  const tipoCorrecto = tipo === "vendedora" || tipo === "promotora";
   const pagoCorrecto = !requierePago || (
     !!CUENTAS[cuentaId] && !!comprobanteArchivo &&
     formatoValido(comprobanteArchivo) && await magicValido(comprobanteArchivo)
@@ -317,7 +310,7 @@ Deno.serve(async (req) => {
       comprobanteSubido = true;
     }
 
-    const { data, error } = await supabase.rpc("crear_registro_publico_v3", {
+    const { data, error } = await supabase.rpc("crear_registro_publico_v4", {
       p_evento_id: EVENTO_ID,
       p_asesor_id: asesorId,
       p_nombres: nombres,
@@ -330,6 +323,7 @@ Deno.serve(async (req) => {
       p_comprobante_path: comprobantePath,
       p_cuenta_destino: requierePago ? CUENTAS[cuentaId] : null,
       p_max_registros: maxRegistros,
+      p_acepta_whatsapp: autorizaWhatsApp,
     });
     if (error) throw error;
     const resultado = data as { ok?: boolean; codigo?: string; mensaje?: string; folio?: string } | null;

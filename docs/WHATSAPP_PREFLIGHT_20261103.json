@@ -1,0 +1,8 @@
+{
+  "proyecto": "rkjlqxxmxbiciuhtpnpf",
+  "alcance": "Catalogo real, transaccion READ ONLY y ROLLBACK",
+  "resultado": "preflight_solo_lectura_ok",
+  "encoding": "UTF8",
+  "ddl_aplicado": false,
+  "datos_modificados": false
+}

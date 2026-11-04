@@ -27,7 +27,8 @@ export function transporteMeta(token:string,numero:string,version:string,http:ty
   },
   async eliminar(media) {
    if(!/^[0-9]{1,40}$/.test(media))throw new Error('media_invalido');
-   await peticion(`/${media}`,{method:'DELETE'});
+   const body=await peticion(`/${media}`,{method:'DELETE'});
+   if(body.success!==true)throw new Error('media_no_eliminado');
   },
  };
 }

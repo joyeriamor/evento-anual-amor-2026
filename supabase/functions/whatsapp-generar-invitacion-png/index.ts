@@ -94,8 +94,8 @@ Deno.serve(async(req:Request)=>{
       return json(503,{ok:false,error:"No se pudieron consultar los datos del evento"},origin);
 
     // Una RPC ya existente comprueba el hash en Vault. Nunca reemitimos aquí.
-    const {data:issued,error:issuedError}=await db.rpc(ev.rpc,{
-      p_registro_id:registro.id,p_admin_id:adminId,p_reemitir:false,
+    const {data:issued,error:issuedError}=await db.rpc("whatsapp_qr_admin_interno",{
+      p_invitacion:inv.id,p_admin:adminId,
     });
     if(issuedError)return json(503,{ok:false,error:"No se pudo recuperar el QR original"},origin);
     const qr=issued as {invitacion_id?:unknown;ya_existia?:unknown;token_qr?:unknown}|null;

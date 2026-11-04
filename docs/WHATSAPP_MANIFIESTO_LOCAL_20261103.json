@@ -1,35 +1,74 @@
 {
   "fecha": "2026-11-03",
-  "base": "5d6ac8b",
+  "base_paquete": "5d6ac8b",
+  "continuacion": "8844484",
   "rama": "feature/chiapas-evento-2026",
+  "normalizacion_hash": "UTF-8 sin BOM inicial, CRLF normalizado a LF",
+  "auditoria_completada": true,
   "push": false,
   "despliegue": false,
   "envios_reales": false,
-  "auditoria_produccion_completa": false,
+  "migracion": "supabase/migrations/20261104002122_whatsapp_automatizacion.sql",
   "archivos": [
     {
+      "ruta": ".github/workflows/deploy.yml",
+      "sha256": "999be349b0a11e19bac23d97bf61e32380997dfbd82c462909a8dad4fd800b37"
+    },
+    {
+      "ruta": "docs/WHATSAPP_ADVISORS_20261103.json",
+      "sha256": "e657ea20f48379aedc1c05ca60c1bab01fe26e01f1a2c459656197ecbcd52352"
+    },
+    {
       "ruta": "docs/WHATSAPP_AUTOMATIZACION_LOCAL_20261103.md",
-      "sha256": "e82c9e8652f17b6f178df6a0d04a6d89d80e8d521eb0bab50e7c55fc3ff0523f"
+      "sha256": "57a635d5b2b28fef5f743ccc40b170113a1d2c230105cbf7a7286695c6cf62ce"
+    },
+    {
+      "ruta": "docs/WHATSAPP_CATALOGO_AUDITADO_20261103.json",
+      "sha256": "c31045864d66e35fca42772b939af28ca807233535fab7185e920b5bc1aa3422"
+    },
+    {
+      "ruta": "docs/WHATSAPP_PREFLIGHT_20261103.json",
+      "sha256": "a9db4c9adb966062301ec7bae298a5e2b94fadc44f0d402dc74979c28fefd983"
+    },
+    {
+      "ruta": "sql/whatsapp/00_preflight.sql",
+      "sha256": "a08243c38931a3dc45c9c6c8abd8b7e00cafa5ac53cabb3bd3ab9618e7a22f08"
     },
     {
       "ruta": "sql/whatsapp/01_automatizacion_propuesta.sql",
-      "sha256": "4f6397cf494bb02ccb3aab57b805b8e461a6344403028bcca232c401081c506f"
+      "sha256": "8ea727145b38fce5dbca05431a281396dfb4583860f4917f5bbb7e573a6bdd01"
     },
     {
       "ruta": "sql/whatsapp/02_administracion_propuesta.sql",
-      "sha256": "0580c61cc349349d97773ff4d71b80ac77f59287eb5b136dd8ef25e3b3569def"
+      "sha256": "0c386e3051b9b7fd0092516a098aee2a1f2d9ce5b04409a92fcccb6aface91ba"
     },
     {
       "ruta": "sql/whatsapp/03_webhook_propuesta.sql",
-      "sha256": "1de1b183ec6a4f24ebd4255e7ee4acb15635dd551f5358dadbbb86e38192dded"
+      "sha256": "d8ae6d089f880d60ac7d964b9312bc604e29a4eb8fd09e27988ac063e649c19f"
+    },
+    {
+      "ruta": "sql/whatsapp/04_consulta_privada_propuesta.sql",
+      "sha256": "d36b59f4a6eb7abb78b62cd2174f7cfd4b0b8ba97dff5cb6402818caad5b814e"
+    },
+    {
+      "ruta": "sql/whatsapp/05_medios_privados_propuesta.sql",
+      "sha256": "476166c2ac7571e45bbe2d800b0d6bd8fea0852d45372e2ab4f127940d8fc347"
     },
     {
       "ruta": "sql/whatsapp/auditoria_solo_lectura.sql",
       "sha256": "7641407ed0bb918b0cce994713ce77511038416f1bf926b18621106345bbd1fc"
     },
     {
+      "ruta": "sql/whatsapp/referencias/confirmaciones_publicadas.sql",
+      "sha256": "24842c197f2f088280346f98c55f78ce38304b5068d4072fd6dbb0fa3b394e96"
+    },
+    {
+      "ruta": "sql/whatsapp/referencias/registro_publico_v4_publicado.sql",
+      "sha256": "897b2e336f63aba2427bbe3324864f531dc0df64efdb19dfebe3f44949cf7785"
+    },
+    {
       "ruta": "sql/whatsapp/rollback.sql",
-      "sha256": "2aba3736d23e14b897796c936ff70b6322cb07e29eed1cdcbe434ce58946a9a9"
+      "sha256": "f85fdcd5ed9038db75577492301da6b3434cd4a05cba8c1329bd2779e63ebb41"
     },
     {
       "ruta": "src/pages/PanelAdmin.tsx",
@@ -45,15 +84,23 @@
     },
     {
       "ruta": "supabase/functions/_shared/whatsapp-meta.ts",
-      "sha256": "1113c1be9e2b97c0a1e2bb5fc4f8b1f12a152f88b6ba06e67094343e32b3c564"
+      "sha256": "5c7adf2218eee7ee431530911021770de508e33708a94955eb5597ddf6086f99"
     },
     {
       "ruta": "supabase/functions/_shared/whatsapp-motor.ts",
-      "sha256": "7f0a46a3553eaadaf50990fafdb330a57f7a5e7e1ad46dd5398f310177d01859"
+      "sha256": "f071e27c7a1db073648421616c4da31350e818160f969858b341293d8e800f4e"
     },
     {
       "ruta": "supabase/functions/_shared/whatsapp-webhook.ts",
-      "sha256": "70681a3883056790a5badba4b2f821d08c636d7d323c221ff111fb68e26b0349"
+      "sha256": "53161825a368a80352dfc5a9089b0256486cfb973a50dbd3a5e1bf4f01463cb8"
+    },
+    {
+      "ruta": "supabase/functions/registrar-participante-chiapas/index.ts",
+      "sha256": "afa45e835e1e8d020e165ddeaf9bac788d8f1cdf0776f7921b660e0d32a9089c"
+    },
+    {
+      "ruta": "supabase/functions/registrar-participante-v2/index.ts",
+      "sha256": "d1eb8246b85dcb86c10afd0a28135bebf182fc05f00980b804da3d538bf2a7d5"
     },
     {
       "ruta": "supabase/functions/whatsapp-administrar/index.ts",
@@ -61,31 +108,47 @@
     },
     {
       "ruta": "supabase/functions/whatsapp-generar-invitacion-png/index.ts",
-      "sha256": "2e434412c8c07700cf0ea95bf50cb297fc9e4e4c8f3848b0ee3651ecee49f40d"
+      "sha256": "e7689e12b82e4a796fd7c3635ff348504b370d067f57050caff36e4c8bc41694"
     },
     {
       "ruta": "supabase/functions/whatsapp-generar-qr-png/index.ts",
-      "sha256": "a5e23483f2dabf05328298e0d813592be977518aaac6e0874696bcb91c4d3f4c"
+      "sha256": "3613cfb29220994bb40c80f73f938828d4ee661b4280e74acc07f8d423438deb"
     },
     {
       "ruta": "supabase/functions/whatsapp-preparar-invitacion/index.ts",
-      "sha256": "54cfd2c194710a3113ec2191480b22f4b15ebf10aa1e06b1ed7ac3ec93c1f1ef"
+      "sha256": "166f08d2ae000e950b4849bb5f60b315f150f0be879b3c4f51c0a55543c82fd3"
     },
     {
       "ruta": "supabase/functions/whatsapp-procesar-cola/index.ts",
-      "sha256": "82cb89a47755384dc4e4786593d4fd6cc3c32fcc8838db9560dee290711fd4d6"
+      "sha256": "188f7690a55adc35b3c85604025af18a0a14d7b33ff3a57810b7ac073c4b82cc"
     },
     {
       "ruta": "supabase/functions/whatsapp-webhook/index.ts",
       "sha256": "6a1c3316264714988a7353082141133c5e0c48989adf375ccae4f4e20dc61c30"
     },
     {
+      "ruta": "supabase/migrations/20261104002122_whatsapp_automatizacion.sql",
+      "sha256": "3b9a6d7746e7829f11269fc2a8960cf1923bd98268b379a75ee2eb2814fd6b44"
+    },
+    {
+      "ruta": "supabase/whatsapp-edge.lock",
+      "sha256": "73840cf58a05cb47b38247fb13dda493b723a3c5dd817a0c7a653ee8163c2ad6"
+    },
+    {
       "ruta": "tests/chiapas/aislamiento-eventos.test.cjs",
-      "sha256": "e7b6a7fc6aa61f4c9cc5e3fd5998220f7deec8c6096f6c78b47fd970ab6d6cc2"
+      "sha256": "9bb69ddfe9346bf6e0a11d87b87ac37bfbae49ac347a440db559fe553b812321"
     },
     {
       "ruta": "tests/whatsapp/ejecutar-panel.cjs",
       "sha256": "85d2f17edd3d0f6b93d4c559171cbaaabeb8e0902a5336edc70126e2eca1fcc8"
+    },
+    {
+      "ruta": "tests/whatsapp/herramientas-postgres/package-lock.json",
+      "sha256": "388c277e528ce9d90fa5c2b914e8dfcf1fc32cd664e504fb66484aac6fe04921"
+    },
+    {
+      "ruta": "tests/whatsapp/herramientas-postgres/package.json",
+      "sha256": "847d99ebd1b5f91ddee35563cf37fca02a957142ce3da6bb65cc0d673a122d3b"
     },
     {
       "ruta": "tests/whatsapp/imagen.test.ts",
@@ -93,15 +156,27 @@
     },
     {
       "ruta": "tests/whatsapp/motor.test.mjs",
-      "sha256": "eee322d9049015e7b53c6c073a52a68f79dd615a09eacccee0ea5861e68f84f1"
+      "sha256": "0e7bc86e11fa6937aea1e107a840ee80f5b76fc69bffb96cc2a2c4948fdda6c8"
     },
     {
       "ruta": "tests/whatsapp/panel.e2e.mjs",
       "sha256": "78f546091f4e5254390cb54d5ef653c8354883a628ca108cf8f0dc8e11eeee8d"
     },
     {
+      "ruta": "tests/whatsapp/postgres-nativo.mjs",
+      "sha256": "874e9e2cc0a42efa9e813dd48c904641c88f922929798cb456a364667bbda911"
+    },
+    {
+      "ruta": "tests/whatsapp/registro-http.test.cjs",
+      "sha256": "04708f09d806b79dc7d695363699b18bb1cf3924edb2d789f67f9d961884efa4"
+    },
+    {
       "ruta": "tests/whatsapp/sql.integration.mjs",
-      "sha256": "89cdbd613983985f89572eacbc611691ef217ff5503882a9fc19306233558e57"
+      "sha256": "557030ea3f32a29325c6aca7cce08bc38707b2684148108f7720650f0beab6e0"
+    },
+    {
+      "ruta": "tests/whatsapp/worker-http.test.cjs",
+      "sha256": "6604170bcb67d62855fc22fd3d6d9cab5bb38e9ce2902605759f759c40fb05b9"
     }
   ]
 }

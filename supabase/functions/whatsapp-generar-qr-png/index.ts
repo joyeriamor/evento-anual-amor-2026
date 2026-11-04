@@ -110,8 +110,8 @@ Deno.serve(async (req: Request) => {
 
     // RPC existente: descifra desde Vault y comprueba SHA256 del token.
     // p_reemitir=false impide invalidar el QR original.
-    const { data: result, error: rpcError } = await db.rpc(rpc, {
-      p_registro_id: registro.id, p_admin_id: userId, p_reemitir: false,
+    const { data: result, error: rpcError } = await db.rpc("whatsapp_qr_admin_interno", {
+      p_invitacion: inv.id, p_admin: userId,
     });
     if (rpcError) {
       console.error("No se pudo recuperar QR válido:", rpcError.code ?? "rpc");

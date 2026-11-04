@@ -41,6 +41,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
           VITE_REGISTROS_HABILITADOS: "true"
+          VITE_WHATSAPP_PANEL_HABILITADO: ${{ vars.VITE_WHATSAPP_PANEL_HABILITADO || 'false' }}
 
       - name: Configurar Pages
         uses: actions/configure-pages@v5

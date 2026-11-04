@@ -227,6 +227,7 @@ Deno.serve(async (req) => {
   const tipo = texto(datos, "tipo_participante");
   const grupo = texto(datos, "grupo_ruta");
   const cuentaId = texto(datos, "cuenta_destino");
+  const autorizaWhatsApp = texto(datos, "autoriza_whatsapp") === "true";
   const token = texto(datos, "turnstile_token");
   const foto = datos.get("foto");
   const comprobante = datos.get("comprobante");
@@ -304,7 +305,7 @@ Deno.serve(async (req) => {
       comprobanteSubido = true;
     }
 
-    const { data, error } = await supabase.rpc("crear_registro_publico_v3", {
+    const { data, error } = await supabase.rpc("crear_registro_publico_v4", {
       p_evento_id: EVENTO_ID,
       p_asesor_id: asesorId,
       p_nombres: nombres,
@@ -317,6 +318,7 @@ Deno.serve(async (req) => {
       p_comprobante_path: comprobantePath,
       p_cuenta_destino: requierePago ? CUENTAS[cuentaId] : null,
       p_max_registros: maxRegistros,
+      p_acepta_whatsapp: autorizaWhatsApp,
     });
     if (error) throw error;
     const resultado = data as { ok?: boolean; codigo?: string; mensaje?: string; folio?: string } | null;

@@ -10,7 +10,7 @@ const sim={modo:'simulacion',habilitado:false,plantillaAprobada:false,numeroConf
 const real=Object.fromEntries(Object.keys(sim).map(k=>[k,k==='modo'?'real':true]));
 function fixture(){let libre=true;const resultados=[],llamadas=[];
  return {resultados,llamadas,cola:{async reservar(){if(!libre)return null;libre=false;return{id:'job',invitacion_id:'inv',reserva_id:'reserva'};},
- async contexto(){return contexto;},async autorizar(){return contexto;},
+ async guardarMedia(){return true;},async marcarMediaEliminado(){return true;},async contexto(){return contexto;},async autorizar(){return contexto;},
  async finalizar(t,fase,codigo,mensaje){resultados.push({fase,codigo,mensaje});return true;}},
  async imagen(c){assert.equal(c.token_qr,contexto.token_qr);llamadas.push('imagen');return new Uint8Array([137,80,78,71]);},
  meta:{async cargar(){llamadas.push('media');return'123';},async enviar(){llamadas.push('enviar');return{id:'wamid.ficticio'};},async eliminar(){llamadas.push('eliminar');}}};}
@@ -28,3 +28,9 @@ test('transporte oficial simulado: multipart y encabezado imagen',async()=>{cons
 const {firmaValida,estadosVerificados}=await import('../../supabase/functions/_shared/whatsapp-webhook.ts');
 test('webhook: HMAC correcto y rechazo de firma/cuerpo alterado',async()=>{const raw=new TextEncoder().encode('{"dato":"ficticio"}');const secret='SECRETO_FICTICIO';const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);const firma='sha256='+Buffer.from(await crypto.subtle.sign('HMAC',key,raw)).toString('hex');assert(await firmaValida(raw,firma,secret));assert(!await firmaValida(new Uint8Array([1]),firma,secret));assert(!await firmaValida(raw,firma,''));});
 test('webhook: solo entregas del número oficial configurado',()=>{const body={object:'whatsapp_business_account',entry:[{changes:[{field:'messages',value:{metadata:{phone_number_id:'123'},statuses:[{id:'wamid.ficticio',status:'delivered',timestamp:String(Math.floor(Date.now()/1000))}]}}]}]};assert.equal(estadosVerificados(body,'123').length,1);assert.equal(estadosVerificados(body,'456').length,0);});
+const {limpiarUno}=await import('../../supabase/functions/_shared/whatsapp-motor.ts');
+test('no envía si falla la persistencia del medio privado',async()=>{const f=fixture();f.cola.guardarMedia=async()=>false;assert.equal((await procesarUno(real,f.cola,f.imagen,f.meta)).estado,'fallido');assert(!f.llamadas.includes('enviar'));assert(f.llamadas.includes('eliminar'));});
+test('limpieza privada: elimina por media_id y persiste confirmación',async()=>{let guardado=false;const f=fixture();const r=await limpiarUno({reservar:async()=>({id:'job',reserva_id:'reserva',media_id:'123'}),finalizar:async()=>{guardado=true;return true}},f.meta);assert.equal(r.estado,'medio_eliminado');assert(guardado);assert.deepEqual(f.llamadas,['eliminar']);});
+test('fallo de limpieza conserva el trabajo sin afirmar borrado',async()=>{let guardado=false;const f=fixture();f.meta.eliminar=async()=>{throw Error('ficticio')};assert.equal((await limpiarUno({reservar:async()=>({id:'job',reserva_id:'reserva',media_id:'123'}),finalizar:async()=>{guardado=true;return true}},f.meta)).estado,'limpieza_fallida');assert(!guardado);});
+
+test('webhook: conserva failed como fallo y no como entrega',()=>{const body={object:'whatsapp_business_account',entry:[{changes:[{field:'messages',value:{metadata:{phone_number_id:'123'},statuses:[{id:'wamid.fallo',status:'failed',timestamp:String(Math.floor(Date.now()/1000))}]}}]}]};assert.equal(estadosVerificados(body,'123')[0].estado,'failed');});

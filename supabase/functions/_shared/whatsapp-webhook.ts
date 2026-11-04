@@ -11,11 +11,12 @@ export function estadosVerificados(body:unknown,numero:string):{id:string;estado
  for(const e of b.entry){if(!e||!Array.isArray(e.changes))continue;for(const c of e.changes){
   if(c?.field!=='messages'||c.value?.metadata?.phone_number_id!==numero||!Array.isArray(c.value.statuses))continue;
   for(const s of c.value.statuses){
-   if(typeof s.id!=='string'||!s.id.startsWith('wamid.')||s.id.length>255||!['delivered','read'].includes(s.status)||
+   if(!s||typeof s!=='object')continue;
+   if(typeof s.id!=='string'||!s.id.startsWith('wamid.')||s.id.length>255||!['delivered','read','failed'].includes(s.status)||
     typeof s.timestamp!=='string'||!/^\d{10}$/.test(s.timestamp))continue;
    const ms=Number(s.timestamp)*1000;if(ms>Date.now()+300000)continue;
    salida.push({id:s.id,estado:s.status,fecha:new Date(ms).toISOString()});
-   if(salida.length>=100)return salida;
+
   }
  }}return salida;
 }

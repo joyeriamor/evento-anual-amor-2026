@@ -8,6 +8,8 @@ export interface Cola {
  reservar(modo:'simulacion'|'real'):Promise<Trabajo|null>;
  contexto(id:string):Promise<Revision>;
  autorizar(t:Trabajo):Promise<Revision>;
+ guardarMedia(t:Trabajo,media:string):Promise<boolean>;
+ marcarMediaEliminado(t:Trabajo,media:string):Promise<boolean>;
  finalizar(t:Trabajo,fase:Fase,codigo?:string,mensaje?:string):Promise<boolean>;
 }
 export interface Transporte {
@@ -39,7 +41,10 @@ export async function procesarUno(config:Configuracion,cola:Cola,imagen:(c:Conte
    await cola.finalizar(t,fase,'no_elegible');return {estado:fase};
   }
   const png=await imagen(c);
-  if(config.modo==='real')media=await meta.cargar(png);
+  if(config.modo==='real'){
+   media=await meta.cargar(png);
+   if(!await cola.guardarMedia(t,media))throw new Error('media_no_persistido');
+  }
   // After image generation/upload, check consent, QR and record again before dispatch.
   const final=await cola.autorizar(t);
   if(!verificar(final,t.invitacion_id) || final.token_qr!==c.token_qr || final.telefono!==c.telefono ||
@@ -67,11 +72,21 @@ export async function procesarUno(config:Configuracion,cola:Cola,imagen:(c:Conte
   return {estado:fase};
  } finally {
   // An uncertain submission may still deliver: retain its media, never retry it automatically.
-  if(media && !solicitudIniciada)await meta.eliminar(media).catch(()=>{});
+  if(media && !solicitudIniciada){
+   try{await meta.eliminar(media);await cola.marcarMediaEliminado(t,media);}catch{/* Retain metadata for explicit cleanup; never resend here. */}
+  }
  }
 }
 export function cuerpoPlantilla(c:Contexto,mediaId:string) {
  return {messaging_product:'whatsapp',to:c.telefono,type:'template',template:{name:PLANTILLA,
  language:{code:'es_MX'},components:[{type:'header',parameters:[{type:'image',image:{id:mediaId}}]},
  {type:'body',parameters:[c.participante,c.evento,c.fecha,c.recepcion,c.lugar].map(text=>({type:'text',text}))}]}};
+}
+
+export type Limpieza={id:string;reserva_id:string;media_id:string};
+export interface ColaLimpieza{reservar():Promise<Limpieza|null>;finalizar(t:Limpieza):Promise<boolean>;}
+export async function limpiarUno(cola:ColaLimpieza,meta:Transporte){
+ const t=await cola.reservar();if(!t)return{estado:'sin_medios'};
+ try{await meta.eliminar(t.media_id);return{estado:await cola.finalizar(t)?'medio_eliminado':'limpieza_por_conciliar'};}
+ catch{return{estado:'limpieza_fallida'};}
 }

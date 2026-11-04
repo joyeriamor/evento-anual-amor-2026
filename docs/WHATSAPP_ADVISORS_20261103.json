@@ -1,0 +1,37 @@
+{
+  "alcance": "Solo lectura, antes de aplicar cambios; filtrado al módulo WhatsApp",
+  "lints": [
+    {
+      "name": "rls_enabled_no_policy",
+      "title": "RLS Enabled No Policy",
+      "level": "INFO",
+      "facing": "EXTERNAL",
+      "categories": [
+        "SECURITY"
+      ],
+      "description": "Detects cases where row level security (RLS) has been enabled on a table but no RLS policies have been created.",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+      "count": 6,
+      "findings": [
+        {
+          "detail": "Table \\`public.whatsapp_consentimientos_invitacion\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "whatsapp_consentimientos_invitacion",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-04T00:15:27.300Z"
+        },
+        {
+          "detail": "Table \\`public.whatsapp_envios_invitacion\\` has RLS enabled, but no policies exist",
+          "metadata": {
+            "name": "whatsapp_envios_invitacion",
+            "type": "table",
+            "schema": "public"
+          },
+          "observed_at": "2026-11-04T00:15:27.300Z"
+        }
+      ]
+    }
+  ]
+}

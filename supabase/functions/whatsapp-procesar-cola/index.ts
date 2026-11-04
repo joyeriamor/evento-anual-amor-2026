@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.117.3';
-import { procesarUno,type Configuracion,type Cola,type Revision,type Trabajo,type Transporte } from '../_shared/whatsapp-motor.ts';
+import { procesarUno,permiteReal,limpiarUno,type Configuracion,type Cola,type Revision,type Trabajo,type Transporte } from '../_shared/whatsapp-motor.ts';
 import { transporteMeta } from '../_shared/whatsapp-meta.ts';
 import { generarImagen } from '../_shared/whatsapp-imagen.ts';
 const responder=(estado:number,body:unknown)=>new Response(JSON.stringify(body),{status:estado,
@@ -31,11 +31,25 @@ Deno.serve(async req=>{
   }
   const cola:Cola={
    reservar:async modo=>await rpc('whatsapp_reservar_interno',{p_modo:modo}) as Trabajo|null,
+   guardarMedia:async(t,media)=>await rpc('whatsapp_guardar_medio_interno',{p_id:t.id,p_reserva:t.reserva_id,p_media:media})===true,
+   marcarMediaEliminado:async(t,media)=>await rpc('whatsapp_marcar_medio_eliminado_interno',{p_id:t.id,p_reserva:t.reserva_id,p_media:media})===true,
    contexto:async id=>await rpc('whatsapp_contexto_interno',{p_invitacion_id:id}) as Revision,
    autorizar:async t=>await rpc('whatsapp_autorizar_salida_interno',{p_id:t.id,p_reserva:t.reserva_id}) as Revision,
    finalizar:async(t,fase,codigo,mensaje)=>await rpc('whatsapp_finalizar_interno',{
     p_id:t.id,p_reserva:t.reserva_id,p_fase:fase,p_codigo:codigo??null,p_message_id:mensaje??null})===true,
   };
+  const tarea=req.headers.get('x-whatsapp-tarea')??'procesar';
+  if(!['procesar','limpiar'].includes(tarea))return responder(400,{ok:false});
+  if(tarea==='limpiar'){
+   if(config.modo!=='real'||!flag('WHATSAPP_LIMPIEZA_HABILITADA')||!config.produccionAutorizada)return responder(200,{ok:true,estado:'limpieza_deshabilitada'});
+   const transporte=transporteMeta(Deno.env.get('META_WHATSAPP_TOKEN')??'',Deno.env.get('META_WHATSAPP_PHONE_NUMBER_ID')??'',Deno.env.get('META_GRAPH_VERSION')??'');
+   const resultado=await limpiarUno({
+    reservar:async()=>await rpc('whatsapp_reservar_limpieza_interno',{}),
+    finalizar:async t=>await rpc('whatsapp_finalizar_limpieza_interno',{p_id:t.id,p_reserva:t.reserva_id,p_media:t.media_id})===true,
+   },transporte);
+   return responder(200,{ok:true,...resultado});
+  }
+  if(config.modo==='real'&&!permiteReal(config))return responder(200,{ok:true,estado:'deshabilitado'});
   // In simulation there is no network transport to Meta, even if credentials exist.
   const prohibido=async()=>{throw new Error('meta_deshabilitado')};
   const meta:Transporte=config.modo==='real'?transporteMeta(Deno.env.get('META_WHATSAPP_TOKEN')??'',

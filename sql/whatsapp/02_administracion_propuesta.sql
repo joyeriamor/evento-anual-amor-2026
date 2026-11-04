@@ -14,10 +14,10 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'reintento_no_permitido'; END IF;
  contexto:=public.whatsapp_contexto_interno(envio.invitacion_id);
  SELECT * INTO envio FROM public.whatsapp_envios_invitacion WHERE id=p_envio FOR UPDATE;
- IF NOT FOUND OR envio.fase_automatizacion IS DISTINCT FROM 'fallido' OR envio.meta_message_id IS NOT NULL
- OR envio.inicio_meta_at IS NOT NULL OR envio.intentos>=3 THEN RAISE EXCEPTION 'reintento_no_permitido'; END IF;
+ IF NOT FOUND OR envio.automatizacion_version IS DISTINCT FROM 1 OR envio.estado IS DISTINCT FROM 'fallido' OR envio.meta_message_id IS NOT NULL
+ OR envio.inicio_meta_at IS NOT NULL OR envio.intentos>=3 OR (envio.meta_media_id IS NOT NULL AND envio.media_eliminado_at IS NULL) THEN RAISE EXCEPTION 'reintento_no_permitido'; END IF;
  IF contexto->>'elegible' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'no_elegible'; END IF;
- UPDATE public.whatsapp_envios_invitacion SET fase_automatizacion='pendiente',reserva_id=NULL,
+ UPDATE public.whatsapp_envios_invitacion SET estado='listo',reserva_id=NULL,
  reservado_at=NULL,siguiente_intento_at=now(),ultimo_error_codigo=NULL,updated_at=now() WHERE id=envio.id;
  INSERT INTO public.auditoria(usuario_id,accion,entidad,entidad_id,detalles)
  VALUES(p_admin,'whatsapp_reintento_manual','whatsapp_envios_invitacion',envio.id,jsonb_build_object('evento_id',p_evento));
@@ -27,9 +27,9 @@ BEGIN
  SELECT coalesce(jsonb_agg(to_jsonb(filas)),'[]'::jsonb) INTO lista FROM (
  SELECT r.folio, w.id,w.intentos,w.aceptado_at,w.entregado_at,w.leido_at,
  CASE WHEN c.aceptado_at IS NULL OR c.retirado_at IS NOT NULL THEN 'sin_consentimiento'
- ELSE coalesce(w.fase_automatizacion,'no_preparado') END AS estado,
+ ELSE CASE w.estado WHEN 'listo' THEN 'pendiente' WHEN 'enviando' THEN 'procesando' WHEN 'aceptado_meta' THEN 'aceptado' WHEN 'revision' THEN 'incierto' WHEN 'pendiente_consentimiento' THEN 'sin_consentimiento' ELSE coalesce(w.estado,'no_preparado') END END AS estado,
  w.ultimo_error_codigo,
- (w.fase_automatizacion='fallido' AND w.inicio_meta_at IS NULL AND w.meta_message_id IS NULL AND w.intentos<3
+ (w.automatizacion_version=1 AND w.estado='fallido' AND w.inicio_meta_at IS NULL AND w.meta_message_id IS NULL AND w.intentos<3 AND (w.meta_media_id IS NULL OR w.media_eliminado_at IS NOT NULL)
  AND c.aceptado_at IS NOT NULL AND c.retirado_at IS NULL) AS puede_reintentar
  FROM public.registros r
  LEFT JOIN public.whatsapp_consentimientos_invitacion c ON c.registro_id=r.id

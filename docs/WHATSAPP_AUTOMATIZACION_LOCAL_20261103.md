@@ -1,77 +1,110 @@
-# Automatización de invitaciones: preparación local
+# Cierre local de automatización WhatsApp — 3 de noviembre de 2026
 
-**No publicar todavía. No se envió WhatsApp, no se desplegó, no se hizo push ni se modificaron datos de producción.**
-La plantilla `amor_invitacion_confirmada_v1` (`es_MX`) sigue en revisión según las instrucciones del propietario.
+**Implementación local preparada y probada. Sin push, despliegues, cambios de producción ni mensajes reales.** Rama `feature/chiapas-evento-2026`; continuación del commit `8844484`. La plantilla `amor_invitacion_confirmada_v1`, idioma `es_MX`, permanece en revisión según la instrucción vigente. Ningún indicador de envío real fue activado.
 
-## Auditoría y alcance
+## Auditoría completada
 
-Base local inspeccionada: `feature/chiapas-evento-2026`, HEAD `5d6ac8b`. Se conservan los filtros y consentimiento opcional existentes, archivos `.bak` y archivos ajenos sin seguimiento.
-Se leyeron de producción únicamente las columnas de las dos tablas existentes y los fuentes de las tres Edge de WhatsApp. No existían copias de esas Edge en Git; se incorporan para revisión local. La consulta de restricciones, RLS, ACL, índices y funciones SQL reales fue bloqueada por la revisión automática por límite de uso. **Auditoría incompleta: ejecutar y revisar `sql/whatsapp/auditoria_solo_lectura.sql` mediante el canal autorizado antes de aprobar cualquier publicación. No usar otro canal para eludir el bloqueo.**
+El bloqueo de consulta anterior quedó resuelto. Se inspeccionaron de producción únicamente metadatos, permisos, restricciones, índices, definiciones SQL y fuentes Edge; no se leyeron tokens reales de Vault ni se cambiaron participantes.
 
-Los fuentes locales muestran que `validar_pago_admin` / `validar_pago_admin_chiapas` confirman la inscripción y recuperan o emiten su invitación en una transacción. `autorizar_cortesia_admin` / `autorizar_cortesia_admin_chiapas` autorizan la cortesía y emiten la invitación. Las Edge `validar-pago[-chiapas]` y `administrar-invitacion[-chiapas]` mantienen sus contratos. No se cambian esos archivos.
+Las tablas existentes `whatsapp_envios_invitacion` y `whatsapp_consentimientos_invitacion` tienen RLS habilitado, sin políticas públicas, y deniegan SELECT/INSERT/UPDATE a `anon`, `authenticated` **y también directamente a `service_role`**. Por eso se usan operaciones SQL restringidas; no se concedieron permisos públicos ni se propuso abrir las tablas. La unicidad existente `(invitacion_id,plantilla)`, la unicidad parcial de `meta_message_id`, las claves foráneas y las restricciones de consentimiento se conservaron.
 
-## Archivos y comportamiento preparado
+Las funciones reales `validar_pago_admin`, `validar_pago_admin_chiapas`, `autorizar_cortesia_admin`, `autorizar_cortesia_admin_chiapas` y ambos emisores de invitaciones verifican identidad, perfil activo y asignación por evento. Conservan confirmación, pago/cortesía, QR y auditoría transaccionales. **No se sustituyen ni modifican esas funciones.** El preflight de la migración comprueba además hashes de sus cuerpos y del registro v4 para detenerse si cambiaron desde la auditoría.
 
-- `sql/whatsapp/01_automatizacion_propuesta.sql`: amplía la tabla existente con fase de automatización independiente; evita suponer los valores permitidos por la restricción antigua `estado`. Filas históricas quedan fuera del procesador. Usa la unicidad existente `(invitacion_id,plantilla)`. Agrega recuperación de token **solo lectura**, cotejo SHA256 con Vault, encolado, reserva `SKIP LOCKED`, autorización de salida y finalización con UUID de reserva.
-- Los disparadores de invitaciones y confirmaciones intentan preparar la cola. Sus errores no abortan pagos/cortesías. No efectúan llamadas HTTP. No reconstruyen tokens ni llaman a RPC emisoras. No hay backfill masivo.
-- Elegibilidad: evento reconocido, registro confirmado, `es_prueba=false`, pago validado o cortesía autorizada, consentimiento explícito no retirado, teléfono mexicano válido, QR activo/emitido y hash correcto. Ausencia de consentimiento nunca autoriza el envío. Teléfonos existentes de diez dígitos se convierten a `52` + diez dígitos; otros países no están habilitados.
-- `02_administracion_propuesta.sql` y `whatsapp-administrar`: lista paginada y reintento manual de fallos seguros, con administrador activo y asignación activa por evento. El usuario se obtiene de `getUser`, el evento del encabezado interno reemplazado por `serveEvento`; se verifica de nuevo en SQL. No retorna teléfonos, token QR ni credenciales.
-- `whatsapp-procesar-cola`: un trabajo por invocación, secreto de backend independiente de sesiones administrativas. Simulación por defecto. No existe programador configurado.
-- `_shared/whatsapp-imagen.ts`: conserva el SVG del generador original, fondo navideño y logotipo originales del proyecto. Admin y procesador comparten el diseño. El QR codifica el token recuperado; la imagen se conserva solo en memoria y se envía como bytes privados. No se publica en Storage.
-- `_shared/whatsapp-meta.ts`: carga multipart en `/{phone-number-id}/media`, obtiene `media_id` y lo referencia en el encabezado de imagen de `/{phone-number-id}/messages`, con cinco variables. HTTP solo en modo real autorizado. No se registran cuerpos de error, teléfonos ni secretos.
-- `03_webhook_propuesta.sql`, `whatsapp-webhook`: confirmación `delivered/read` con HMAC SHA256 del cuerpo original, número configurado y `wamid` coincidente. Estados monotónicos. Webhook deshabilitado por defecto. “Aceptado” no implica “Entregado”.
-- `WhatsAppAdmin.tsx` / `PanelAdmin.tsx`: consulta y reintento administrativo, detrás de `VITE_WHATSAPP_PANEL_HABILITADO=true`. Se mantiene oculto por defecto hasta desplegar y validar backend; formulario público sin cambios.
-- `rollback.sql`: retira únicamente operaciones/disparadores nuevos. Conserva columnas e historial para conciliación; no elimina tablas, inscripciones ni QR.
+El preflight completo también se ejecutó contra el catálogo real dentro de `BEGIN READ ONLY` y `ROLLBACK`: `preflight_solo_lectura_ok`, codificación UTF8. No se aplicó DDL ni se modificaron datos.
 
-## Seguridad, reintentos y límites
+El consentimiento ya estaba conectado en las Edge publicadas mediante `crear_registro_publico_v4`, con guardado atómico del registro y consentimiento opcional. Las dos copias locales aún usaban v3: se sincronizaron esas diferencias para evitar una regresión al publicar. En Chiapas se eliminó también lógica de EMPLEADO que era imposible después de limitar los asesores a LUIS/VIRIDIANA y que hacía fallar el compilador. La regla de asesores permanece igual. El formulario público y su diseño no cambiaron.
 
-Las nuevas RPC se revocan de PUBLIC, anon y authenticated; solo service_role puede ejecutarlas. Los permisos/RLS antiguos aún requieren auditoría real. No se amplían permisos de las tablas para resolver acceso interno. El servicio nunca acepta un administrador indicado por el navegador.
-Reserva con UUID y máximo tres intentos. No reencola automáticamente trabajos caducados: pasan a `incierto`. Cualquier error después de iniciar la petición de mensaje queda incierto, incluso un rechazo explícito: decisión conservadora contra duplicados. El reintento manual exige fallo anterior al envío, sin `wamid` ni marca de salida, y elegibilidad vigente. Simulaciones terminan en `simulado` y no se convierten automáticamente en envíos reales.
+Evidencia: `WHATSAPP_CATALOGO_AUDITADO_20261103.json` y `WHATSAPP_ADVISORS_20261103.json`. El aviso informativo de RLS sin políticas es coherente con tablas privadas accesibles exclusivamente por operaciones internas; no justifica añadir políticas públicas. Referencia oficial: [permisos de funciones](https://supabase.com/docs/guides/database/functions), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
 
-La validación final vuelve a leer consentimiento, pago/cortesía, registro y QR después de generar/cargar imagen. Existe una ventana inevitable entre la transacción de autorización y la solicitud externa; no se garantiza atomicidad entre PostgreSQL y Meta. Las reservas caducan a diez minutos y el transporte usa timeout de veinte segundos. Una pérdida de respuesta o de persistencia posterior a Meta requiere conciliación humana, nunca reenvío ciego.
+## Implementación
 
-Los medios de solicitudes aceptadas/inciertas no se eliminan inmediatamente, porque Meta puede necesitarlos para entregar. **Falta aprobar e implementar la política de retención/conciliación de esos medios antes de producción.** Medios de preparaciones canceladas se eliminan por su ID. No hay bucket público ni URL permanente.
-La carrera de un webhook recibido antes de persistir `wamid` necesita conciliación adicional antes de uso real; no se afirma entrega si no puede asociarse.
+- La cola sigue siendo **la tabla existente**. Se reutilizan sus estados: `listo`, `enviando`, `aceptado_meta`, `fallido`, `revision`, `cancelado`, `entregado` y `leido`; solo se añade `simulado`. No hay una segunda columna de estado. Una marca de versión impide consumir trabajos históricos ciegamente. Un preparado histórico puede incorporarse únicamente si seguía pendiente de consentimiento, sin intentos, reserva ni mensaje previo, y vuelve a superar la elegibilidad completa.
+- Los disparadores de confirmación/invitación llaman al preparador central. Comprueba evento, registro confirmado y real, pago validado o cortesía autorizada, consentimiento explícito vigente, teléfono mexicano válido y QR activo recuperable con SHA256 correcto. Los errores de preparación no abortan la operación original. No se llama a Meta desde la transacción de aprobación.
+- La reserva utiliza `FOR UPDATE SKIP LOCKED`, UUID de reserva, máximo tres intentos y caducidad de diez minutos. Un trabajo vencido pasa a revisión, nunca automáticamente a pendiente. Una reserva antigua no puede cerrar el trabajo de otro proceso. Se conserva el orden registro → invitación → cola para no introducir bloqueos inversos frente a las aprobaciones.
+- El worker obtiene el contexto desde el backend, sin sesión administrativa ni IDs de administrador suministrados por cliente. El endpoint administrativo usa JWT validado con `getUser`, perfil activo y asignación activa, comprobados otra vez en SQL. Consultas y reintentos están limitados al evento autorizado.
+- Se reutiliza el diseño original, logotipo y fondo navideño en un renderer compartido. Nombre, folio, fecha, recepción, sede y QR vigente aparecen en el PNG. Las funciones administrativas de PNG recuperan ahora el token con una operación de **solo lectura**: no llaman a los emisores y no pueden crear/reemitir un QR por una carrera entre consultas.
+- El transporte preparado carga bytes en `/{phone-number-id}/media` y usa el `media_id` en el encabezado de imagen de la plantilla; el cuerpo tiene las cinco variables solicitadas. No hay bucket público, URL pública del QR ni credenciales en frontend. No se ejecutó contra Meta.
+- El medio privado se registra antes de iniciar el mensaje. Preparaciones canceladas se limpian por su ID. Una tarea de limpieza, deshabilitada por defecto, permite retirar medios de entregas/fallos definitivos después de siete días; medios de fallos previos al envío pueden retirarse antes. **Aceptados sin entrega y resultados inciertos se conservan para revisión; no se borran ni reenvían automáticamente.** La limpieza también queda bloqueada en modo simulación.
+- El webhook verifica HMAC SHA256 sobre el cuerpo original y el número configurado. Conserva únicamente identificador de mensaje, estado y fechas en una bandeja interna nueva con RLS y sin acceso directo a clientes. Esta bandeja es un registro de confirmaciones, no otra cola de envíos. Resuelve confirmaciones que llegan antes de persistir la respuesta de Meta. Entrega/lectura no retroceden por notificaciones tardías. `failed` queda como fallo, sin afirmar entrega ni permitir reenvío ciego.
+- El panel diferencia pendiente, proceso, aceptación, entrega, fallo, falta de consentimiento y revisión. Reintenta solo fallos seguros anteriores al mensaje, con consentimiento y permisos vigentes. Permanece oculto por defecto. El workflow permite configurar `VITE_WHATSAPP_PANEL_HABILITADO` como variable del repositorio, con valor predeterminado `false`, sin cambiar disparadores ni protecciones de Pages.
 
-## Secretos y activación futura (NO ejecutar ahora)
+Minatitlán: 6 de diciembre de 2026, Salón RADEV'S 1, recepción 1:00 p. m. Chiapas: 19 de diciembre de 2026, Salón BIANCO, recepción por confirmar.
 
-Solo secretos del servidor: `WHATSAPP_WORKER_SECRET` (aleatorio, mínimo 32 caracteres), `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_NUMBER_ID`, `META_GRAPH_VERSION` (versión soportada confirmada al publicar), `META_APP_SECRET`, `META_WEBHOOK_VERIFY_TOKEN`.
-No incorporar sus valores a Git, frontend, reportes ni argumentos visibles de comandos. Usar el gestor de secretos autorizado.
+## SQL y archivos
 
-Por defecto: `WHATSAPP_MODO=simulacion`; todos los indicadores siguientes ausentes o `false`:
-`WHATSAPP_ENVIOS_HABILITADOS`, `WHATSAPP_PLANTILLA_APROBADA`, `WHATSAPP_NUMERO_CONFIGURADO`, `WHATSAPP_CREDENCIAL_PERMANENTE`, `WHATSAPP_PRUEBA_MANUAL_AUTORIZADA`, `WHATSAPP_PRODUCCION_AUTORIZADA`, `WHATSAPP_WEBHOOK_HABILITADO`.
+Migración generada mediante **Supabase CLI 3.0.0**: `supabase/migrations/20261104002122_whatsapp_automatizacion.sql`. Incluye, en una transacción, preflight y los componentes `sql/whatsapp/01` a `05`. No se aplicó en producción. Las fuentes de `sql/whatsapp/referencias/` son copias auditadas de funciones ya existentes para pruebas locales: **no son migraciones y no deben aplicarse otra vez en producción**.
 
-## Publicación por etapas — instrucciones, no ejecución
+Las operaciones nuevas son `whatsapp_contexto_interno`, `whatsapp_encolar_interno`, `whatsapp_al_confirmar_interno`, `whatsapp_reservar_interno`, `whatsapp_autorizar_salida_interno`, `whatsapp_finalizar_interno`, `whatsapp_admin_interno`, `whatsapp_qr_admin_interno`, `whatsapp_preparar_admin_interno`, `whatsapp_confirmar_entrega_interno`, `whatsapp_conciliar_entrega_interno` y las cuatro operaciones privadas de gestión/limpieza de medios. Todas tienen search_path vacío y permisos explícitos. Solo se concede a service_role lo necesario; los helpers de disparadores/conciliación no se exponen al cliente.
 
-1. Completar auditoría de solo lectura y contrastar definiciones/ACL/RLS/restricciones con las propuestas. Obtener respaldo de catálogo y Edge actuales; revisar diferencias desde `5d6ac8b`. Corregir cualquier incompatibilidad y repetir pruebas.
-2. En entorno desechable LOCAL con Supabase/Auth/Vault y PostgreSQL real, validar migración, rollback, concurrencia real, permisos cruzados, decodificación del PNG y registro público de ambos eventos. No crear una rama de pago sin autorización.
-3. Con CLI instalada y versión verificada, consultar `supabase migration new --help`, ejecutar `supabase migration new whatsapp_automatizacion` y colocar las tres propuestas SQL en el archivo generado, quitando los límites BEGIN/COMMIT duplicados. No aplicar a ciegas las migraciones históricas consolidadas de este repositorio ni ejecutar `db push` sobre ellas.
-4. Solicitar autorización de publicación para este paquete concreto. Sin ella no hacer push ni aplicar SQL ni desplegar Edge. Revisar y aplicar la migración nueva por el canal aprobado; no modificar registros existentes para probar.
-5. Consultar `supabase functions deploy --help`. Desplegar solamente `whatsapp-preparar-invitacion`, `whatsapp-generar-qr-png`, `whatsapp-generar-invitacion-png`, `whatsapp-administrar`, `whatsapp-procesar-cola`, `whatsapp-webhook` con el directorio compartido incluido. Mantener verificación JWT en las cuatro funciones administrativas. Worker y webhook requieren `--no-verify-jwt` y sus validaciones propias; no publicar esos endpoints antes de configurar y validar sus secretos. No desplegar otras Edge ni cambiar el teléfono Business.
-6. Configurar secretos mediante el gestor autorizado con todos los indicadores de envío real en falso. No activar cron. Probar worker simulado con fixture identificado en entorno local; no consumir cola real de producción como ensayo.
-7. Publicar frontend solo después de validar `whatsapp-administrar`, habilitando únicamente su panel con `VITE_WHATSAPP_PANEL_HABILITADO=true`. No abrir/cerrar inscripciones ni cambiar formularios.
-8. Para envío real: plantilla aprobada, número oficial configurado, credenciales permanentes verificadas, prueba manual expresamente autorizada, conciliación/retención resueltas y autorización explícita de producción. Cambiar indicadores solo tras esa autorización, nunca por aprobar este desarrollo local.
-9. Rollback: detener invocaciones y marcar envío real falso primero, conservar bitácora y medios para conciliar; retirar panel; ejecutar `rollback.sql` y restaurar las tres Edge originales desde respaldo. No borrar trabajos inciertos ni QR vigentes.
+El manifiesto enumera los archivos y hashes del paquete. Incluye SQL, Edge y módulos compartidos, panel, prueba HTTP/SQL/navegador/PNG, lockfile Edge, herramientas de PostgreSQL aisladas y configuración del flag en el workflow. El resto de archivos y respaldos del usuario se conservó. `package.json` y `package-lock.json` de la aplicación no se modificaron.
 
-Referencias oficiales revisadas: [plantillas Meta](https://whatsapp.github.io/WhatsApp-Nodejs-SDK/api-reference/messages/template/) (SDK archivado; confirmar contrato vigente al publicar), [medios WhatsApp](https://developers.facebook.com/documentation/business-messaging/whatsapp/business-phone-numbers/media) (consulta recibió HTTP 429 en esta sesión). Validar versión Graph y documentación actual antes de activar modo real.
+## Pruebas ejecutadas
 
-## Resultados ejecutados el 3 de noviembre de 2026
+| Prueba | Resultado y alcance |
+|---|---|
+| Motor y transporte | **22/22**, servicios simulados; incluye gates de activación, revocación, token cambiado, fallo/incertidumbre, carga privada, limpieza y webhook |
+| Registro público HTTP | **48 comprobaciones**: HTTP localhost real; Supabase, Storage y CAPTCHA simulados; ambos eventos, pago/cortesía, autorización ausente/false/true y evento cliente manipulado |
+| Worker HTTP | **24 comprobaciones**: HTTP localhost real, backend y Meta simulados; secreto, rechazo de sesión admin como credencial del worker, origen, simulación y limpieza |
+| SQL PGlite | **97 comprobaciones** sobre esquema/datos ficticios, con restricciones auditadas y funciones reales copiadas; incluye registro v4, aprobación de pago/cortesía y cola |
+| PostgreSQL 17.11 nativo | **104 comprobaciones**, incluidas las anteriores y concurrencia con conexiones distintas: unicidad, SKIP LOCKED, reserva vencida y orden de bloqueos |
+| Migración y rollback | El archivo generado completo se ejecutó en las bases locales; rollback retira disparadores/RPC nuevos y conserva datos/historial |
+| Deno | Ocho Edge y prueba de imagen verificadas con `whatsapp-edge.lock` congelado |
+| PNG real | **1/1**: render 1122×1402, QR decodificado exactamente igual al token ficticio; recursos originales |
+| Seguridad existente ampliada | **17/17, 14/14, 19/19, 252 comprobaciones de aislamiento y 10 de perfiles**; servicios simulados, parte con HTTP localhost real |
+| Navegador | **37 comprobaciones de panel y 27 de regresión**, navegador real con Supabase simulado; hay solapamiento entre esas cifras |
+| Lint y compilación | Aprobados. Permanece la advertencia previa de tamaño de bundle; no impide el build |
 
-- `node --test tests/whatsapp/motor.test.mjs`: **18/18**; servicios simulados, transporte HTTP de Meta reemplazado por un adaptador ficticio. La concurrencia aquí demuestra exclusión del adaptador simulado; no certifica sesiones PostgreSQL simultáneas.
-- `node tests/whatsapp/sql.integration.mjs`: **27 comprobaciones** PGlite 0.5.11; SQL ejecutado de verdad sobre catálogo y datos ficticios, Vault representado por una tabla local. Incluye pago/cortesía, exclusiones, unicidad, token/hash, reserva, reintento seguro, incertidumbre, permisos cruzados e inactivos, webhook monotónico, aislamiento de fallo de cola y rollback. No es una prueba del servicio Vault/Auth real ni de la configuración RLS de producción.
-- `npm run lint`: aprobado después de corregir la expresión de control del renderer original.
-- `npm run build`: aprobado; tsc y Vite. Advertencia existente de tamaño de bundle superior a 500 kB, no impide compilación.
-- `npm run test:e2e`: **27 comprobaciones** existentes, navegador real en localhost, Supabase HTTP simulado. Comprueba rutas, formulario visible y operación administrativa existente de ambos eventos; no crea participantes reales ni certifica un alta pública completa contra Supabase.
-- `node tests/whatsapp/ejecutar-panel.cjs`: **37 comprobaciones**, navegador real, HTTP simulado; panel habilitado solo en ese servidor de prueba, ambos eventos, estado aceptado diferenciado de entregado, sin consentimiento y reintento con evento correcto. Parte de esas comprobaciones repite la regresión anterior; no sumar ambas cifras como casos independientes.
-- Deno 2.9.8 `check` de las **seis Edge**: aprobado en copia temporal aislada, sin modificar `deno.lock` del usuario. Dependencias directas fijadas en sus imports; integrar el cierre de dependencias nuevo en la estrategia de lockfile Edge antes de publicación.
-- `deno test --no-config --no-lock --node-modules-dir=none --allow-net=joyeriamor.github.io tests/whatsapp/imagen.test.ts`: **1/1**. Renderiza PNG real de 1122×1402 con recursos originales, decodifica el QR y coteja exactamente el token **ficticio**. No consulta Vault real ni emplea una invitación real. Se corrigió la interoperabilidad de tipos CommonJS del decodificador de prueba; no se omitió la revisión de tipos.
+Los fixtures de Vault y las identidades SQL de los ensayos son simulados. PostgreSQL nativo es real, pero **no es un entorno Supabase completo con Auth y cifrado Vault reales**. Tampoco se probó entrega real por Meta. No se presentan esas simulaciones como pruebas reales de dichos servicios. Los servidores PostgreSQL temporales se detuvieron al terminar.
 
-Los comandos se ejecutaron en `C:\PROYECTOS\FIESTAANUAL26`, salvo Deno, que utilizó una copia temporal de los mismos fuentes para evitar resolver dependencias ajenas del frontend. PGlite se instaló en un prefijo temporal porque faltaba en `node_modules`; no se cambiaron `package.json` ni `package-lock.json`.
+## Repetición local
 
-Pendientes que impiden declarar listo para producción: catálogo/ACL/RLS reales, PostgreSQL concurrente y Supabase local completo, activación/transmisión real expresamente autorizada y confirmación de Meta, retención y conciliación de medios/webhooks tempranos, lockfile Edge y versión Graph actual. No se sustituyen estas pruebas por las simulaciones descritas.
+Desde `C:\PROYECTOS\FIESTAANUAL26`, con Node 24 y dependencias de desarrollo disponibles:
 
-Regresión de seguridad final: `npm run test:security` aprobó **17/17**, **14/14**, **19/19**, **237 comprobaciones de aislamiento** (incluye transporte HTTP localhost real con backend simulado) y **10 comprobaciones de perfiles/Auth simulado**. La primera ejecución detectó una fixture antigua que devolvía `ASESOR FICTICIO`, incompatible con la restricción de LUIS/VIRIDIANA ya presente en HEAD. Se corrigió únicamente `tests/chiapas/aislamiento-eventos.test.cjs`: fixture positiva permitida y caso negativo adicional para asesor no permitido. No se cambió la regla de asesores ni los endpoints de inscripción.
+```powershell
+node --test tests/whatsapp/motor.test.mjs
+node tests/whatsapp/registro-http.test.cjs
+node tests/whatsapp/worker-http.test.cjs
+$env:FIESTA_WHATSAPP_MIGRACION = 'supabase/migrations/20261104002122_whatsapp_automatizacion.sql'
+node tests/whatsapp/sql.integration.mjs
+npm ci --prefix tests/whatsapp/herramientas-postgres --ignore-scripts
+$env:EMBEDDED_POSTGRES_MODULE = ([Uri](Join-Path $PWD 'tests/whatsapp/herramientas-postgres/node_modules/embedded-postgres/dist/index.js')).AbsoluteUri
+$env:PG_MODULE = ([Uri](Join-Path $PWD 'tests/whatsapp/herramientas-postgres/node_modules/pg/lib/index.js')).AbsoluteUri
+node tests/whatsapp/postgres-nativo.mjs
+npm run test:security
+npm run lint
+npm run build
+npm run test:e2e
+node tests/whatsapp/ejecutar-panel.cjs
+```
 
-Archivos existentes modificados: `src/pages/PanelAdmin.tsx` y `tests/chiapas/aislamiento-eventos.test.cjs`. El resto de archivos del paquete son nuevos en Git, incluidas las tres Edge que antes solo estaban publicadas. El manifiesto enumera los archivos y sus hashes. La regla `.gitignore` existente ignora `supabase/`; se deben incorporar **solo las rutas exactas del paquete**, nunca forzar la carpeta completa porque podría contener secretos o archivos del usuario.
+PGlite/Playwright pueden cargarse desde prefijos temporales con `PGLITE_MODULE` y `PLAYWRIGHT_MODULE`; Chrome/Edge local con `FIESTA_CHROME_PATH`. Las herramientas de PostgreSQL tienen dependencias y lockfile separados de la aplicación. El servidor de prueba se crea con UTF-8, puerto efímero y escucha solo en 127.0.0.1, sin crear usuarios del sistema ni instalar servicios. El runner rechaza una URL de base remota. No usarlo contra otra base local con datos propios.
 
-Para repetir las pruebas, usar las dependencias ya declaradas en el proyecto o los módulos temporales mediante `PGLITE_MODULE` y `PLAYWRIGHT_MODULE`, y Chrome/Edge local mediante `FIESTA_CHROME_PATH`. No instalar ni sustituir dependencias globales. Las copias temporales y respaldos no son artefactos de publicación.
+Deno se comprobó en una copia temporal de fuentes + lockfile para no resolver el package.json del frontend; se usan `--no-config --node-modules-dir=none --lock=supabase/whatsapp-edge.lock --frozen=true`. Para la prueba PNG, el único permiso de red de ejecución es `--allow-net=joyeriamor.github.io`. No se modificó el `deno.lock` del usuario.
+
+## Publicación futura — NO ejecutada
+
+1. Revisar este paquete y obtener autorización explícita de push/despliegue. Respaldar esquema y fuentes Edge actuales; repetir preflight si hubo cambios. Las reglas de main y github-pages no se modificaron.
+2. Ejecutar primero un ensayo completo en Supabase local/desarrollo autorizado con Auth y Vault reales. No crear una rama de pago ni usar registros reales como fixtures. Mantener la plantilla en revisión y Meta deshabilitado.
+3. Aplicar **solo** `20261104002122_whatsapp_automatizacion.sql` como una migración nueva por el canal aprobado. No hacer `db push` sobre las migraciones históricas consolidadas de este repositorio ni aplicar la carpeta referencias. No reescribir pagos, registros o QR existentes.
+4. Configurar secretos exclusivamente en el servidor: `WHATSAPP_WORKER_SECRET` aleatorio de al menos 32 caracteres, `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_NUMBER_ID`, `META_GRAPH_VERSION` soportada, `META_APP_SECRET` y `META_WEBHOOK_VERIFY_TOKEN`. Nunca pegar valores en frontend, Git o reportes. Modo `simulacion`; indicadores de envío/webhook/limpieza en false. No activar cron.
+5. Con la CLI **3.0.0**, después de aplicar SQL y configurar secretos, los comandos de publicación preparados son:
+
+```powershell
+supabase functions deploy whatsapp-preparar-invitacion whatsapp-generar-qr-png whatsapp-generar-invitacion-png whatsapp-administrar --remote=rkjlqxxmxbiciuhtpnpf --use-api
+supabase functions deploy whatsapp-procesar-cola whatsapp-webhook --remote=rkjlqxxmxbiciuhtpnpf --use-api --no-verify-jwt
+```
+
+El segundo comando requiere conservar el secreto del worker y la validación HMAC del webhook; no son APIs administrativas públicas. La copia Minatitlán del registro solo sincroniza lo ya desplegado y no necesita redeploy. La limpieza de tipos de Chiapas puede publicarse separadamente, conservando sus secretos actuales y su protección pública CAPTCHA:
+
+```powershell
+supabase functions deploy registrar-participante-chiapas --remote=rkjlqxxmxbiciuhtpnpf --use-api --no-verify-jwt
+```
+
+No omitir nombres de funciones ni usar `--prune`, para no publicar/borrar funciones ajenas al paquete.
+
+6. Validar las APIs y, solo después, publicar frontend con la variable del repositorio `VITE_WHATSAPP_PANEL_HABILITADO=true`. Mostrar el panel no activa mensajes. Conservar los permisos del entorno github-pages; cualquier excepción temporal de rama debe autorizarse y retirarse al terminar.
+7. Para enviar realmente deben confirmarse **las cinco condiciones**: plantilla aprobada, número oficial configurado, credenciales permanentes, prueba manual autorizada y autorización explícita de producción. Los indicadores independientes son `WHATSAPP_ENVIOS_HABILITADOS`, `WHATSAPP_PLANTILLA_APROBADA`, `WHATSAPP_NUMERO_CONFIGURADO`, `WHATSAPP_CREDENCIAL_PERMANENTE`, `WHATSAPP_PRUEBA_MANUAL_AUTORIZADA`, `WHATSAPP_PRODUCCION_AUTORIZADA` y `WHATSAPP_MODO=real`. Webhook/limpieza tienen flags separados. No se cambió el teléfono Business.
+8. Conciliación: si hubo solicitud de mensaje pero se perdió la respuesta, el trabajo queda en revisión. No reencolar ni borrar su medio automáticamente. Conservar evidencia de Meta y resolver manualmente. La bandeja de confirmaciones sí resuelve el caso en que el webhook se adelantó a una respuesta que luego pudo persistirse.
+9. Rollback operativo: deshabilitar envíos y detener invocaciones; ocultar panel, restaurar las Edge previas que dependan de RPC nuevas y ejecutar `sql/whatsapp/rollback.sql`. Conserva columnas/estados de simulación, medios e historial de confirmaciones; no elimina inscripciones ni QR. Una restauración estructural destructiva exigiría revisión aparte.
+
+No hay atomicidad distribuida entre PostgreSQL y Meta: se revalida consentimiento/QR justo antes del envío, pero existe una ventana entre COMMIT y la red. El diseño evita reintentos ciegos y no promete entrega exactamente una vez. Los pendientes externos son el ensayo Supabase completo, la publicación autorizada y la aprobación/configuración/prueba real de Meta; no se sustituyen por las pruebas locales descritas.

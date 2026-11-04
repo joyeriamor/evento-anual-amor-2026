@@ -12,7 +12,7 @@ const ID = 'bb111111-1111-4111-8111-111111111111';
 const endpoints = ['validar-pago','administrar-invitacion','bandejas-admin','bandeja-personal',
   'validar-pago-chiapas','administrar-invitacion-chiapas','bandejas-admin-chiapas','bandeja-personal-chiapas',
   'listar-participantes','detalle-participante','consultar-acceso','consultar-acceso-evento',
-  'resumen-accesos','gestionar-usuarios','registrar-prueba-admin','resumen-cupo-evento','verificar-personal','verificar-admin','probar-limite-registro','registrar-prueba-admin-chiapas'];
+  'resumen-accesos','gestionar-usuarios','registrar-prueba-admin','resumen-cupo-evento','verificar-personal','verificar-admin','probar-limite-registro','registrar-prueba-admin-chiapas','whatsapp-administrar'];
 function entorno(nombre, estado = {}) {
   let handler;
   const queries = [], rpc = [], signed = [], uploads = [], removals = [];
@@ -119,6 +119,13 @@ async function check(name, state, body, headers, expected) {
       assert.equal(e.rpc[0][0],'crear_registro_prueba_admin_chiapas');assert.equal(e.rpc[0][1].p_evento_id,CHIAPAS);
       assert.equal(e.removals.length,state.rpcFalla?2:0);
     }count++;
+  }
+  for(const evento of [RADEVS,CHIAPAS]){
+    const admin=entorno('whatsapp-administrar');
+    const respuesta=await admin.call({accion:'listar',evento_id:evento},{Authorization:'Bearer valid','x-evento-autorizado':'forged'});
+    assert.equal(respuesta.status,200);assert.equal(admin.rpc[0][0],'whatsapp_admin_interno');
+    assert.equal(admin.rpc[0][1].p_admin,USER);assert.equal(admin.rpc[0][1].p_evento,evento);count++;
+    await check('whatsapp-administrar',{}, {accion:'listar',evento_id:evento,admin_id:ID},{Authorization:'Bearer valid'},400);
   }
   // Actual loopback HTTP transport; backend remains simulated, explicitly.
   const e=entorno('verificar-personal');
