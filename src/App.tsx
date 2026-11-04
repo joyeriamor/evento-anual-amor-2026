@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import Registro from "./pages/Registro";
+import Privacidad from "./pages/Privacidad";
 import LoginAdmin from "./pages/LoginAdmin";
 import PanelAdmin from "./pages/PanelAdmin";
 import ControlAcceso from "./pages/ControlAcceso";
@@ -29,6 +30,10 @@ type Pantalla = "inicio" | "registro" | "login" | "admin" | "acceso" | "validado
 
 export default function App() {
   const rutaActual = window.location.pathname.replace(/\/+$/, "");
+
+  if (rutaActual === `${import.meta.env.BASE_URL}privacidad`.replace(/\/+$/, "")) {
+    return <Privacidad />;
+  }
 
   if (rutaActual.endsWith("/chiapas/acceso")) {
     return <AccesoChiapas />;
@@ -261,6 +266,7 @@ function AppPrincipal() {
       <footer>
         © 2026 AMOR · Plataforma de gestión
         de eventos
+        <p><a href={`${import.meta.env.BASE_URL}privacidad/`} target="_blank" rel="noopener noreferrer">Aviso de privacidad</a></p>
       </footer>
     </div>
   );

@@ -13,9 +13,9 @@ function paginasEventos(): Plugin {
       handler(_options, bundle) {
         const inicio = bundle['index.html']
         if (!inicio || inicio.type !== 'asset') {
-          this.error('Falta index.html para generar las rutas estáticas de Chiapas')
+          this.error('Falta index.html para generar las rutas estáticas del sitio')
         }
-        for (const ruta of ['chiapas', 'chiapas/acceso']) {
+        for (const ruta of ['chiapas', 'chiapas/acceso', 'privacidad']) {
           this.emitFile({ type: 'asset', fileName: `${ruta}/index.html`, source: inicio.source })
         }
       },

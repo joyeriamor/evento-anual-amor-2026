@@ -1,0 +1,17 @@
+.pagina-privacidad { min-height: 100vh; background: #fff5f8; color: #593742; }
+.privacidad-marca { display: flex; align-items: center; gap: 18px; max-width: 900px; margin: auto; padding: 28px 24px; }
+.privacidad-marca img { width: 82px; height: auto; }
+.privacidad-marca strong { color: #9b3159; }
+.privacidad-marca p { margin: 6px 0 0; }
+.privacidad-documento { box-sizing: border-box; max-width: 900px; margin: 0 auto; padding: 40px 48px; background: #fff; border: 1px solid #efcbd8; border-radius: 20px; box-shadow: 0 8px 32px #a3346010; }
+.privacidad-etiqueta { color: #9b3159; font-size: .8rem; letter-spacing: .12em; font-weight: 700; }
+.privacidad-documento h1 { color: #9b3159; font-size: clamp(1.8rem, 5vw, 2.6rem); margin: 12px 0; }
+.privacidad-intro { color: #795b69; padding-bottom: 22px; border-bottom: 1px solid #f1d8e1; }
+.privacidad-documento article { line-height: 1.8; overflow-wrap: anywhere; }
+.privacidad-documento h4 { color: #9b3159; font-size: 1.1rem; margin: 28px 0 8px; }
+.privacidad-documento a, .pagina-privacidad footer a { color: #9b3159; text-decoration: underline; }
+@media (max-width: 600px) {
+  .privacidad-marca { padding: 20px 18px; gap: 12px; }
+  .privacidad-marca img { width: 64px; }
+  .privacidad-documento { margin: 0 12px; padding: 24px 20px; border-radius: 16px; }
+}
