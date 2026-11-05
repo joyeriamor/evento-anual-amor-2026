@@ -1,25 +1,16 @@
-# Página de privacidad preparada para revisión — 4 noviembre 2026
+# Aviso de privacidad aprobado — 4 noviembre 2026
 
-No publicada. No se cambió Supabase ni la configuración de WhatsApp durante este trabajo.
-Ruta prevista: /evento-anual-amor-2026/privacidad/.
-El texto completo existente se trasladó sin cambios a ContenidoAvisoPrivacidad.tsx y se comparte entre formulario y página pública. El correo existente se centralizó sin cambiar su valor.
-El formulario conserva la aceptación obligatoria y la autorización independiente y opcional de WhatsApp. Los enlaces abren otra pestaña para no perder el formulario.
-GitHub Pages recibe privacidad/index.html durante la compilación, sin depender de fallback SPA.
+El usuario confirmó responsable JOYERÍA AMOR DE LOS DOS, ubicación Guadalajara, Jalisco, México y correo joyeriamor@amor.com.
+Definió conservar los datos de cada evento hasta el día de su celebración y eliminarlos una vez terminado ese evento.
+Se actualizó el apartado 6 de la fuente compartida y la revisión/versión a 2026-11-04. El resto del contenido permanece igual.
+Esta actualización publica la política indicada por el responsable; NO ejecuta borrados, no programa eliminaciones ni afirma que ya exista eliminación automática.
+La operación de eliminación posterior a cada evento requiere un procedimiento independiente autorizado y verificación de su alcance.
 
-## Confirmaciones necesarias antes de publicar
-- Nombre legal del responsable: JOYERÍA AMOR DE LOS DOS.
-- Ubicación existente: Guadalajara, Jalisco, México; confirmar si es la oficial y si debe ampliarse.
-- Correo existente: joyeriamor@amor.com; confirmar que es oficial y está atendido.
-- Versión existente: 2026-10-16-preparacion y revisión del texto 16 octubre 2026; no se actualizaron como si existiera aprobación nueva.
-- Conservación: el apartado 6 todavía dice que la política interna está pendiente de concretarse antes de la apertura pública. El responsable debe definir el criterio o periodo real y aprobar el texto que lo sustituya; no se inventó ninguno.
+La ruta /evento-anual-amor-2026/privacidad/ comparte contenido con el formulario. Los enlaces abren otra pestaña y conservan el registro.
+La aceptación obligatoria de privacidad y la autorización opcional de WhatsApp mantienen su funcionamiento.
+GitHub Pages recibe privacidad/index.html en la compilación para apertura directa y recarga.
+No se modifican registros, pagos, invitaciones, QR, backend ni configuración de WhatsApp.
 
-No utilizar esta página como política definitiva en Meta ni publicarla hasta que el usuario confirme el contenido.
-
-## Validación local
-- Lint y compilación aprobados; permanece la advertencia previa de bundle mayor de 500 kB.
-- 45 comprobaciones de privacidad aprobadas con HTTP estático y navegador reales: ruta directa, recarga, página anónima sin consultas al backend, ocho apartados, vista móvil sin desbordamiento, contenido igual al del formulario y conservación de datos al abrir otra pestaña.
-- En ambos eventos se verificaron las casillas independientes: privacidad obligatoria y WhatsApp opcional. No se enviaron formularios a producción.
-- 27 comprobaciones E2E de regresión aprobadas, con Supabase HTTP simulado. No son pruebas reales de Auth/Storage/Meta.
-- Se corrigió un selector del propio ensayo tras su primera ejecución; no se cambió el formulario para satisfacerlo.
-- Registro.tsx y las funciones/configuración de WhatsApp no se modificaron. No se consultaron ni escribieron datos de producción durante esta tarea.
-- La vista previa se compiló con credenciales ficticias y se sirve localmente; no se desplegó ni se guardó la URL en Meta.
+## Validación
+Lint, build, 47 comprobaciones de privacidad y 27 de regresión de ambos eventos aprobados. Se verificaron apertura directa y recarga con servidor estático sin fallback SPA. Persiste la advertencia previa de tamaño de bundle. Publicación pendiente de habilitación temporal de la rama exacta en github-pages; no se modifica main.
+Las pruebas usan backend simulado y no equivalen a probar Auth, Storage o entrega de Meta en producción.

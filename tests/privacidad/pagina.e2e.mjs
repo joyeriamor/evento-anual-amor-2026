@@ -49,7 +49,9 @@ try {
   for(const section of ['1. Responsable y contacto','2. Datos recopilados','3. Finalidades','4. Comprobantes y consentimiento','5. Custodia, acceso y proveedores','6. Conservación','7. Derechos ARCO y revocación','8. Cambios al aviso'])check(full.includes(section),true);
   check(full.includes('joyeriamor@amor.com'),true);
   check(full.includes('Guadalajara, Jalisco, México'),true);
-  check(full.includes('pendiente de concretarse antes de la apertura pública'),true);
+  check(full.includes('se eliminarán una vez terminado ese evento'),true);
+  check(full.includes('pendiente de concretarse antes de la apertura pública'),false);
+  check(full.includes('4 de noviembre de 2026'),true);
   await page.reload(); await page.getByRole('article').waitFor();
   check(normalized(await page.getByRole('article').innerText()),full);
   await page.setViewportSize({width:390,height:844});

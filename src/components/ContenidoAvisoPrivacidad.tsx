@@ -5,7 +5,7 @@ export default function ContenidoAvisoPrivacidad() {
   return (
     <>
           <h4>Aviso de privacidad — Fiesta Anual AMOR 2026</h4>
-          <p><strong>Fecha de revisión del texto:</strong> 16 de octubre de 2026.</p>
+          <p><strong>Fecha de revisión del texto:</strong> 4 de noviembre de 2026.</p>
 
           <h4>1. Responsable y contacto</h4>
           <p>
@@ -59,12 +59,8 @@ export default function ContenidoAvisoPrivacidad() {
 
           <h4>6. Conservación</h4>
           <p>
-            Los datos se conservarán durante el tiempo necesario para la
-            operación del evento, la atención de aclaraciones y el cumplimiento
-            de obligaciones legales. Una vez agotadas las finalidades y los
-            periodos legalmente aplicables, procederá su bloqueo o eliminación
-            según corresponda. La política interna de conservación está pendiente
-            de concretarse antes de la apertura pública.
+            Los datos personales de cada evento se conservarán hasta el día de
+            su celebración y se eliminarán una vez terminado ese evento.
           </p>
 
           <h4>7. Derechos ARCO y revocación</h4>

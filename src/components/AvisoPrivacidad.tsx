@@ -9,7 +9,7 @@ type AvisoPrivacidadProps = {
 
 // La versión identifica este texto, pero el backend actual debe revisarse
 // para determinar si persiste la versión aceptada por cada participante.
-export const PRIVACIDAD_VERSION = "2026-10-16-preparacion";
+export const PRIVACIDAD_VERSION = "2026-11-04";
 
 export default function AvisoPrivacidad({
   aceptado,
