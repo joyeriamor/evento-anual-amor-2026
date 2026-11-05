@@ -12,5 +12,13 @@ GitHub Pages recibe privacidad/index.html en la compilación para apertura direc
 No se modifican registros, pagos, invitaciones, QR, backend ni configuración de WhatsApp.
 
 ## Validación
-Lint, build, 47 comprobaciones de privacidad y 27 de regresión de ambos eventos aprobados. Se verificaron apertura directa y recarga con servidor estático sin fallback SPA. Persiste la advertencia previa de tamaño de bundle. Publicación pendiente de habilitación temporal de la rama exacta en github-pages; no se modifica main.
+Lint, build, 47 comprobaciones de privacidad y 27 de regresión de ambos eventos aprobados. Se verificaron apertura directa y recarga con servidor estático sin fallback SPA. Persiste la advertencia previa de tamaño de bundle. Publicación completada desde la rama autorizada; no se modificó main.
 Las pruebas usan backend simulado y no equivalen a probar Auth, Storage o entrega de Meta en producción.
+
+## Publicación verificada
+- Código publicado: dcf44bdbe5e015734696ca63077390ff5e287f01.
+- GitHub Actions #28: https://github.com/joyeriamor/evento-anual-amor-2026/actions/runs/41947425954 — Success.
+- URL pública: https://joyeriamor.github.io/evento-anual-amor-2026/privacidad/
+- Apertura directa y recarga comprobadas en el navegador publicado: contenido del 4 de noviembre de 2026 y conservación aprobada presentes.
+- Excepción temporal de feature/chiapas-evento-2026 retirada. github-pages conserva solo main y las demás protecciones previas.
+- La URL aún no se guardó en Meta en esta etapa. No se cambió configuración de WhatsApp ni se enviaron mensajes ni se borraron datos.
