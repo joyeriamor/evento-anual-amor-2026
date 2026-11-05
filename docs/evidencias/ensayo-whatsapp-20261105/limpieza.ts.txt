@@ -1,0 +1,27 @@
+/** One-run retirement only: fixed fixture, no sending, no client identifiers. */
+export const LIMPIEZA={run:'2bba9e9e-8751-49df-b1bb-17a82c7120d3',registro:'f36d6fea-d9d2-4b3d-9dd4-b07352dbe10d',invitacion:'c8d5d792-9924-4675-9c2c-d55af5b3c5f4',envio:'db605cbb-7700-47b3-a326-40b083610e62',media:'4530699950493174',reserva:'39f7e160-e66b-4ef5-b1f9-34749648778f',foto:'3dc92160-79af-4bf7-b770-263038e88900/pruebas/2bba9e9e-8751-49df-b1bb-17a82c7120d3.png'} as const;
+type Deps={env:(k:string)=>string|undefined;identidad:(bearer:string)=>Promise<string|null>;rpc:(admin:string,accion:string,datos?:Record<string,unknown>)=>Promise<unknown>;eliminarMedia:(id:string)=>Promise<void>;eliminarFoto:(path:string)=>Promise<void>};
+export function manejarLimpiezaEnsayo(d:Deps){return async(req:Request)=>{
+ const headers={'Content-Type':'application/json','Cache-Control':'no-store'};
+ const reply=(s:number,b:unknown)=>new Response(JSON.stringify(b),{status:s,headers});
+ const origin=req.headers.get('origin');
+ if(origin&&!['http://localhost:5173','http://127.0.0.1:5173'].includes(origin))return reply(403,{ok:false});
+ if(req.method!=='POST')return reply(405,{ok:false});
+ try{
+  const bearer=req.headers.get('authorization')?.match(/^Bearer\s+(\S+)$/i)?.[1];
+  if(!bearer)return reply(401,{ok:false});
+  const admin=await d.identidad(bearer);if(!admin)return reply(401,{ok:false});
+  if(d.env('WHATSAPP_ENSAYO_PLATAFORMA_HABILITADO')!=='false'||d.env('WHATSAPP_ENVIOS_HABILITADOS')!=='false'||d.env('WHATSAPP_MODO')!=='simulacion')return reply(409,{ok:false});
+  const raw=await req.text();if(raw.length>1024)return reply(413,{ok:false});
+  const b=JSON.parse(raw);
+  if(!b||Array.isArray(b)||Object.keys(b).sort().join(',')!=='accion,confirmar'||b.accion!=='cerrar'||b.confirmar!==true)return reply(400,{ok:false});
+  await d.rpc(admin,'permiso');
+  const s=await d.rpc(admin,'estado') as Record<string,unknown>;
+  if(!s||s.ok!==true||s.cerrado!==true||s.es_prueba!==true||s.estado_registro!=='cancelado'||s.ensayo_id!==LIMPIEZA.run||s.registro_id!==LIMPIEZA.registro||s.invitacion_id!==LIMPIEZA.invitacion||s.envio_id!==LIMPIEZA.envio||s.intentos!==1||s.estado_envio!=='aceptado_meta')return reply(409,{ok:false,error:'fixture_no_coincide'});
+  await d.eliminarMedia(LIMPIEZA.media);
+  const marcado=await d.rpc(admin,'medio_eliminado',{reserva_id:LIMPIEZA.reserva,invitacion_id:LIMPIEZA.invitacion,media_id:LIMPIEZA.media});
+  if(marcado!==true)return reply(503,{ok:false,error:'no_se_confirmo_medio'});
+  await d.eliminarFoto(LIMPIEZA.foto);
+  return reply(200,{ok:true,media_eliminado:true,foto_eliminada:true,ensayo_id:LIMPIEZA.run});
+ }catch{return reply(503,{ok:false,error:'limpieza_no_confirmada'});}
+};}

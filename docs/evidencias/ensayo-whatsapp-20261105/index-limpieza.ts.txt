@@ -1,0 +1,53 @@
+import { manejarLimpiezaEnsayo } from '../_shared/whatsapp-ensayo-limpieza.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2.117.3';
+import { serveEvento, CHIAPAS } from '../_shared/evento.ts';
+import { manejarEnsayo, NUMERO_PRUEBA_META } from '../_shared/whatsapp-ensayo-plataforma.ts';
+import { generarImagen } from '../_shared/whatsapp-imagen.ts';
+import { transporteMeta } from '../_shared/whatsapp-meta.ts';
+
+const FOTO_SINTETICA='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a7wAAAABJRU5ErkJggg==';
+serveEvento({roles:['administrador'],evento:CHIAPAS},async req=>{
+ const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  {auth:{persistSession:false,autoRefreshToken:false}});
+ const limpiar=manejarLimpiezaEnsayo({
+  env:n=>Deno.env.get(n),
+  identidad:async bearer=>{const r=await db.auth.getUser(bearer);return r.error?null:r.data.user?.id??null;},
+  rpc:async(admin,accion,datos={})=>{const r=await db.rpc('whatsapp_ensayo_control_interno',{p_admin:admin,p_accion:accion,p_datos:datos});if(r.error)throw new Error('ensayo_rpc');return r.data;},
+  eliminarMedia:async media=>{await transporteMeta(Deno.env.get('META_WHATSAPP_TOKEN')!.trim(),NUMERO_PRUEBA_META,Deno.env.get('META_GRAPH_VERSION')!).eliminar(media);},
+  eliminarFoto:async path=>{const r=await db.storage.from('fotos-promotoras').remove([path]);if(r.error||!r.data?.some(x=>x.name===path))throw new Error('foto_no_eliminada');},
+ });
+ const response=await (Deno.env.get('WHATSAPP_ENSAYO_PLATAFORMA_HABILITADO')==='false'?limpiar:manejarEnsayo({
+  env:n=>Deno.env.get(n),
+  identidad:async bearer=>{const r=await db.auth.getUser(bearer);return r.error?null:r.data.user?.id??null;},
+  rpc:async(admin,accion,datos={})=>{
+   const r=await db.rpc('whatsapp_ensayo_control_interno',{p_admin:admin,p_accion:accion,p_datos:datos});
+   if(r.error)throw new Error('ensayo_rpc');return r.data;
+  },
+  subirFoto:async path=>{
+   const bytes=Uint8Array.from(atob(FOTO_SINTETICA),c=>c.charCodeAt(0));
+   const r=await db.storage.from('fotos-promotoras').upload(path,bytes,{contentType:'image/png',upsert:false,cacheControl:'0'});
+   if(r.error&&r.error.statusCode!=='409')throw new Error('foto_sintetica');
+  },
+  imagen:generarImagen,
+  transporte:()=>transporteMeta(Deno.env.get('META_WHATSAPP_TOKEN')!.trim(),NUMERO_PRUEBA_META,Deno.env.get('META_GRAPH_VERSION')!),
+  validarMeta:async()=>{
+   const token=Deno.env.get('META_WHATSAPP_TOKEN')!.trim(),v=Deno.env.get('META_GRAPH_VERSION')!;
+   const get=async(path:string)=>{
+    const r=await fetch(`https://graph.facebook.com/${v}/${path}`,{redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${token}`}});
+    if(!r.ok)return null;return await r.json();
+   };
+   const numero=await get(`${NUMERO_PRUEBA_META}?fields=id`);
+   if(numero?.id!==NUMERO_PRUEBA_META)return{ok:false,codigo:'token_sin_acceso_al_emisor_de_prueba'};
+   const plantillas=await get('2274272393483869/message_templates?name=amor_invitacion_confirmada_v1&fields=name,status,language,components');
+   if(!plantillas)return{ok:false,codigo:'no_se_pudo_verificar_plantilla'};
+   const p=plantillas.data?.find((p:{name:string;status:string;language:string})=>p.name==='amor_invitacion_confirmada_v1'&&p.status==='APPROVED'&&p.language==='es_MX');
+   const header=p?.components?.find((c:{type:string})=>c.type==='HEADER');
+   const body=p?.components?.find((c:{type:string})=>c.type==='BODY');
+   const vars=Array.from(new Set((body?.text??'').match(/\{\{[1-5]\}\}/g)??[]));
+   return header?.format==='IMAGE'&&vars.length===5?{ok:true}:{ok:false,codigo:'plantilla_no_compatible_con_invitacion'};
+  },
+ }))(req);
+ const origin=req.headers.get('origin');
+ if(origin&&['http://localhost:5173','http://127.0.0.1:5173'].includes(origin)){response.headers.set('Access-Control-Allow-Origin',origin);response.headers.set('Vary','Origin');}
+ return response;
+});
