@@ -198,5 +198,6 @@ if(pgClient){
   ok((await esperando).rows[0].j.elegible===true);
  }finally{await a.query('ROLLBACK').catch(()=>{});await Promise.all([a.end(),b.end()]);}
 }
+if(process.env.FIESTA_WHATSAPP_ENSAYO_SQL){const {probarEnsayo}=await import('./ensayo-plataforma.sql.test.mjs');await probarEnsayo({db,admin,rAdmin,C,R,ok});}
 await db.exec(await readFile(new URL('../../sql/whatsapp/rollback.sql',import.meta.url),'utf8'));ok((await db.query('SELECT count(*) n FROM registros')).rows[0].n>0);
 await db.close();console.log(`${checks} comprobaciones SQL ${pgClient?"PostgreSQL nativo concurrente":"PGlite"} correctas; catálogo y datos ficticios, sin producción.`);
