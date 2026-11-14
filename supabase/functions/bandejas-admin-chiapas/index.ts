@@ -124,7 +124,7 @@ serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
     }
 
     const { data, error } = await db.rpc('bandejas_admin_chiapas_paginadas', {
-      p_tipo: tipo,
+      p_tipo: tipo === 'invitaciones' && body.solo_emitidas === true ? 'invitaciones_emitidas' : tipo,
       p_pagina: pagina,
       p_busqueda: busqueda,
       p_admin_id: user.id,

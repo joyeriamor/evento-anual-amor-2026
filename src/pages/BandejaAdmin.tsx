@@ -1,5 +1,5 @@
 import { invocarEvento } from '../lib/evento';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCw, Search, ChevronLeft, ChevronRight, TicketCheck, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import DetalleParticipante from './DetalleParticipante';
@@ -21,27 +21,39 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
   const [pagina, setPagina] = useState(1);
   const [texto, setTexto] = useState('');
   const [filtro, setFiltro] = useState('');
+  const [soloEmitidas, setSoloEmitidas] = useState(false);
+  const solicitudActual = useRef(0);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [limitado, setLimitado] = useState(false);
   const cargar = useCallback(async () => {
+    const solicitud = ++solicitudActual.current;
     setCargando(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
       const { data, error: fallo } = await invocarEvento('bandejas-admin', {
-        body: { tipo, pagina, busqueda: filtro },
+        body: { tipo, pagina, busqueda: filtro, ...(tipo === 'invitaciones' && soloEmitidas ? { solo_emitidas: true } : {}) },
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
       const r = data as Respuesta | null;
       if (fallo || !r?.ok) throw new Error(r?.error || fallo?.message || 'No se pudo consultar la bandeja');
+      if (solicitud !== solicitudActual.current) return;
       setFilas(r.registros || []); setTotal(r.total || 0); setLimitado(Boolean(r.limitado)); setError('');
-    } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
-    finally { setCargando(false); }
-  }, [tipo, pagina, filtro]);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
-  useEffect(() => { void cargar(); }, [cargar]);
+    } catch (e) {
+      if (solicitud !== solicitudActual.current) return;
+      setFilas([]); setTotal(0); setLimitado(false);
+      setError(e instanceof Error ? e.message : 'Error desconocido');
+    } finally {
+      if (solicitud === solicitudActual.current) setCargando(false);
+    }
+  }, [tipo, pagina, filtro, soloEmitidas]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
+    void cargar();
+    return () => { solicitudActual.current += 1; };
+  }, [cargar]);
 
   const pagos = tipo === 'pagos';
   const titulo = pagos ? 'Validación de pagos' : 'Invitaciones QR';
@@ -55,6 +67,20 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
       </div>
       <form onSubmit={e => { e.preventDefault(); setPagina(1); setFiltro(texto.trim()); }} style={{ display: 'flex', gap: 10, margin: '18px 0', flexWrap: 'wrap' }}>
         <input aria-label="Buscar" placeholder="Nombre, folio, WhatsApp o asesor" value={texto} onChange={e => setTexto(e.target.value)} style={{ flex: '1 1 240px', minWidth: 0, padding: 12, border: '1px solid #edc4d3', borderRadius: 10 }} />
+        {!pagos && (
+          <select
+            aria-label="Estado de invitación"
+            value={soloEmitidas ? 'emitidas' : 'todas'}
+            onChange={e => {
+              setFilas([]); setTotal(0); setCargando(true);
+              setPagina(1); setSoloEmitidas(e.target.value === 'emitidas');
+            }}
+            style={secondary}
+          >
+            <option value="todas">Todas las invitaciones</option>
+            <option value="emitidas">Emitidas</option>
+          </select>
+        )}
         <button type="submit" style={primary}><Search size={15} style={{ verticalAlign: 'middle' }} /> Buscar</button>
       </form>
       {error && <p role="alert" style={{ color: '#a33460' }}>{error}. Verifica que hayas desplegado la función bandejas-admin.</p>}
@@ -69,7 +95,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
           <td style={{ padding: 12 }}><button type="button" style={secondary} onClick={() => setSeleccionado(f.registro_id)}>{pagos ? 'Revisar pago' : 'Gestionar QR'}</button></td>
         </tr>)}</tbody>
       </table></div>
-      {!cargando && !error && filas.length === 0 && <p style={{ textAlign: 'center', padding: 25, color: '#786770' }}>{pagos ? 'No hay comprobantes pendientes con este filtro.' : 'No se encontraron participantes.'}</p>}
+      {!cargando && !error && filas.length === 0 && <p style={{ textAlign: 'center', padding: 25, color: '#786770' }}>{pagos ? 'No hay comprobantes pendientes con este filtro.' : soloEmitidas ? 'No se encontraron invitaciones emitidas.' : 'No se encontraron participantes.'}</p>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
         <button type="button" style={secondary} disabled={pagina <= 1 || cargando} onClick={() => setPagina(p => p - 1)}><ChevronLeft size={15} style={{ verticalAlign: 'middle' }} /> Anterior</button>
         <span>Página {pagina} / {Math.max(1, Math.ceil(total / 20))}</span>
