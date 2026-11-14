@@ -304,6 +304,26 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
       );
     }
 
+    if (parametros.reporte_asesor === true) {
+      if (!eventoId || typeof asesorId !== "string" || !asesorId) {
+        return responder({ ok: false, mensaje: "Selecciona un asesor" }, 400, corsOrigin);
+      }
+
+      const inicio = (pagina - 1) * limite;
+      const { data, count, error } = await adminClient
+        .from("registros")
+        .select("id, grupo_ruta, promotora:promotoras!registros_promotora_id_fkey(nombres, apellidos, estado_residencia, tipo_participante)", { count: "exact" })
+        .eq("evento_id", eventoId)
+        .eq("asesor_id", asesorId)
+        .eq("es_prueba", false)
+        .order("id")
+        .range(inicio, inicio + limite - 1);
+      if (error || count === null) {
+        return responder({ ok: false, mensaje: "No se pudo consultar el reporte" }, 500, corsOrigin);
+      }
+      return responder({ ok: true, total: count, filas: data ?? [] }, 200, corsOrigin);
+    }
+
     const inicio = (pagina - 1) * limite;
     const fin = inicio + limite - 1;
 

@@ -18,6 +18,7 @@ import {
   Eye,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import ReporteAsesor from "./ReporteAsesor";
 import DetalleParticipante from "./DetalleParticipante";
 type Relacion<T> = T | T[] | null;
 type Promotora = {
@@ -182,6 +183,7 @@ export default function ParticipantesAdmin() {
     useState("");
   const [asesorSeleccionado, setAsesorSeleccionado] = useState("");
   const [asesoresDisponibles, setAsesoresDisponibles] = useState<AsesorOpcion[]>([]);
+  const [revisionReporte, setRevisionReporte] = useState(0);
   const [errorAsesores, setErrorAsesores] = useState("");
   const [pagina, setPagina] =
     useState(1);
@@ -422,9 +424,10 @@ export default function ParticipantesAdmin() {
         </div>
         <button
           type="button"
-          onClick={() =>
-            void consultar(pagina, filtro, asesorSeleccionado)
-          }
+          onClick={() => {
+            setRevisionReporte((revision) => revision + 1);
+            void consultar(pagina, filtro, asesorSeleccionado);
+          }}
           disabled={cargando}
           style={{
             ...botonBase,
@@ -572,6 +575,12 @@ export default function ParticipantesAdmin() {
           </button>
         )}
       </form>
+      {asesorSeleccionado && (
+        <ReporteAsesor
+          key={`${asesorSeleccionado}:${revisionReporte}`}
+          asesorId={asesorSeleccionado}
+        />
+      )}
       {errorAsesores && (
         <p role="alert" style={{ color: "#991b1b" }}>{errorAsesores}</p>
       )}

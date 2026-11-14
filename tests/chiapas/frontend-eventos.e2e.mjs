@@ -28,6 +28,7 @@ try {
     const payload = Buffer.from(JSON.stringify({ sub:'aa111111-1111-4111-8111-111111111111', exp:Math.floor(Date.now()/1000)+3600 })).toString('base64url');
     const token = `eyJhbGciOiJIUzI1NiJ9.${payload}.fixture`;
     await context.addInitScript(({token}) => localStorage.setItem('sb-127-auth-token', JSON.stringify({ access_token:token, refresh_token:'fixture-only', expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:{id:'aa111111-1111-4111-8111-111111111111',email:'local@example.test'} })),{token});
+    const asesor = 'bb111111-1111-4111-8111-111111111111';
     const seen = [];
     await context.route('http://127.0.0.1:54321/**',async route=>{
       const req=route.request(); const body=req.postDataJSON();
@@ -35,11 +36,22 @@ try {
       if (req.method()==='OPTIONS') return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});
       let data={id:'aa111111-1111-4111-8111-111111111111',email:'local@example.test'};
       if(req.url().includes('/functions/')) {
-        seen.push({name,body}); if(name==='listar-asesores-registro'){assert.deepEqual(body,{});assert.equal(req.headers().authorization,undefined);}else assert.equal(body.evento_id,event);
-        data=name==='listar-asesores-registro'?{ok:true,asesores:[]}:name==='verificar-personal'?{ok:true,autorizado:true,evento_id:event,usuario:{rol:'administrador'}}:
+        seen.push({name,body}); if(name==='listar-asesores-registro'){assert.deepEqual(body,{});}else assert.equal(body.evento_id,event);
+        data=name==='listar-asesores-registro'?{ok:true,asesores:[{id:asesor,nombre:'LUIS'}]}:name==='verificar-personal'?{ok:true,autorizado:true,evento_id:event,usuario:{rol:'administrador'}}:
           name==='resumen-accesos'?{ok:true,resumen:{participantes:0,confirmados:0,pendientes:0,pagos_pendientes:0,ingresos:0}}:
           name==='resumen-cupo-evento'?{ok:true,cupo:{capacidad:suffix?500:1500,ocupados:0,disponibles:suffix?500:1500,con_pago:0,cortesias:0,cortesias_pendientes:0,pendientes:0,porcentaje:0}}:
           {ok:true,registros:[],total:0,pagina:1,limite:20,participantes:[]};
+        if (name === 'listar-participantes' && body.reporte_asesor) {
+          assert.equal(body.asesor_id, asesor);
+          const inicio = (body.pagina - 1) * body.limite;
+          const filas = Array.from({length: Math.min(body.limite, 51 - inicio)}, (_, n) => ({
+            id: String(inicio + n),
+            grupo_ruta: 'Grupo & Norte',
+            promotora: {nombres: '=Ana', apellidos: 'López', estado_residencia: 'Chiapas',
+              tipo_participante: inicio + n === 50 ? 'vendedora' : 'promotora'},
+          }));
+          data = {ok:true,total:51,filas};
+        }
       }
       await route.fulfill({json:data,headers:{'access-control-allow-origin':'*'}});
     });
@@ -56,6 +68,25 @@ try {
     for(const name of ['Ver participantes','Gestionar invitaciones','Abrir escáner','Gestionar usuarios','Ver ingresos']){
       assert.equal(await p.getByRole('button',{name,exact:true}).count(),1);checks++;
     }
+    await p.getByRole('button',{name:'Ver participantes',exact:true}).click();
+    await p.getByRole('combobox',{name:'Filtrar por asesor'}).selectOption(asesor);
+    const resumen = p.getByLabel('Resumen del asesor');
+    await resumen.getByText('50',{exact:true}).waitFor(); checks++;
+    await resumen.getByText('1',{exact:true}).waitFor(); checks++;
+    const [archivo] = await Promise.all([
+      p.waitForEvent('download'),
+      p.getByRole('button',{name:'Exportar asesor a Excel'}).click(),
+    ]);
+    assert.match(archivo.suggestedFilename(), /\.xlsx$/); checks++;
+    const { readFile } = await import('node:fs/promises');
+    const { unzipSync, strFromU8 } = await import('fflate');
+    const zip = unzipSync(await readFile(await archivo.path()));
+    const xml = strFromU8(zip['xl/worksheets/sheet1.xml']);
+    assert.equal((xml.match(/<row /g) || []).length,52); checks++;
+    assert.equal((xml.match(/<c /g) || []).length,156); checks++;
+    assert.match(xml, /Nombre completo.*Estado.*Grupo/); checks++;
+    assert.match(xml, />=Ana López<.*>Chiapas<.*>Grupo &amp; Norte</); checks++;
+    assert.doesNotMatch(xml, /<f[ >]/); checks++;
     await context.close();
   }
   console.log(`${checks} comprobaciones E2E aprobadas. Navegador real; Supabase HTTP simulado.`);
