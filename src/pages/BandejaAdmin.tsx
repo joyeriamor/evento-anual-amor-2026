@@ -9,6 +9,7 @@ type Fila = {
   registro_id: string; folio: string; nombre: string; telefono: string; asesor: string;
   registro_estado: string; exento_pago: boolean; pago_id?: string; pago_estado?: string;
   importe?: number | null; referencia?: string | null; invitacion_id?: string | null;
+  whatsapp_enviada_manual?: boolean;
   invitacion_estado?: string; fecha?: string | null;
 };
 type Respuesta = { ok: boolean; error?: string; total: number; pagina: number; limite: number; registros: Fila[]; limitado?: boolean };
@@ -26,6 +27,8 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState<string | null>(null);
+  const [errorMarca, setErrorMarca] = useState('');
   const [limitado, setLimitado] = useState(false);
   const cargar = useCallback(async () => {
     const solicitud = ++solicitudActual.current;
@@ -55,6 +58,23 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     return () => { solicitudActual.current += 1; };
   }, [cargar]);
 
+  async function marcarWhatsApp(id: string, enviada: boolean) {
+    setGuardando(id);
+    setErrorMarca('');
+    try {
+      const { data, error: fallo } = await invocarEvento('bandejas-admin', {
+        body: { tipo: 'invitaciones', accion: 'marcar_whatsapp_manual', invitacion_id: id, enviada },
+      });
+      if (fallo || data?.ok !== true) throw new Error();
+      setFilas(actuales => actuales.map(f => f.invitacion_id === id
+        ? { ...f, whatsapp_enviada_manual: enviada } : f));
+    } catch {
+      setErrorMarca('No se pudo guardar la marca de WhatsApp. Actualiza la bandeja e inténtalo de nuevo.');
+    } finally {
+      setGuardando(null);
+    }
+  }
+
   const pagos = tipo === 'pagos';
   const titulo = pagos ? 'Validación de pagos' : 'Invitaciones QR';
   return <section style={{ color: '#493640' }}>
@@ -63,13 +83,14 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     <div style={{ background: 'white', border: '1px solid #f0d5df', borderRadius: 18, padding: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div><strong style={{ color: '#a33460', fontSize: 28 }}>{total}</strong><div style={{ color: '#786770' }}>{pagos ? 'Comprobantes por revisar' : 'Participantes'}</div></div>
-        <button type="button" style={secondary} disabled={cargando} onClick={() => void cargar()}><RefreshCw size={15} style={{ verticalAlign: 'middle' }} /> Actualizar</button>
+        <button type="button" style={secondary} disabled={cargando || guardando !== null} onClick={() => void cargar()}><RefreshCw size={15} style={{ verticalAlign: 'middle' }} /> Actualizar</button>
       </div>
-      <form onSubmit={e => { e.preventDefault(); setPagina(1); setFiltro(texto.trim()); }} style={{ display: 'flex', gap: 10, margin: '18px 0', flexWrap: 'wrap' }}>
+      <form onSubmit={e => { e.preventDefault(); if (guardando !== null) return; setPagina(1); setFiltro(texto.trim()); }} style={{ display: 'flex', gap: 10, margin: '18px 0', flexWrap: 'wrap' }}>
         <input aria-label="Buscar" placeholder="Nombre, folio, WhatsApp o asesor" value={texto} onChange={e => setTexto(e.target.value)} style={{ flex: '1 1 240px', minWidth: 0, padding: 12, border: '1px solid #edc4d3', borderRadius: 10 }} />
         {!pagos && (
           <select
             aria-label="Estado de invitación"
+            disabled={guardando !== null}
             value={soloEmitidas ? 'emitidas' : 'todas'}
             onChange={e => {
               setFilas([]); setTotal(0); setCargando(true);
@@ -83,23 +104,39 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
         )}
         <button type="submit" style={primary}><Search size={15} style={{ verticalAlign: 'middle' }} /> Buscar</button>
       </form>
+      {errorMarca && <p role="alert" style={{ color: '#a33460' }}>{errorMarca}</p>}
       {error && <p role="alert" style={{ color: '#a33460' }}>{error}. Verifica que hayas desplegado la función bandejas-admin.</p>}
       {limitado && <p style={{ color: '#9b7740' }}>El listado alcanzó el límite de consulta del servidor. Se requiere paginación adicional para más de 1,000 registros.</p>}
       <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760, textAlign: 'left' }}>
-        <thead style={{ background: '#fff0f5', color: '#96315a' }}><tr>{['Participante', 'Folio', 'Asesor', pagos ? 'Importe' : 'Invitación', pagos ? 'Referencia' : 'Fecha emisión', 'Acción'].map(h => <th key={h} style={{ padding: 12 }}>{h}</th>)}</tr></thead>
+        <thead style={{ background: '#fff0f5', color: '#96315a' }}><tr>{['Participante', 'Folio', 'Asesor', pagos ? 'Importe' : 'Invitación', pagos ? 'Referencia' : 'Fecha emisión', ...(!pagos ? ['Envío manual por WhatsApp'] : []), 'Acción'].map(h => <th key={h} style={{ padding: 12 }}>{h}</th>)}</tr></thead>
         <tbody>{filas.map(f => <tr key={pagos ? f.pago_id : f.registro_id} style={{ borderBottom: '1px solid #f3e2e9' }}>
           <td style={{ padding: 12 }}><strong>{f.nombre}</strong><div style={{ fontSize: 12, color: '#786770' }}>{f.telefono}</div></td>
           <td style={{ padding: 12 }}>{f.folio}</td><td style={{ padding: 12 }}>{f.asesor || '—'}</td>
           <td style={{ padding: 12 }}>{pagos ? `$${Number(f.importe || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}` : <span style={{ color: f.invitacion_estado === 'emitida' || f.invitacion_estado === 'activa' ? '#197448' : '#9b7740', fontWeight: 600 }}>{f.invitacion_estado === 'sin_emitir' ? 'Sin emitir' : f.invitacion_estado}</span>}</td>
           <td style={{ padding: 12 }}>{pagos ? f.referencia || '—' : date(f.fecha)}</td>
+          {!pagos && <td style={{ padding: 12 }}>
+            {f.invitacion_id && ['emitida', 'activa'].includes(f.invitacion_estado ?? '') ? (
+              <button
+                type="button"
+                role="switch"
+                aria-label={`Enviada por WhatsApp: ${f.nombre}, ${f.folio}`}
+                aria-checked={f.whatsapp_enviada_manual === true}
+                disabled={guardando !== null || cargando}
+                style={f.whatsapp_enviada_manual ? primary : secondary}
+                onClick={() => f.invitacion_id && void marcarWhatsApp(f.invitacion_id, !f.whatsapp_enviada_manual)}
+              >
+                {guardando === f.invitacion_id ? 'Guardando…' : f.whatsapp_enviada_manual ? 'Enviada' : 'Por enviar'}
+              </button>
+            ) : '—'}
+          </td>}
           <td style={{ padding: 12 }}><button type="button" style={secondary} onClick={() => setSeleccionado(f.registro_id)}>{pagos ? 'Revisar pago' : 'Gestionar QR'}</button></td>
         </tr>)}</tbody>
       </table></div>
       {!cargando && !error && filas.length === 0 && <p style={{ textAlign: 'center', padding: 25, color: '#786770' }}>{pagos ? 'No hay comprobantes pendientes con este filtro.' : soloEmitidas ? 'No se encontraron invitaciones emitidas.' : 'No se encontraron participantes.'}</p>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
-        <button type="button" style={secondary} disabled={pagina <= 1 || cargando} onClick={() => setPagina(p => p - 1)}><ChevronLeft size={15} style={{ verticalAlign: 'middle' }} /> Anterior</button>
+        <button type="button" style={secondary} disabled={pagina <= 1 || cargando || guardando !== null} onClick={() => setPagina(p => p - 1)}><ChevronLeft size={15} style={{ verticalAlign: 'middle' }} /> Anterior</button>
         <span>Página {pagina} / {Math.max(1, Math.ceil(total / 20))}</span>
-        <button type="button" style={secondary} disabled={pagina * 20 >= total || cargando} onClick={() => setPagina(p => p + 1)}>Siguiente <ChevronRight size={15} style={{ verticalAlign: 'middle' }} /></button>
+        <button type="button" style={secondary} disabled={pagina * 20 >= total || cargando || guardando !== null} onClick={() => setPagina(p => p + 1)}>Siguiente <ChevronRight size={15} style={{ verticalAlign: 'middle' }} /></button>
       </div>
     </div>
     {seleccionado && <DetalleParticipante key={seleccionado} registroId={seleccionado} onCerrar={() => { setSeleccionado(null); void cargar(); }} onPagoActualizado={() => void cargar()} />}

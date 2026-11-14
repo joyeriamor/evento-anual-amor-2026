@@ -80,6 +80,23 @@ serveEvento({ roles: ['administrador'], evento: RADEVS }, async (req) => {
     const limite = 20;
 
     // Filtrado + conteo + paginado dentro de PostgreSQL, sin tope de 1000 filas.
+    if (body.accion === 'marcar_whatsapp_manual') {
+      if (tipo !== 'invitaciones' || typeof body.enviada !== 'boolean' ||
+          typeof body.invitacion_id !== 'string' ||
+          !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(body.invitacion_id)) {
+        return json({ ok: false, error: 'Marca de invitación inválida' }, 400);
+      }
+      const { data: guardado, error: errorMarca } = await db.rpc('marcar_whatsapp_invitacion_manual', {
+        p_evento_id: RADEVS,
+        p_admin_id: user.id,
+        p_invitacion_id: body.invitacion_id,
+        p_enviada: body.enviada,
+      });
+      if (errorMarca) throw errorMarca;
+      if (guardado !== true) return json({ ok: false, error: 'La invitación ya no está disponible' }, 404);
+      return json({ ok: true });
+    }
+
     const { data, error } = await db.rpc('bandejas_admin_paginadas', {
       p_tipo: tipo === 'invitaciones' && body.solo_emitidas === true ? 'invitaciones_emitidas' : tipo,
       p_pagina: pagina,
