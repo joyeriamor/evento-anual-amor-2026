@@ -451,24 +451,29 @@ export default function DetalleParticipante({
     }
   }
 
+  const digitosWhatsApp = (participante?.promotora?.telefono_whatsapp ?? "").replace(/\D/g, "");
+  const celularWhatsApp = digitosWhatsApp.match(/^(?:521|52)?([0-9]{10})$/)?.[1];
+  const enlaceWhatsApp = celularWhatsApp ? `https://wa.me/52${celularWhatsApp}` : null;
+
+  async function copiarImagenInvitacion() {
+    setError("");
+    setMensaje("");
+    try {
+      // Safari requiere iniciar la escritura dentro del clic, antes de esperar el PNG.
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": crearImagenInvitacion() }),
+      ]);
+      setMensaje("Imagen copiada. Abre el chat de WhatsApp y pégala.");
+    } catch {
+      setError("No se pudo copiar la imagen. Usa Descargar PNG y adjúntala en el chat.");
+    }
+  }
+
   async function compartirInvitacion() {
     setError("");
     setMensaje("");
 
     if (!participante || !invitacionQR) return;
-
-    const numero = (participante.promotora?.telefono_whatsapp ?? "")
-      .replace(/\D/g, "");
-
-    const telefono = numero.length === 12 && numero.startsWith("52") ? numero.slice(2) : numero;
-
-    // Copiar el teléfono desde el clic del usuario.
-    const copiaNumero = telefono
-      ? navigator.clipboard.writeText(telefono).then(
-          () => true,
-          () => false
-        )
-      : Promise.resolve(false);
 
     try {
       const blob = await crearImagenInvitacion();
@@ -489,12 +494,7 @@ export default function DetalleParticipante({
             files: [archivo]
           });
 
-          const copiado = await copiaNumero;
-          setMensaje(
-            copiado
-              ? "Número copiado. Pégalo en el buscador de WhatsApp si hace falta."
-              : "Selecciona el contacto de la participante en WhatsApp."
-          );
+          setMensaje("Invitación compartida con la aplicación seleccionada.");
           return;
         } catch (error) {
           if (
@@ -878,11 +878,25 @@ export default function DetalleParticipante({
                     </button>
                     <button type="button" onClick={() => void compartirInvitacion()}
                       style={{ ...botonBase, background: "#15803d" }}>
-                      <MessageCircle size={18} /> Compartir por WhatsApp
+                      <MessageCircle size={18} /> Compartir imagen
                     </button>
                   </div>
+                  <div className="no-imprimir" style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
+                    {typeof ClipboardItem !== "undefined" && typeof navigator.clipboard?.write === "function" && (
+                      <button type="button" onClick={() => void copiarImagenInvitacion()}
+                        style={{ ...botonBase, background: "#a33460" }}>
+                        Copiar imagen
+                      </button>
+                    )}
+                    {enlaceWhatsApp && (
+                      <a href={enlaceWhatsApp} target="_blank" rel="noopener noreferrer"
+                        style={{ ...botonBase, background: "#15803d", textDecoration: "none" }}>
+                        <MessageCircle size={18} /> Abrir chat en WhatsApp
+                      </a>
+                    )}
+                  </div>
                   <p className="no-imprimir" style={{ fontSize: 12, color: "#806e76" }}>
-                    El QR es único y se incorpora sin modificarlo. Al compartir, se abre WhatsApp directamente y se descarga la imagen para adjuntarla manualmente.
+                    Para enviar a un número sin guardar, abre su chat y pega la imagen copiada o adjunta el PNG descargado.
                   </p>
                 </div>
               )}
