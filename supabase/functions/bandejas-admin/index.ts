@@ -80,6 +80,22 @@ serveEvento({ roles: ['administrador'], evento: RADEVS }, async (req) => {
     const limite = 20;
 
     // Filtrado + conteo + paginado dentro de PostgreSQL, sin tope de 1000 filas.
+    if (body.accion === 'cancelar_duplicado') {
+      if (tipo !== 'invitaciones' || typeof body.registro_id !== 'string' ||
+          !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(body.registro_id) ||
+          typeof body.folio_conservar !== 'string' || !body.folio_conservar.trim() || body.folio_conservar.length > 100) {
+        return json({ ok: false, error: 'Identifica la inscripción y el folio que quieres conservar.' }, 400);
+      }
+      const { data: resultado, error: errorCancelacion } = await db.rpc('cancelar_registro_duplicado_admin', {
+        p_evento_id: RADEVS,
+        p_admin_id: user.id,
+        p_registro_id: body.registro_id,
+        p_folio_conservar: body.folio_conservar,
+      });
+      if (errorCancelacion) throw errorCancelacion;
+      return json(resultado, resultado?.ok ? 200 : 409);
+    }
+
     if (body.accion === 'marcar_whatsapp_manual') {
       if (tipo !== 'invitaciones' || typeof body.enviada !== 'boolean' ||
           typeof body.invitacion_id !== 'string' ||

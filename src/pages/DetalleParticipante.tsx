@@ -521,11 +521,39 @@ export default function DetalleParticipante({
       );
     }
   }
+  async function cancelarDuplicado() {
+    if (!participante || procesando) return;
+    const folio = window.prompt("¿Qué folio quieres conservar? Solo se cancelará la ficha que tienes abierta.")?.trim();
+    if (!folio) return;
+    if (!window.confirm(`¿Cancelar el folio ${participante.folio ?? registroId} y conservar ${folio}? Si hay un QR vigente en esta ficha se revocará.`)) return;
+    setProcesando("cancelar-duplicado");
+    setError("");
+    setMensaje("");
+    try {
+      const { data, error: fallo } = await invocarEvento("bandejas-admin", {
+        body: { tipo: "invitaciones", accion: "cancelar_duplicado", registro_id: registroId, folio_conservar: folio },
+      });
+      if (fallo || data?.ok !== true) {
+        const contexto = (fallo as { context?: Response } | null)?.context;
+        const detalle = contexto instanceof Response ? await contexto.json().catch(() => null) : null;
+        throw new Error(detalle?.error ?? data?.error ?? "No se pudo cancelar la inscripción.");
+      }
+      setParticipante(actual => actual ? { ...actual, estado: "cancelado" } : actual);
+      setInvitacionQR(null);
+      setMensaje("Inscripción duplicada cancelada.");
+      onPagoActualizado?.();
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : "No se pudo cancelar la inscripción.");
+    } finally {
+      setProcesando(null);
+    }
+  }
+
   async function validarPago(
     pago: Pago,
     accion: "aprobar" | "rechazar"
   ) {
-    if (procesando || pago.estado !== "pendiente") {
+    if (procesando || (pago.estado !== "pendiente" && !(accion === "rechazar" && pago.estado === "revision"))) {
       return;
     }
     const motivoLimpio = motivo.trim();
@@ -711,6 +739,12 @@ export default function DetalleParticipante({
             <X size={22} />
           </button>
         </header>
+        {participante && !["cancelado", "rechazado"].includes(participante.estado ?? "") && (
+          <button type="button" disabled={procesando !== null} onClick={() => void cancelarDuplicado()}
+            style={{ ...botonBase, background: "#b91c1c", marginBottom: 14 }}>
+            Cancelar por duplicado
+          </button>
+        )}
         {cargando && (
           <p>
             <RefreshCw size={17} />
@@ -991,7 +1025,7 @@ export default function DetalleParticipante({
                       Comprobante no disponible.
                     </p>
                   )}
-                  {pago.estado === "pendiente" && (
+                  {(pago.estado === "pendiente" || pago.estado === "revision") && !["cancelado", "rechazado"].includes(participante.estado ?? "") && (
                     <div
                       style={{
                         marginTop: 16,
@@ -1014,7 +1048,7 @@ export default function DetalleParticipante({
                           flexWrap: "wrap",
                         }}
                       >
-                        <button
+                        {pago.estado === "pendiente" && <button
                           type="button"
                           disabled={procesando !== null}
                           onClick={() =>
@@ -1031,7 +1065,7 @@ export default function DetalleParticipante({
                           {procesando === pago.id
                             ? "Procesando..."
                             : "Aprobar pago"}
-                        </button>
+                        </button>}
                         <button
                           type="button"
                           disabled={procesando !== null}
@@ -1076,7 +1110,7 @@ export default function DetalleParticipante({
                             }
                             rows={3}
                             maxLength={500}
-                            placeholder="Escribe el motivo del rechazo..."
+                            placeholder="Ej. La transferencia no se recibió"
                             style={{
                               width: "100%",
                               padding: 12,
