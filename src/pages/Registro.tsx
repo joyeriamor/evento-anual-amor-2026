@@ -297,30 +297,39 @@ export default function Registro({ onVolver, modoPruebaAdmin = false, evento = "
     setEnviando(true);
     setError("");
     try {
-      // FormData se manda como multipart/form-data; no establecer Content-Type a mano.
-      // El modo prueba usa una función separada, protegida por sesión de administrador.
-      const opciones: { method: "POST"; body: FormData; headers?: Record<string, string> } = {
-        method: "POST", body: datos,
-      };
+      let data: { ok?: boolean; folio?: string; mensaje?: string } | null;
       if (modoPruebaAdmin) {
         const { data: sesion, error: errorSesion } = await supabase.auth.getSession();
         if (errorSesion || !sesion.session) throw new Error("Inicia sesión como administrador.");
-        opciones.headers = { Authorization: `Bearer ${sesion.session.access_token}` };
-      }
-      const { data, error: fallo } = await supabase.functions.invoke(
-        modoPruebaAdmin ? (evento === "chiapas" ? "registrar-prueba-admin-chiapas" : "registrar-prueba-admin") : evento === "chiapas" ? "registrar-participante-chiapas" : "registrar-participante-v2",
-        opciones
-      );
-      if (fallo) {
-        let detalle = fallo.message;
-        const contexto = (fallo as { context?: Response }).context;
-        if (contexto instanceof Response) {
-          try {
-            const respuesta = await contexto.clone().json();
-            detalle = respuesta?.mensaje || respuesta?.error || detalle;
-          } catch { /* respuesta sin JSON */ }
+        const { data: prueba, error: fallo } = await supabase.functions.invoke(
+          evento === "chiapas" ? "registrar-prueba-admin-chiapas" : "registrar-prueba-admin",
+          { method: "POST", body: datos, headers: { Authorization: `Bearer ${sesion.session.access_token}` } },
+        );
+        if (fallo) {
+          const contexto = (fallo as { context?: Response }).context;
+          const detalle = contexto instanceof Response
+            ? await contexto.clone().json().catch(() => null)
+            : null;
+          throw new Error(detalle?.mensaje || detalle?.error || fallo.message);
         }
-        throw new Error(detalle);
+        data = prueba;
+      } else {
+        const funcion = evento === "chiapas" ? "registrar-participante-chiapas" : "registrar-participante-v2";
+        const base = import.meta.env.VITE_SUPABASE_URL.replace(/\/+$/, "");
+        // El navegador construye el multipart. La función pública autentica el
+        // formulario con Turnstile y no necesita credenciales de Supabase.
+        let respuesta: Response;
+        try {
+          respuesta = await fetch(`${base}/functions/v1/${funcion}`, {
+            method: "POST", body: datos, credentials: "omit",
+          });
+        } catch {
+          throw new Error("No pudimos confirmar tu registro. Revisa tu conexión y vuelve a intentar. Si aparece que ya estás registrada, consulta tu folio con tu asesor.");
+        }
+        data = await respuesta.json().catch(() => null);
+        if (!respuesta.ok) {
+          throw new Error(data?.mensaje || "El servidor no pudo completar el registro. Intenta de nuevo más tarde.");
+        }
       }
       if (data?.ok !== true || typeof data?.folio !== "string") {
         throw new Error(data?.mensaje ?? "El servidor no confirmó tu inscripción.");
