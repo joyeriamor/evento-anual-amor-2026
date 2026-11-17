@@ -181,6 +181,7 @@ export default function ParticipantesAdmin() {
     useState("");
   const [filtro, setFiltro] =
     useState("");
+  const [tipoSeleccionado, setTipoSeleccionado] = useState("");
   const [asesorSeleccionado, setAsesorSeleccionado] = useState("");
   const [asesoresDisponibles, setAsesoresDisponibles] = useState<AsesorOpcion[]>([]);
   const [revisionReporte, setRevisionReporte] = useState(0);
@@ -205,7 +206,8 @@ export default function ParticipantesAdmin() {
     async (
       paginaActual: number,
       textoBusqueda: string,
-      asesorId: string
+      asesorId: string,
+      tipo: string
     ) => {
       const solicitud = ++solicitudActual.current;
       setCargando(true);
@@ -239,6 +241,7 @@ export default function ParticipantesAdmin() {
               limite: LIMITE,
               busqueda: textoBusqueda,
               ...(asesorId ? { asesor_id: asesorId } : {}),
+              ...(tipo ? { tipo_participante: tipo } : {}),
             },
           }
         );
@@ -341,11 +344,11 @@ export default function ParticipantesAdmin() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
-    void consultar(pagina, filtro, asesorSeleccionado);
+    void consultar(pagina, filtro, asesorSeleccionado, tipoSeleccionado);
     return () => {
       solicitudActual.current += 1;
     };
-  }, [pagina, filtro, asesorSeleccionado, consultar]);
+  }, [pagina, filtro, asesorSeleccionado, tipoSeleccionado, consultar]);
   const totalPaginas = Math.max(
     1,
     Math.ceil(total / LIMITE)
@@ -359,7 +362,7 @@ export default function ParticipantesAdmin() {
       pagina === 1 &&
       filtro === nuevoFiltro
     ) {
-      void consultar(1, nuevoFiltro, asesorSeleccionado);
+      void consultar(1, nuevoFiltro, asesorSeleccionado, tipoSeleccionado);
       return;
     }
     setPagina(1);
@@ -371,7 +374,7 @@ export default function ParticipantesAdmin() {
       pagina === 1 &&
       filtro === ""
     ) {
-      void consultar(1, "", asesorSeleccionado);
+      void consultar(1, "", asesorSeleccionado, tipoSeleccionado);
       return;
     }
     setPagina(1);
@@ -426,7 +429,7 @@ export default function ParticipantesAdmin() {
           type="button"
           onClick={() => {
             setRevisionReporte((revision) => revision + 1);
-            void consultar(pagina, filtro, asesorSeleccionado);
+            void consultar(pagina, filtro, asesorSeleccionado, tipoSeleccionado);
           }}
           disabled={cargando}
           style={{
@@ -529,6 +532,19 @@ export default function ParticipantesAdmin() {
             </select>
           </label>
         )}
+        <label style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 180 }}>
+          <span style={{ color: "#806e76", fontSize: 13 }}>Filtrar por tipo</span>
+          <select
+            aria-label="Filtrar por tipo"
+            value={tipoSeleccionado}
+            onChange={(evento) => { setPagina(1); setTipoSeleccionado(evento.target.value); }}
+            style={{ padding: "12px 14px", border: "1px solid #e5bdcc", borderRadius: 10, fontSize: 14 }}
+          >
+            <option value="">Todos los tipos</option>
+            <option value="vendedora">Vendedoras</option>
+            <option value="promotora">Promotoras</option>
+          </select>
+        </label>
         <input
           type="search"
           value={busqueda}
@@ -909,10 +925,10 @@ export default function ParticipantesAdmin() {
           registroId={registroSeleccionado}
           onCerrar={() => {
             setRegistroSeleccionado(null);
-            void consultar(pagina, filtro, asesorSeleccionado);
+            void consultar(pagina, filtro, asesorSeleccionado, tipoSeleccionado);
           }}
           onPagoActualizado={() => {
-            void consultar(pagina, filtro, asesorSeleccionado);
+            void consultar(pagina, filtro, asesorSeleccionado, tipoSeleccionado);
           }}
         />
       )}

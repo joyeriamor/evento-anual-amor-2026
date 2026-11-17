@@ -283,6 +283,12 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
       return responder({ ok: false, mensaje: "Asesor inválido" }, 400, corsOrigin);
     }
 
+    const tipoParticipante = parametros.tipo_participante;
+    if (tipoParticipante != null && tipoParticipante !== "" &&
+        tipoParticipante !== "vendedora" && tipoParticipante !== "promotora") {
+      return responder({ ok: false, mensaje: "Tipo de participante inválido" }, 400, corsOrigin);
+    }
+
     // Filtro opcional de evento.
     const eventoId = req.headers.get('x-evento-autorizado')!;
 
@@ -339,7 +345,7 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
         exento_pago,
         created_at,
         evento_id,
-        promotora:promotoras!registros_promotora_id_fkey (
+        promotora:promotoras!registros_promotora_id_fkey${tipoParticipante ? "!inner" : ""} (
           nombres,
           apellidos,
           telefono_whatsapp,
@@ -374,6 +380,10 @@ serveEvento({ roles: ['administrador'] }, async (req) => {
     // Para los conteos por asesor, excluir registros ficticios o de prueba.
     if (typeof asesorId === "string" && asesorId) {
       consulta = consulta.eq("asesor_id", asesorId).eq("es_prueba", false);
+    }
+
+    if (tipoParticipante) {
+      consulta = consulta.eq("promotora.tipo_participante", tipoParticipante);
     }
 
     // La búsqueda se realiza por nombre,
