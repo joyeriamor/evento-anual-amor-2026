@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import DetalleParticipante from './DetalleParticipante';
 
 type Tipo = 'pagos' | 'invitaciones';
+type EstadoEnvioManual = 'todas' | 'enviadas' | 'por_enviar';
 type Fila = {
   registro_id: string; folio: string; nombre: string; telefono: string; asesor: string;
   registro_estado: string; exento_pago: boolean; pago_id?: string; pago_estado?: string;
@@ -23,6 +24,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
   const [texto, setTexto] = useState('');
   const [filtro, setFiltro] = useState('');
   const [soloEmitidas, setSoloEmitidas] = useState(false);
+  const [filtroEnvioManual, setFiltroEnvioManual] = useState<EstadoEnvioManual>('todas');
   const solicitudActual = useRef(0);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
@@ -37,12 +39,17 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
       const { data, error: fallo } = await invocarEvento('bandejas-admin', {
-        body: { tipo, pagina, busqueda: filtro, ...(tipo === 'invitaciones' && soloEmitidas ? { solo_emitidas: true } : {}) },
+        body: { tipo, pagina, busqueda: filtro, ...(tipo === 'invitaciones' && soloEmitidas ? { solo_emitidas: true } : {}), ...(tipo === 'invitaciones' && filtroEnvioManual !== 'todas' ? { estado_envio_manual: filtroEnvioManual } : {}) },
         headers: { Authorization: `Bearer ${session.access_token}` }
       });
       const r = data as Respuesta | null;
       if (fallo || !r?.ok) throw new Error(r?.error || fallo?.message || 'No se pudo consultar la bandeja');
       if (solicitud !== solicitudActual.current) return;
+      const ultimaPagina = Math.max(1, Math.ceil((r.total || 0) / 20));
+      if (pagina > ultimaPagina) {
+        setFilas([]); setTotal(r.total || 0); setPagina(ultimaPagina);
+        return;
+      }
       setFilas(r.registros || []); setTotal(r.total || 0); setLimitado(Boolean(r.limitado)); setError('');
     } catch (e) {
       if (solicitud !== solicitudActual.current) return;
@@ -51,7 +58,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     } finally {
       if (solicitud === solicitudActual.current) setCargando(false);
     }
-  }, [tipo, pagina, filtro, soloEmitidas]);
+  }, [tipo, pagina, filtro, soloEmitidas, filtroEnvioManual]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Sincroniza una consulta externa y su estado de carga.
     void cargar();
@@ -66,8 +73,12 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
         body: { tipo: 'invitaciones', accion: 'marcar_whatsapp_manual', invitacion_id: id, enviada },
       });
       if (fallo || data?.ok !== true) throw new Error();
-      setFilas(actuales => actuales.map(f => f.invitacion_id === id
-        ? { ...f, whatsapp_enviada_manual: enviada } : f));
+      if (filtroEnvioManual === 'todas') {
+        setFilas(actuales => actuales.map(f => f.invitacion_id === id
+          ? { ...f, whatsapp_enviada_manual: enviada } : f));
+      } else {
+        await cargar();
+      }
     } catch {
       setErrorMarca('No se pudo guardar la marca de WhatsApp. Actualiza la bandeja e inténtalo de nuevo.');
     } finally {
@@ -82,7 +93,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
     <p style={{ color: '#786770' }}>{pagos ? 'Bandeja exclusiva de comprobantes pendientes o en revisión. Abre la ficha para aprobar o rechazar.' : 'Estado de las invitaciones por participante. Abre su ficha para gestionar recuperación o reemisión de forma segura.'}</p>
     <div style={{ background: 'white', border: '1px solid #f0d5df', borderRadius: 18, padding: 20 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div><strong style={{ color: '#a33460', fontSize: 28 }}>{total}</strong><div style={{ color: '#786770' }}>{pagos ? 'Comprobantes por revisar' : 'Participantes'}</div></div>
+        <div><strong style={{ color: '#a33460', fontSize: 28 }}>{total}</strong><div style={{ color: '#786770' }}>{pagos ? 'Comprobantes por revisar' : filtroEnvioManual === 'enviadas' ? 'Invitaciones enviadas' : filtroEnvioManual === 'por_enviar' ? 'Invitaciones por enviar' : 'Participantes'}</div></div>
         <button type="button" style={secondary} disabled={cargando || guardando !== null} onClick={() => void cargar()}><RefreshCw size={15} style={{ verticalAlign: 'middle' }} /> Actualizar</button>
       </div>
       <form onSubmit={e => { e.preventDefault(); if (guardando !== null) return; setPagina(1); setFiltro(texto.trim()); }} style={{ display: 'flex', gap: 10, margin: '18px 0', flexWrap: 'wrap' }}>
@@ -100,6 +111,22 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
           >
             <option value="todas">Todas las invitaciones</option>
             <option value="emitidas">Emitidas</option>
+          </select>
+        )}
+        {!pagos && (
+          <select
+            aria-label="Estado de envío por WhatsApp"
+            disabled={guardando !== null}
+            value={filtroEnvioManual}
+            onChange={e => {
+              setFilas([]); setTotal(0); setCargando(true);
+              setPagina(1); setFiltroEnvioManual(e.target.value as EstadoEnvioManual);
+            }}
+            style={secondary}
+          >
+            <option value="todas">Todos los envíos</option>
+            <option value="por_enviar">Por enviar</option>
+            <option value="enviadas">Enviadas</option>
           </select>
         )}
         <button type="submit" style={primary}><Search size={15} style={{ verticalAlign: 'middle' }} /> Buscar</button>
@@ -132,7 +159,7 @@ export default function BandejaAdmin({ tipo }: { tipo: Tipo }) {
           <td style={{ padding: 12 }}><button type="button" style={secondary} onClick={() => setSeleccionado(f.registro_id)}>{pagos ? 'Revisar pago' : 'Gestionar QR'}</button></td>
         </tr>)}</tbody>
       </table></div>
-      {!cargando && !error && filas.length === 0 && <p style={{ textAlign: 'center', padding: 25, color: '#786770' }}>{pagos ? 'No hay comprobantes pendientes con este filtro.' : soloEmitidas ? 'No se encontraron invitaciones emitidas.' : 'No se encontraron participantes.'}</p>}
+      {!cargando && !error && filas.length === 0 && <p style={{ textAlign: 'center', padding: 25, color: '#786770' }}>{pagos ? 'No hay comprobantes pendientes con este filtro.' : soloEmitidas ? 'No se encontraron invitaciones emitidas con este filtro de envío.' : filtroEnvioManual === 'enviadas' ? 'No hay invitaciones marcadas como enviadas.' : filtroEnvioManual === 'por_enviar' ? 'No hay invitaciones por enviar.' : 'No se encontraron participantes.'}</p>}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
         <button type="button" style={secondary} disabled={pagina <= 1 || cargando || guardando !== null} onClick={() => setPagina(p => p - 1)}><ChevronLeft size={15} style={{ verticalAlign: 'middle' }} /> Anterior</button>
         <span>Página {pagina} / {Math.max(1, Math.ceil(total / 20))}</span>

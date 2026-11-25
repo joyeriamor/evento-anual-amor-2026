@@ -72,6 +72,12 @@ serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
       : null;
     if (!tipo) return json({ ok: false, error: 'Tipo inválido' }, 400);
 
+    const estadoEnvioManual = body.estado_envio_manual ?? null;
+    if (estadoEnvioManual !== null &&
+        (tipo !== 'invitaciones' || !['enviadas', 'por_enviar'].includes(estadoEnvioManual))) {
+      return json({ ok: false, error: 'Estado de envío manual inválido' }, 400);
+    }
+
     const rawPagina = Number(body.pagina);
     const pagina = Number.isFinite(rawPagina)
       ? Math.max(1, Math.min(10000, Math.floor(rawPagina)))
@@ -161,6 +167,7 @@ serveEvento({ roles: ['administrador'], evento: CHIAPAS }, async (req) => {
       p_pagina: pagina,
       p_busqueda: busqueda,
       p_admin_id: user.id,
+      p_estado_envio_manual: estadoEnvioManual,
     });
     if (error) throw error;
 

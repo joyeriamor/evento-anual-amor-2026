@@ -184,6 +184,13 @@ function preparar(caso) {
 }
 
 const casos = [
+  { nombre: "Emitidas y enviadas", cuerpo: { tipo: "invitaciones", solo_emitidas: true, estado_envio_manual: "enviadas" }, status: 200, tipo: "invitaciones" },
+  { nombre: "Emitidas y por enviar", cuerpo: { tipo: "invitaciones", solo_emitidas: true, estado_envio_manual: "por_enviar" }, status: 200, tipo: "invitaciones" },
+  { nombre: "Todas y por enviar", cuerpo: { tipo: "invitaciones", estado_envio_manual: "por_enviar" }, status: 200, tipo: "invitaciones" },
+  { nombre: "Filtro ajeno a pagos", cuerpo: { tipo: "pagos", estado_envio_manual: "enviadas" }, status: 400 },
+  { nombre: "Filtro de envio desconocido", cuerpo: { tipo: "invitaciones", estado_envio_manual: "todas" }, status: 400 },
+  { nombre: "Filtro booleano invalido", cuerpo: { tipo: "invitaciones", estado_envio_manual: true }, status: 400 },
+  { nombre: "Filtro objeto invalido", cuerpo: { tipo: "invitaciones", estado_envio_manual: {} }, status: 400 },
   { nombre: "Sin sesion", token: null, status: 401 },
   { nombre: "Token invalido", token: "invalido", status: 401 },
   { nombre: "Rol validador", estado: { rol: "validador" }, status: 403 },
@@ -277,7 +284,8 @@ const casos = [
 
       assert.equal(llamada.nombre, RPC);
       assert.equal(llamada.argumentos.p_admin_id, USER);
-      assert.equal(llamada.argumentos.p_tipo, (caso.cuerpo || {}).tipo || "pagos");
+      assert.equal(llamada.argumentos.p_tipo, caso.cuerpo?.solo_emitidas ? "invitaciones_emitidas" : (caso.cuerpo || {}).tipo || "pagos");
+      assert.equal(llamada.argumentos.p_estado_envio_manual, caso.cuerpo?.estado_envio_manual ?? null);
       assert.equal(llamada.argumentos.p_pagina, (caso.cuerpo || {}).pagina || 1);
       assert.equal(llamada.argumentos.p_busqueda, (caso.cuerpo || {}).busqueda || "");
       assert.equal(estadisticas.asignaciones, 1);
@@ -300,11 +308,11 @@ const casos = [
     aprobadas++;
   }
 
-  assert.equal(aprobadas, 14);
+  assert.equal(aprobadas, casos.length);
 
   console.log("");
   console.log("RESULTADO: APROBADO");
-  console.log("PRUEBAS SUPERADAS: 14 DE 14");
+  console.log("PRUEBAS SUPERADAS:", aprobadas, "DE", casos.length);
   console.log("SUPABASE: SIN SOLICITUDES REALES");
 })().catch(error => {
   console.error("PRUEBA FALLIDA:", error);
