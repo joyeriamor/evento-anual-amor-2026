@@ -51,6 +51,21 @@ jobs:
         with:
           path: ./dist
 
+      - name: Esperar disponibilidad del paquete
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          for intento in {1..12}; do
+            cantidad=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | length')
+            if [[ "$cantidad" == "1" ]]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::GitHub todavía no permite consultar el paquete github-pages."
+          exit 1
+
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
