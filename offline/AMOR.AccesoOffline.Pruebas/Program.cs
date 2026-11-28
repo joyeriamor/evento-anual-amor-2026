@@ -102,6 +102,10 @@ static class Program
                 local.Pendientes().Single().PaqueteId == pendienteAnterior.PaqueteId, "descarga nueva conserva el paquete de cada pendiente");
             TestApi(Path.Combine(root, "api"));
             TestUI(Path.Combine(root, "ui"));
+            TestNombres(Path.Combine(root, "nombres"));
+            TestApiNombre(Path.Combine(root, "api-nombre"));
+            TestMigracionNombre(Path.Combine(root, "migracion-nombre"));
+            TestBusquedaUI(Path.Combine(root, "busqueda-ui"));
             Console.WriteLine("APROBADO: " + checks + " comprobaciones Windows con SQLite, cifrado, imágenes e interfaz reales; Auth y red simulados.");
             return 0;
         }
@@ -221,11 +225,146 @@ static class Program
         Check(!button.Enabled, "cambiar evento limpia autorizacion anterior");
         form.Close();
     }
+    static Dictionary<Guid, string> Fotos(BaseDatosLocal local, params Participante[] personas)
+    {
+        using var avatar = new SKBitmap(60, 80); avatar.Erase(SKColors.LightPink);
+        using (var canvas = new SKCanvas(avatar))
+        {
+            using var pintura = new SKPaint { Color = SKColors.DarkMagenta, IsAntialias = true };
+            canvas.DrawCircle(30, 22, 12, pintura);
+            canvas.DrawRoundRect(new SKRect(10, 40, 50, 78), 10, 10, pintura);
+        }
+        using var imagen = SKImage.FromBitmap(avatar); using var jpeg = imagen.Encode(SKEncodedImageFormat.Jpeg, 85);
+        File.WriteAllBytes(local.RutaSegura("foto-nombre.bin"), Proteccion.Proteger(jpeg.ToArray()));
+        return personas.Where(p => p.FotoPath is not null).ToDictionary(p => p.RegistroId, _ => "foto-nombre.bin");
+    }
+    static void TestNombres(string root)
+    {
+        var local = new BaseDatosLocal(E, root);
+        Check(local.BuscarNombre("ANA").Count == 0, "sin descarga no hay resultados por nombre");
+        var a = Fila(Token) with { Nombre = "Ana María González Hernández", FotoPath = "foto" };
+        var b = Fila(new('b', 64)) with { Nombre = a.Nombre, FotoPath = "foto", Grupo = "GRUPO DOS" };
+        var otras = new[] { Fila(new('c', 64), pago: false), Fila(new('d', 64), inv: "revocada"),
+            Fila(new('e', 64), estado: "pendiente"), Fila(new('f', 64), previo: true),
+            Fila(new('1', 64)) with { InvitacionId = null, TokenHash = null },
+            Fila(new('2', 64)) with { ExentoPago = true, PagoValidado = false } }
+            .Select((p, i) => p with { Nombre = "María Luisa Pérez Sánchez " + i, FotoPath = "foto" }).ToArray();
+        var sinFoto = Fila(new('3', 64)) with { Nombre = "Persona sin fotografía" };
+        var todos = new[] { a, b, sinFoto }.Concat(otras).ToArray();
+        local.Importar(Paq(todos), D, Fotos(local, todos));
+        Check(local.BuscarNombre("ANA MARIA GONZALEZ HERNANDEZ").Count == 2, "busca nombre completo sin acentos");
+        Check(local.BuscarNombre("hernández ana").Count == 2, "apellidos primero y varios homonimos");
+        Check(local.BuscarNombre("Sánchez Pérez").Count == 6, "busca por ambos apellidos en distinto orden");
+        Check(local.BuscarNombre("  Ana   Mari\u0301a  ").Count == 2, "espacios y acentos Unicode equivalentes");
+        Check(local.BuscarNombre("inexistente").Count == 0, "nombre sin coincidencias");
+        Check(local.BuscarNombre("%_").Count == 0, "comodines no exponen toda la descarga");
+        Check(new BaseDatosLocal(C, root).BuscarNombre("Ana").Count == 0, "busqueda no cruza eventos");
+        Check(!local.RegistrarPorNombre(a.RegistroId, a.InvitacionId!.Value, false), "sin confirmar identidad no hay ingreso manual");
+        Check(!local.RegistrarPorNombre(a.RegistroId, b.InvitacionId!.Value, true), "invitacion ajena no autoriza a otra persona");
+        Check(!local.RegistrarPorNombre(sinFoto.RegistroId, sinFoto.InvitacionId!.Value, true), "sin fotografia no autoriza por nombre");
+        foreach (var p in otras.Take(5))
+            Check(!local.RegistrarPorNombre(p.RegistroId, p.InvitacionId ?? Guid.Empty, true), "pago, estado, entrada o QR pendiente impiden acceso manual");
+        var concurrentes = Task.WhenAll(Task.Run(() => local.Registrar(Token)),
+            Task.Run(() => local.RegistrarPorNombre(a.RegistroId, a.InvitacionId!.Value, true))).GetAwaiter().GetResult();
+        Check(concurrentes.Count(x => x) == 1, "QR y nombre simultaneos producen un solo ingreso");
+        Check(local.BuscarNombre("hernandez").Single(f => f.RegistroId == a.RegistroId).Estado == "ya_ingreso", "busqueda muestra entrada previa");
+        Check(local.RegistrarPorNombre(b.RegistroId, b.InvitacionId!.Value, true), "autoriza homonimo seleccionado por folio y foto");
+        Check(!local.Registrar(new('b', 64)), "QR no duplica una entrada por nombre");
+        var pendiente = new BaseDatosLocal(E, root).Pendientes().Single(p => p.RegistroId == b.RegistroId);
+        Check(pendiente.Origen == "nombre" && pendiente.InvitacionId == b.InvitacionId, "entrada manual persiste con invitacion y metodo");
+        Check(local.ListarEntradas().Single(f => f.Folio == b.Folio).Metodo == "Nombre y fotografía", "historial distingue ingreso por nombre");
+        Check(local.RegistrarPorNombre(otras[5].RegistroId, otras[5].InvitacionId!.Value, true), "cortesia valida admite acceso por nombre");
+        local.Importar(Paq(sinFoto), D, new Dictionary<Guid, string>());
+        Check(local.BuscarNombre("ANA").Count == 0, "busqueda excluye personas de descargas anteriores");
+        Check(!local.RegistrarPorNombre(b.RegistroId, b.InvitacionId!.Value, true), "seleccion antigua no autoriza tras actualizar descarga");
+    }
+    static void TestApiNombre(string root)
+    {
+        var p = Fila(Token) with { Nombre = "Persona ficticia por nombre", FotoPath = "foto.webp",
+            FotoUrl = ApiCliente.ProyectoUrl + "/storage/v1/object/sign/fotos-promotoras/foto.webp?token=prueba" };
+        using var mock = new ServidorSimulado(Paq(p)); using var api = new ApiCliente("sb_publishable_prueba", mock, root);
+        var local = new BaseDatosLocal(E, root); var progreso = new Progreso();
+        api.IniciarSesion("ensayo", "password-ficticia", E, CancellationToken.None).GetAwaiter().GetResult();
+        api.Descargar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult();
+        Check(local.RegistrarPorNombre(p.RegistroId, p.InvitacionId!.Value, true), "entrada manual antes de sincronizar");
+        mock.ManualNoPublicado = true;
+        Rechaza(() => api.Sincronizar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult(), "modulo manual sin publicar conserva pendiente");
+        Check(local.Pendientes().Count == 1, "no pierde entrada si falta el servicio manual");
+        mock.ManualNoPublicado = false; mock.PerderRespuesta = true;
+        Rechaza(() => api.Sincronizar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult(), "respuesta manual perdida conserva entrada");
+        api.Sincronizar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult();
+        Check(local.Pendientes().Count == 0 && mock.Entradas == 1 && mock.Reintentos == 1, "reintento manual sincroniza una sola entrada");
+    }
+    static void TestMigracionNombre(string root)
+    {
+        var local = new BaseDatosLocal(E, root); var p = Fila(Token);
+        local.Importar(Paq(p), D, new Dictionary<Guid, string>()); local.Registrar(Token);
+        var id = local.Pendientes().Single().OperacionId;
+        using (var cn = new SqliteConnection("Data Source=" + local.Ruta))
+        { cn.Open(); using var cmd = cn.CreateCommand(); cmd.CommandText = "ALTER TABLE accesos DROP COLUMN origen"; cmd.ExecuteNonQuery(); }
+        var anterior = new BaseDatosLocal(E, root).Pendientes().Single();
+        Check(anterior.OperacionId == id && anterior.Token == Token && anterior.Origen == "qr",
+            "actualizar base 2.1 conserva pendiente QR y su identificador");
+    }
+    static void Esperar(Func<bool> condicion)
+    {
+        var tiempo = System.Diagnostics.Stopwatch.StartNew();
+        while (!condicion() && tiempo.Elapsed < TimeSpan.FromSeconds(15))
+        { Application.DoEvents(); Thread.Sleep(10); }
+        if (!condicion()) throw new Exception("No termino la operacion de interfaz");
+    }
+    static void TestBusquedaUI(string root)
+    {
+        var a = Fila(Token) with { Nombre = "Ana María González Hernández", FotoPath = "foto" };
+        var b = Fila(new('b', 64)) with { Nombre = a.Nombre, FotoPath = "foto" };
+        var local = new BaseDatosLocal(E, root); local.Importar(Paq(a, b), D, Fotos(local, a, b));
+        using (var busqueda = new BuscarParticipantesForm(local, "Evento ficticio"))
+        {
+            busqueda.Show(); Application.DoEvents();
+            var texto = (TextBox)busqueda.Controls.Find("BusquedaNombre", true).Single();
+            var boton = (Button)busqueda.Controls.Find("BuscarNombre", true).Single();
+            var grid = (DataGridView)busqueda.Controls.Find("CoincidenciasNombre", true).Single();
+            var revisar = (Button)busqueda.Controls.Find("RevisarPersona", true).Single();
+            texto.Text = "hernandez ana"; boton.PerformClick(); Esperar(() => boton.Enabled);
+            Check(grid.Rows.Count == 2, "interfaz busca ambos apellidos sin internet");
+            Check(grid.SelectedRows.Count == 0 && !revisar.Enabled, "homonimos requieren seleccion explicita");
+            var capturaBusqueda = Environment.GetEnvironmentVariable("AMOR_PREVIEW_BUSQUEDA");
+            if (!string.IsNullOrEmpty(capturaBusqueda))
+            { using var imagen = new System.Drawing.Bitmap(busqueda.Width, busqueda.Height); busqueda.DrawToBitmap(imagen, new System.Drawing.Rectangle(0, 0, busqueda.Width, busqueda.Height)); imagen.Save(capturaBusqueda); }
+            var esperado = ((ResultadoQR)grid.Rows[1].DataBoundItem!).Folio;
+            grid.Rows[1].Selected = true; Application.DoEvents(); revisar.PerformClick();
+            Check(busqueda.Seleccion?.Folio == esperado,
+                "revisa exactamente el folio seleccionado");
+        }
+        using var mock = new ServidorSimulado(Paq(a, b)); using var api = new ApiCliente("sb_publishable_prueba", mock, root);
+        using var form = new Form1(api, root, D); form.Show(); Application.DoEvents();
+        form.RevisarPorNombre(a.RegistroId); Application.DoEvents();
+        var autorizar = (Button)form.Controls.Find("Autorizar", true).Single();
+        var confirmar = (CheckBox)form.Controls.Find("ConfirmarIdentidad", true).Single();
+        Check(!autorizar.Enabled && confirmar.Visible && !confirmar.Checked, "nombre no autoriza antes de cotejar fotografia");
+        confirmar.Checked = true; Application.DoEvents(); Check(autorizar.Enabled, "confirmacion de fotografia habilita acceso manual");
+        form.Size = new System.Drawing.Size(970, 720); Application.DoEvents();
+        var fotografia = (PictureBox)form.Controls.Find("Fotografia", true).Single();
+        Check(fotografia.Height >= 120 && form.RectangleToScreen(form.ClientRectangle).Contains(autorizar.RectangleToScreen(autorizar.ClientRectangle)),
+            "foto y boton manual utilizables en pantalla de laptop");
+        var captura = Environment.GetEnvironmentVariable("AMOR_PREVIEW_NOMBRE");
+        if (!string.IsNullOrEmpty(captura))
+        { using var imagen = new System.Drawing.Bitmap(form.Width, form.Height); form.DrawToBitmap(imagen, new System.Drawing.Rectangle(0, 0, form.Width, form.Height)); imagen.Save(captura); }
+        autorizar.PerformClick(); Application.DoEvents();
+        Check(local.Resumen().Entradas == 1 && !autorizar.Enabled, "boton real registra entrada por nombre una vez");
+        Check(form.Controls.Find("PanelCodigoQR", true).Single().Visible && form.Controls.Find("CodigoQR", true).Single().CanFocus,
+            "tras ingreso manual vuelve a quedar listo el lector QR");
+        form.RevisarPorNombre(b.RegistroId); confirmar.Checked = true;
+        ((ComboBox)form.Controls.Find("Eventos", true).Single()).SelectedIndex = 1; Application.DoEvents();
+        Check(!autorizar.Enabled && !confirmar.Visible && !confirmar.Checked, "cambiar evento borra identidad y seleccion manual");
+        form.Close();
+    }
     sealed class Progreso : IProgress<string> { public void Report(string s) { } }
     sealed class ServidorSimulado(Paquete paquete) : HttpMessageHandler
     {
         public Paquete Paquete = paquete;
         public bool PerderRespuesta;
+        public bool ManualNoPublicado;
         public byte[]? Foto;
         public int Entradas, Reintentos;
         readonly Dictionary<Guid, ResultadoSync> registro = [];
@@ -239,6 +378,8 @@ static class Program
                 using var image = SKImage.FromBitmap(bitmap); using var data = image.Encode(SKEncodedImageFormat.Webp, 90);
                 return new(HttpStatusCode.OK) { Content = new ByteArrayContent(data.ToArray()) };
             }
+            if (path.EndsWith("/acceso-offline-manual") && ManualNoPublicado)
+                return new(HttpStatusCode.NotFound);
             if (path.Contains("iniciar-sesion") || path.Contains("/auth/"))
                 return Json(new { access_token = "token-ficticio", refresh_token = "refresh-ficticio", expires_in = 3600 });
             Check(request.Headers.Authorization?.Parameter == "token-ficticio", "solicitud usa sesion del operador");
@@ -247,6 +388,13 @@ static class Program
             var filas = new List<ResultadoSync>();
             foreach (var entrada in body.RootElement.GetProperty("accesos").EnumerateArray())
             {
+                if (path.EndsWith("/acceso-offline-manual"))
+                {
+                    Check(entrada.GetProperty("identidad_confirmada").GetBoolean() &&
+                        entrada.GetProperty("registro_id").GetGuid() != Guid.Empty &&
+                        entrada.GetProperty("invitacion_id").GetGuid() != Guid.Empty && !entrada.TryGetProperty("token", out _),
+                        "envio manual usa identidad e invitacion sin inventar un QR");
+                }
                 var op = entrada.GetProperty("operacion_id").GetGuid();
                 if (!registro.TryGetValue(op, out var previo))
                 { previo = new(op, true, "ingreso_registrado"); registro.Add(op, previo); Entradas++; }

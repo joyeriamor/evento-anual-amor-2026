@@ -13,6 +13,6 @@ try {
  Copy-Item (Join-Path $PSScriptRoot "LEEME.txt") $Destino -Force
  $exe=Join-Path $Destino "AMOR.AccesoOffline.exe"
  $v=(Get-Item $exe).VersionInfo
- if($v.FileVersion -ne "2.1.0.0"){throw "Version de ejecutable inesperada"}
+ if($v.FileVersion -ne "2.2.0.0"){throw "Version de ejecutable inesperada"}
  Get-FileHash $exe -Algorithm SHA256
 } finally {Pop-Location}

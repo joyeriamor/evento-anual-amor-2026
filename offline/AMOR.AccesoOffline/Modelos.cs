@@ -46,7 +46,7 @@ public sealed record Paquete
     public List<Participante> Participantes { get; init; } = [];
 }
 public record Pendiente(Guid OperacionId, Guid PaqueteId, Guid RegistroId,
-    string Token, DateTimeOffset IngresadoAt, string Estado, string Detalle);
+    string Token, DateTimeOffset IngresadoAt, string Estado, string Detalle, string Origen = "qr", Guid InvitacionId = default);
 public record ResultadoSync(Guid OperacionId, bool Ok, string Estado, string? Detalle = null);
 public record RespuestaSync(bool Ok, List<ResultadoSync> Resultados);
 public record ResultadoQR(string Estado, string Nombre = "", string Folio = "", string Asesor = "",
@@ -55,7 +55,7 @@ public record ResumenLocal(int Participantes, int Entradas, int Pendientes, int 
     DateTimeOffset? Descarga, DateTimeOffset? Expira);
 public record Sesion(string AccessToken, string RefreshToken, long ExpiresAt);
 public record FilaAcceso(string Nombre, string Folio, string Asesor, string Grupo,
-    DateTimeOffset Entrada, string Estado, string Detalle);
+    DateTimeOffset Entrada, string Estado, string Detalle, string Metodo = "QR");
 
 public static class Formato
 {

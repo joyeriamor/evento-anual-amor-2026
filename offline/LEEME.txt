@@ -1,4 +1,4 @@
-AMOR · CONTROL DE ACCESO OFFLINE 2.1.0
+AMOR · CONTROL DE ACCESO OFFLINE 2.2.0
 
 Para una sola laptop con Windows 10/11 de 64 bits.
 Conserva la carpeta completa del programa. Abre AMOR.AccesoOffline.exe.
@@ -32,6 +32,29 @@ el servidor después de la última descarga mientras siga sin internet. Descarga
 de nuevo antes de abrir la recepción. La descarga vence al terminar el día del evento.
 No operes el mismo evento en otra laptop desconectada: no compartirían las entradas.
 
+SI LA PERSONA NO TRAE SU QR O SU CELULAR NO FUNCIONA
+1. Selecciona el evento correcto y pulsa «Buscar por nombre».
+2. Escribe nombres, apellidos o el nombre completo y pulsa «Buscar».
+   Puedes poner los apellidos primero, con o sin acentos y mayúsculas.
+3. Si aparecen varias personas, compara nombre completo, folio, asesor y grupo.
+   Selecciona la fila correcta y pulsa «Revisar persona seleccionada».
+4. Coteja la fotografía con la persona que tienes enfrente.
+5. Marca «Confirmé que la fotografía corresponde a la persona presente».
+6. Pulsa «AUTORIZAR ENTRADA» y espera «ENTRADA SIN QR GUARDADA EN ESTA LAPTOP».
+
+La búsqueda utiliza exclusivamente la última descarga del evento seleccionado.
+Encontrar un nombre no autoriza la entrada automáticamente. Se exige invitación
+emitida/activa, registro confirmado, pago validado o cortesía y ningún ingreso
+previo. Sin una foto disponible para cotejar no se autoriza por nombre.
+El mismo control evita entrar otra vez por QR después de ingresar por nombre,
+y también evita un ingreso por nombre si esa persona ya entró con QR.
+«Ver entradas» distingue «Nombre y fotografía» de «QR».
+
+Para subir entradas por nombre, el administrador debe activar ese servicio nuevo.
+Si aún no está activo, el programa conserva los pendientes y muestra el motivo.
+Utiliza la versión 2.2 o posterior para sincronizar pendientes creados por nombre.
+No es necesario cambiar ni reemitir los QR existentes.
+
 SUBIR LAS ENTRADAS CUANDO REGRESE INTERNET
 1. Conecta internet y pulsa «Conectar cuenta» si la sesión venció.
 2. Usa la misma cuenta con la que preparaste la descarga.
@@ -64,3 +87,8 @@ privacidad. El programa no elimina automáticamente entradas que estén pendient
 
 El avance original, su archivo participante.csv, la base anterior y sus .bak
 no se utilizan ni se borran. La versión 2 guarda sus datos en una carpeta separada.
+
+ACTUALIZAR DESDE 2.1
+Cierra la versión anterior y abre AMOR.AccesoOffline.exe de la carpeta nueva.
+Se conservan las descargas, fotos, respaldos y entradas de la misma cuenta de
+Windows. No borres la carpeta v2 ni abras dos versiones al mismo tiempo.

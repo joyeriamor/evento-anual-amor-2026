@@ -35,7 +35,7 @@ public sealed class Form1 : Form
     };
     private readonly Label resumen = new() { Name = "Resumen", AutoSize = false, Dock = DockStyle.Top, Height = 76, Padding = new Padding(15, 8, 10, 0) };
     private readonly Label actividad = new() { Dock = DockStyle.Bottom, Height = 38, Padding = new Padding(15, 6, 10, 4), Text = "Modo offline: las entradas se guardan en esta laptop." };
-    private readonly PictureBox foto = new() { Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(248, 231, 239) };
+    private readonly PictureBox foto = new() { Name = "Fotografia", Dock = DockStyle.Fill, SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.FromArgb(248, 231, 239) };
     private readonly Button autorizar = new()
     {
         Name = "Autorizar",
@@ -49,11 +49,23 @@ public sealed class Form1 : Form
     private readonly Button cancelar = new() { Text = "Cancelar operación", AutoSize = true, Visible = false };
     private CancellationTokenSource? operacion;
     private string tokenActual = "";
+    private Guid registroActual, invitacionActual;
+    private bool porNombre, fichaAutorizable;
+    private readonly RowStyle filaIdentidad = new(SizeType.Absolute, 0);
+    private readonly RowStyle filaQR = new(SizeType.Absolute, 82);
+    private readonly Panel campoQR = new() { Name = "PanelCodigoQR", Dock = DockStyle.Fill };
+    private readonly CheckBox confirmarIdentidad = new()
+    {
+        Name = "ConfirmarIdentidad",
+        Dock = DockStyle.Fill,
+        Text = "Confirmé que la fotografía corresponde a la persona presente.",
+        Visible = false
+    };
     public Form1(ApiCliente cliente, string? carpeta = null, Guid? equipo = null)
     {
         api = cliente; raiz = carpeta; dispositivo = equipo ?? BaseDatosLocal.DispositivoId;
         local = new(Evento.Todos[0].Id, raiz);
-        Text = "AMOR 2026 · Control de Acceso Offline · 2.1.0";
+        Text = "AMOR 2026 · Control de Acceso Offline · 2.2.0";
         Size = new Size(1180, 800); MinimumSize = new Size(940, 680);
         StartPosition = FormStartPosition.CenterScreen; BackColor = Color.FromArgb(255, 246, 250);
         Font = new Font("Segoe UI", 11); AutoScaleMode = AutoScaleMode.Dpi;
@@ -73,18 +85,20 @@ public sealed class Form1 : Form
         AgregarBoton("Conectar cuenta", Conectar);
         AgregarBoton("Descargar datos y fotos", Descargar);
         AgregarBoton("Sincronizar entradas", Sincronizar);
+        AgregarBoton("Buscar por nombre", BuscarPorNombre);
         AgregarBoton("Ver entradas", VerEntradas);
         AgregarBoton("Respaldar", Respaldar);
         cancelar.Click += (_, _) => operacion?.Cancel();
         herramientas.Controls.Add(cancelar);
-        var panel = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 2, RowCount = 4 };
+        var panel = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 2, RowCount = 5 };
         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
         panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65));
-        panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        panel.RowStyles.Add(filaQR);
         panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 64));
         panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        panel.RowStyles.Add(filaIdentidad);
         panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 74));
-        var campo = new Panel { Dock = DockStyle.Fill };
+        var campo = campoQR;
         var indicacion = new Label
         {
             Text = "ESCANEA EL QR CON EL LECTOR USB",
@@ -103,7 +117,9 @@ public sealed class Form1 : Form
             new Size(Math.Max(200, fichaPanel.ClientSize.Width - SystemInformation.VerticalScrollBarWidth), 0);
         fichaPanel.Controls.Add(datos);
         panel.Controls.Add(foto, 0, 2); panel.Controls.Add(fichaPanel, 1, 2);
-        panel.Controls.Add(autorizar, 0, 3); panel.SetColumnSpan(autorizar, 2);
+        panel.Controls.Add(confirmarIdentidad, 0, 3); panel.SetColumnSpan(confirmarIdentidad, 2);
+        confirmarIdentidad.CheckedChanged += (_, _) => ActualizarPermiso();
+        panel.Controls.Add(autorizar, 0, 4); panel.SetColumnSpan(autorizar, 2);
         autorizar.BackColor = rosa; autorizar.ForeColor = Color.White; autorizar.FlatStyle = FlatStyle.Flat;
         Controls.Add(panel); Controls.Add(resumen); Controls.Add(herramientas); Controls.Add(titulo); Controls.Add(actividad);
         txtQR.KeyDown += (_, e) =>
@@ -137,7 +153,10 @@ public sealed class Form1 : Form
     }
     private void Limpiar()
     {
-        tokenActual = ""; autorizar.Enabled = false; txtQR.Clear();
+        tokenActual = ""; registroActual = invitacionActual = Guid.Empty;
+        porNombre = fichaAutorizable = false; autorizar.Enabled = false;
+        confirmarIdentidad.Checked = false; confirmarIdentidad.Visible = false; filaIdentidad.Height = 0;
+        filaQR.Height = 82; campoQR.Visible = true; txtQR.Clear();
         datos.Text = "Nombre: —\n\nFolio: —\n\nAsesor: —\n\nGrupo: —";
         var anterior = foto.Image; foto.Image = null; anterior?.Dispose();
         estado.Text = "ESPERANDO LECTURA DEL QR"; estado.ForeColor = rosa;
@@ -149,55 +168,88 @@ public sealed class Form1 : Form
             (r.Descarga is null ? "Aún no hay una descarga para este evento. Conecta tu cuenta y descarga con internet." :
             $"Datos del {r.Descarga.Value.ToLocalTime():dd/MM/yyyy HH:mm}. Actualízalos antes de abrir el acceso. Válidos hasta {r.Expira!.Value.ToLocalTime():dd/MM/yyyy HH:mm}.");
     }
+    private void ActualizarPermiso() => autorizar.Enabled = fichaAutorizable && operacion is null &&
+        (porNombre ? confirmarIdentidad.Checked && foto.Image is not null : tokenActual != "");
+    private void MostrarFicha(ResultadoQR ficha, string token, bool manual)
+    {
+        datos.Text = $"Nombre: {ficha.Nombre}\n\nFolio: {ficha.Folio}\n\nAsesor: {ficha.Asesor}\n\nGrupo: {ficha.Grupo}";
+        estado.Text = ficha.Estado switch
+        {
+            "autorizable" => manual ? "SIN QR · VERIFICA Y CONFIRMA LA FOTOGRAFÍA" : "ACCESO AUTORIZABLE · VERIFICA LA FOTOGRAFÍA",
+            "ya_ingreso" => "ESTA PERSONA YA INGRESÓ",
+            "sin_pago" => "SIN PAGO VALIDADO",
+            "revocada" => "INVITACIÓN REVOCADA",
+            "no_confirmado" => "REGISTRO NO CONFIRMADO",
+            "sin_invitacion" => "ESTA PERSONA AÚN NO TIENE INVITACIÓN EMITIDA",
+            "sin_descarga" => "PRIMERO DESCARGA LOS DATOS DE ESTE EVENTO",
+            "paquete_vencido" => "DESCARGA VENCIDA · ACTUALIZA EL EVENTO",
+            "revisar_reloj" => "REVISA LA FECHA Y HORA DE LA LAPTOP",
+            _ => "PERSONA O QR NO RECONOCIDO EN ESTE EVENTO"
+        };
+        estado.ForeColor = ficha.Estado == "autorizable" ? Color.DarkGreen : Color.DarkRed;
+        if (ficha.FotoPath != "" && File.Exists(local.RutaSegura(ficha.FotoPath)))
+        {
+            using var stream = new MemoryStream(Proteccion.Abrir(File.ReadAllBytes(local.RutaSegura(ficha.FotoPath))));
+            using var imagen = System.Drawing.Image.FromStream(stream);
+            foto.Image = new Bitmap(imagen);
+        }
+        tokenActual = token.Trim(); registroActual = ficha.RegistroId; invitacionActual = ficha.InvitacionId;
+        porNombre = manual; fichaAutorizable = ficha.Estado == "autorizable";
+        filaQR.Height = manual ? 0 : 82; campoQR.Visible = !manual;
+        confirmarIdentidad.Visible = manual; filaIdentidad.Height = manual ? 40 : 0;
+        confirmarIdentidad.Enabled = fichaAutorizable && foto.Image is not null;
+        if (manual && fichaAutorizable && foto.Image is null)
+        { estado.Text = "NO HAY FOTOGRAFÍA DISPONIBLE PARA COTEJAR. NO SE AUTORIZÓ LA ENTRADA."; estado.ForeColor = Color.DarkRed; }
+        ActualizarPermiso();
+    }
+    private void ErrorFicha()
+    {
+        Limpiar(); estado.Text = "NO SE PUDO LEER LA FICHA LOCAL. NO SE AUTORIZÓ LA ENTRADA.";
+        estado.ForeColor = Color.DarkRed;
+    }
     private void Leer(string token)
     {
         Limpiar();
-        try
-        {
-            var ficha = local.Consultar(token);
-            datos.Text = $"Nombre: {ficha.Nombre}\n\nFolio: {ficha.Folio}\n\nAsesor: {ficha.Asesor}\n\nGrupo: {ficha.Grupo}";
-            estado.Text = ficha.Estado switch
-            {
-                "autorizable" => "ACCESO AUTORIZABLE · VERIFICA LA FOTOGRAFÍA",
-                "ya_ingreso" => "ESTA PERSONA YA INGRESÓ",
-                "sin_pago" => "SIN PAGO VALIDADO",
-                "revocada" => "INVITACIÓN REVOCADA",
-                "no_confirmado" => "REGISTRO NO CONFIRMADO",
-                "sin_descarga" => "PRIMERO DESCARGA LOS DATOS DE ESTE EVENTO",
-                "paquete_vencido" => "DESCARGA VENCIDA · ACTUALIZA EL EVENTO",
-                "revisar_reloj" => "REVISA LA FECHA Y HORA DE LA LAPTOP",
-                _ => "QR NO RECONOCIDO EN ESTE EVENTO"
-            };
-            estado.ForeColor = ficha.Estado == "autorizable" ? Color.DarkGreen : Color.DarkRed;
-            if (ficha.FotoPath != "" && File.Exists(local.RutaSegura(ficha.FotoPath)))
-            {
-                using var stream = new MemoryStream(Proteccion.Abrir(File.ReadAllBytes(local.RutaSegura(ficha.FotoPath))));
-                using var imagen = System.Drawing.Image.FromStream(stream);
-                foto.Image = new Bitmap(imagen);
-            }
-            tokenActual = token.Trim();
-            autorizar.Enabled = ficha.Estado == "autorizable" && operacion is null;
-        }
-        catch
-        {
-            estado.Text = "NO SE PUDO LEER LA FICHA LOCAL. NO SE AUTORIZÓ LA ENTRADA.";
-            estado.ForeColor = Color.DarkRed; autorizar.Enabled = false; tokenActual = "";
-        }
+        try { MostrarFicha(local.Consultar(token), token, false); }
+        catch { ErrorFicha(); }
         txtQR.Focus();
+    }
+    private void BuscarPorNombre()
+    {
+        if (operacion is not null) return;
+        Limpiar();
+        using var busqueda = new BuscarParticipantesForm(local, eventos.SelectedItem?.ToString() ?? "Evento");
+        if (busqueda.ShowDialog(this) == DialogResult.OK && busqueda.Seleccion is ResultadoQR persona)
+            RevisarPorNombre(persona.RegistroId);
+    }
+    public void RevisarPorNombre(Guid registroId)
+    {
+        Limpiar();
+        if (operacion is not null) return;
+        try { MostrarFicha(local.ConsultarRegistro(registroId), "", true); }
+        catch { ErrorFicha(); }
     }
     private void Autorizar()
     {
-        if (!autorizar.Enabled || tokenActual == "") return;
+        if (!autorizar.Enabled || (!porNombre && tokenActual == "")) return;
         autorizar.Enabled = false;
         try
         {
-            var ok = local.Registrar(tokenActual);
-            estado.Text = ok ? "ENTRADA GUARDADA EN ESTA LAPTOP" : "ENTRADA NO AUTORIZADA O YA REGISTRADA";
+            var manual = porNombre;
+            var ok = manual ? local.RegistrarPorNombre(registroActual, invitacionActual, confirmarIdentidad.Checked) : local.Registrar(tokenActual);
+            estado.Text = ok ? (manual ? "ENTRADA SIN QR GUARDADA EN ESTA LAPTOP" : "ENTRADA GUARDADA EN ESTA LAPTOP") : "ENTRADA NO AUTORIZADA O YA REGISTRADA";
             estado.ForeColor = ok ? Color.DarkGreen : Color.DarkRed;
-            tokenActual = ""; ActualizarResumen();
+            tokenActual = ""; fichaAutorizable = false; confirmarIdentidad.Checked = false;
+            confirmarIdentidad.Enabled = false; ActualizarResumen();
         }
-        catch { estado.Text = "NO SE GUARDÓ LA ENTRADA. VUELVE A ESCANEAR."; estado.ForeColor = Color.DarkRed; }
-        txtQR.Focus();
+        catch
+        {
+            fichaAutorizable = false; confirmarIdentidad.Checked = false;
+            estado.Text = "NO SE GUARDÓ LA ENTRADA. VUELVE A BUSCAR O ESCANEAR."; estado.ForeColor = Color.DarkRed;
+        }
+        porNombre = false; tokenActual = ""; registroActual = invitacionActual = Guid.Empty;
+        confirmarIdentidad.Visible = false; filaIdentidad.Height = 0;
+        filaQR.Height = 82; campoQR.Visible = true; txtQR.Focus();
     }
     private async void Ejecutar(Func<CancellationToken, Task> trabajo)
     {

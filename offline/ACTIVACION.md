@@ -83,3 +83,28 @@ Los endpoints y el frontend online siguen usando los contratos anteriores.
 
 Las pruebas locales no sustituyen Auth, descarga, Storage y sincronización contra
 el servicio publicado. Esa verificación requiere la activación anterior.
+
+## Extensión 2.2: búsqueda y acceso por nombre
+
+La búsqueda y la revisión fotográfica son locales; no descargan QR en texto claro.
+El flujo QR, las funciones anteriores y las tablas de producción no cambian.
+Las bases SQLite v2 agregan solo la columna origen, con qr como valor heredado;
+los IDs de operaciones pendientes se conservan.
+
+Pendiente de aprobación explícita para producción:
+1. Aplicar supabase/migrations/20261128144415_acceso_offline_manual.sql.
+   Agrega solo offline_sincronizar_manual, con JWT validado, rol y asignación
+   activos, paquete del usuario/equipo/evento, pareja registro/invitación del
+   paquete, foto disponible y revalidación de pago/cortesía y duplicados.
+2. Publicar únicamente acceso-offline-manual con verify_jwt=true y su lock.
+   No republicar acceso-offline ni las funciones operativas anteriores.
+3. Ensayar contra Auth y Storage reales únicamente con un registro ficticio
+   autorizado; limpiar exclusivamente sus datos y fotografía al terminar.
+4. No volver a 2.1 mientras existan pendientes por nombre. Para revertir servidor,
+   primero sincronizar/resguardar pendientes, retirar la Edge manual y ejecutar
+   solo supabase/rollbacks/20261128144415_acceso_offline_manual.sql.
+   La reversión conserva las entradas ya recibidas y el módulo QR anterior.
+
+La operación queda auditada como origen=nombre en offline_operaciones.resultado,
+con IDs de inscripción/invitación y la hora de recepción. No se acepta un ID de
+administrador del cliente ni se inventan o recuperan tokens QR para este flujo.

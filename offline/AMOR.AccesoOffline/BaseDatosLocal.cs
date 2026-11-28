@@ -1,5 +1,7 @@
 using Microsoft.Data.Sqlite;
 using System.Text.Json;
+using System.Text;
+using System.Globalization;
 
 namespace AMOR.AccesoOffline;
 
@@ -46,11 +48,23 @@ public sealed class BaseDatosLocal
                 operacion_id TEXT PRIMARY KEY, registro_id TEXT NOT NULL UNIQUE REFERENCES participantes(registro_id),
                 invitacion_id TEXT NOT NULL REFERENCES invitaciones(invitacion_id), paquete_id TEXT NOT NULL,
                 token_protegido TEXT NOT NULL, ingresado_at TEXT NOT NULL,
-                estado_sync TEXT NOT NULL DEFAULT 'pendiente', detalle TEXT NOT NULL DEFAULT '');
+                estado_sync TEXT NOT NULL DEFAULT 'pendiente', detalle TEXT NOT NULL DEFAULT '',
+                origen TEXT NOT NULL DEFAULT 'qr');
             CREATE TABLE IF NOT EXISTS configuracion(clave TEXT PRIMARY KEY, valor TEXT NOT NULL);
             CREATE INDEX IF NOT EXISTS idx_sync ON accesos(estado_sync);
             """;
         cmd.ExecuteNonQuery();
+        using var columnas = cn.CreateCommand();
+        columnas.CommandText = "PRAGMA table_info(accesos)";
+        bool tieneOrigen = false;
+        using (var lector = columnas.ExecuteReader())
+            while (lector.Read()) if (lector.GetString(1) == "origen") tieneOrigen = true;
+        if (!tieneOrigen)
+        {
+            using var migrar = cn.CreateCommand();
+            migrar.CommandText = "ALTER TABLE accesos ADD COLUMN origen TEXT NOT NULL DEFAULT 'qr'";
+            migrar.ExecuteNonQuery();
+        }
     }
     private SqliteConnection Abrir()
     {
@@ -154,9 +168,58 @@ public sealed class BaseDatosLocal
         using var cn = Abrir();
         return Consultar(cn, null, token.Trim());
     }
+    private static string NormalizarNombre(string texto)
+    {
+        var s = new StringBuilder();
+        foreach (var c in texto.Normalize(NormalizationForm.FormD))
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                s.Append(char.IsLetterOrDigit(c) ? char.ToUpperInvariant(c) : ' ');
+        return s.ToString().Normalize(NormalizationForm.FormC);
+    }
+    public List<ResultadoQR> BuscarNombre(string consulta)
+    {
+        var palabras = NormalizarNombre(consulta).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (palabras.Sum(p => p.Length) < 2) return [];
+        using var cn = Abrir();
+        var paquete = PaqueteActual(cn, null);
+        if (paquete is null || DateTimeOffset.UtcNow > paquete.ExpiraAt ||
+            DateTimeOffset.UtcNow < paquete.CreadoAt.AddMinutes(-5)) return [];
+        using var cmd = Comando(cn, null, "SELECT registro_id,datos FROM participantes WHERE paquete_id=$paquete",
+            ("$paquete", paquete.PaqueteId.ToString()));
+        var ids = new List<Guid>();
+        using (var lector = cmd.ExecuteReader())
+            while (lector.Read())
+            {
+                var persona = JsonSerializer.Deserialize<Participante>(Proteccion.Abrir(lector.GetString(1)), Formato.Json)!;
+                var nombre = NormalizarNombre(persona.Nombre);
+                if (palabras.All(p => nombre.Contains(p, StringComparison.Ordinal))) ids.Add(Guid.Parse(lector.GetString(0)));
+            }
+        return ids.Select(id => ConsultarFicha(cn, null, id)).Where(f => f.RegistroId != Guid.Empty)
+            .OrderBy(f => f.Nombre, StringComparer.CurrentCultureIgnoreCase).ThenBy(f => f.Folio).ToList();
+    }
+    public ResultadoQR ConsultarRegistro(Guid registroId)
+    {
+        using var cn = Abrir();
+        return ConsultarFicha(cn, null, registroId);
+    }
     private ResultadoQR Consultar(SqliteConnection cn, SqliteTransaction? tx, string token)
     {
         if (!Formato.TokenValido(token)) return new("qr_invalido");
+        var paquete = PaqueteActual(cn, tx);
+        if (paquete is null) return new("sin_descarga");
+        using var cmd = Comando(cn, tx,
+            "SELECT registro_id,invitacion_id FROM invitaciones WHERE token_hash=$hash AND paquete_id=$paquete LIMIT 1",
+            ("$hash", Formato.HashToken(token)), ("$paquete", paquete.PaqueteId.ToString()));
+        Guid registro, invitacion;
+        using (var lector = cmd.ExecuteReader())
+        {
+            if (!lector.Read()) return new("qr_invalido");
+            registro = Guid.Parse(lector.GetString(0)); invitacion = Guid.Parse(lector.GetString(1));
+        }
+        return ConsultarFicha(cn, tx, registro, invitacion);
+    }
+    private ResultadoQR ConsultarFicha(SqliteConnection cn, SqliteTransaction? tx, Guid registroId, Guid? invitacionId = null)
+    {
         var paquete = PaqueteActual(cn, tx);
         if (paquete is null) return new("sin_descarga");
         if (DateTimeOffset.UtcNow > paquete.ExpiraAt) return new("paquete_vencido");
@@ -165,33 +228,48 @@ public sealed class BaseDatosLocal
             SELECT p.datos,p.estado,i.estado,p.exento,p.pagado,
             (p.ya_ingreso=1 OR EXISTS(SELECT 1 FROM accesos a WHERE a.registro_id=p.registro_id)),
             p.foto_local,i.invitacion_id
-            FROM invitaciones i JOIN participantes p ON p.registro_id=i.registro_id
-            WHERE i.token_hash=$hash AND i.paquete_id=$paquete AND p.paquete_id=$paquete LIMIT 1
-            """, ("$hash", Formato.HashToken(token)), ("$paquete", paquete.PaqueteId.ToString()));
+            FROM participantes p LEFT JOIN invitaciones i ON i.registro_id=p.registro_id AND i.paquete_id=p.paquete_id
+            WHERE p.registro_id=$registro AND p.paquete_id=$paquete
+              AND ($invitacion IS NULL OR i.invitacion_id=$invitacion) LIMIT 1
+            """, ("$registro", registroId.ToString()), ("$paquete", paquete.PaqueteId.ToString()),
+            ("$invitacion", invitacionId?.ToString()));
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return new("qr_invalido");
         var p = JsonSerializer.Deserialize<Participante>(Proteccion.Abrir(r.GetString(0)), Formato.Json)!;
         var estado = r.GetBoolean(5) ? "ya_ingreso" :
             r.GetString(1) != "confirmado" ? "no_confirmado" :
+            r.IsDBNull(7) ? "sin_invitacion" :
             r.GetString(2) is not ("activa" or "emitida") ? "revocada" :
             !(r.GetBoolean(3) || r.GetBoolean(4)) ? "sin_pago" : "autorizable";
         return new(estado, p.Nombre, p.Folio, p.Asesor, p.Grupo,
-            p.RegistroId, Guid.Parse(r.GetString(7)), r.GetString(6));
+            p.RegistroId, r.IsDBNull(7) ? Guid.Empty : Guid.Parse(r.GetString(7)), r.GetString(6));
     }
     public bool Registrar(string token)
     {
         token = token.Trim();
         using var cn = Abrir();
         using var tx = cn.BeginTransaction(deferred: false);
-        var ficha = Consultar(cn, tx, token);
+        return GuardarAcceso(cn, tx, Consultar(cn, tx, token), token, "qr");
+    }
+    public bool RegistrarPorNombre(Guid registroId, Guid invitacionId, bool identidadConfirmada)
+    {
+        if (!identidadConfirmada || registroId == Guid.Empty || invitacionId == Guid.Empty) return false;
+        using var cn = Abrir();
+        using var tx = cn.BeginTransaction(deferred: false);
+        var ficha = ConsultarFicha(cn, tx, registroId, invitacionId);
+        if (ficha.FotoPath == "" || !File.Exists(RutaSegura(ficha.FotoPath))) return false;
+        return GuardarAcceso(cn, tx, ficha, "manual:" + invitacionId, "nombre");
+    }
+    private bool GuardarAcceso(SqliteConnection cn, SqliteTransaction tx, ResultadoQR ficha, string token, string origen)
+    {
         if (ficha.Estado != "autorizable") return false;
         var paquete = PaqueteActual(cn, tx)!;
         using var cmd = Comando(cn, tx, """
-            INSERT INTO accesos(operacion_id,registro_id,invitacion_id,paquete_id,token_protegido,ingresado_at)
-            VALUES($op,$reg,$inv,$paq,$token,$fecha)
+            INSERT INTO accesos(operacion_id,registro_id,invitacion_id,paquete_id,token_protegido,ingresado_at,origen)
+            VALUES($op,$reg,$inv,$paq,$token,$fecha,$origen)
             """, ("$op", Guid.NewGuid().ToString()), ("$reg", ficha.RegistroId.ToString()),
             ("$inv", ficha.InvitacionId.ToString()), ("$paq", paquete.PaqueteId.ToString()),
-            ("$token", Proteccion.Proteger(token)), ("$fecha", DateTimeOffset.UtcNow.ToString("O")));
+            ("$token", Proteccion.Proteger(token)), ("$fecha", DateTimeOffset.UtcNow.ToString("O")), ("$origen", origen));
         try { cmd.ExecuteNonQuery(); tx.Commit(); return true; }
         catch (SqliteException e) when (e.SqliteErrorCode == 19) { return false; }
     }
@@ -199,14 +277,14 @@ public sealed class BaseDatosLocal
     {
         using var cn = Abrir();
         using var cmd = Comando(cn, null, """
-            SELECT operacion_id,paquete_id,registro_id,token_protegido,ingresado_at,estado_sync,detalle
+            SELECT operacion_id,paquete_id,registro_id,token_protegido,ingresado_at,estado_sync,detalle,origen,invitacion_id
             FROM accesos WHERE estado_sync IN ('pendiente','conflicto') ORDER BY ingresado_at
             """);
         using var r = cmd.ExecuteReader();
         var resultado = new List<Pendiente>();
         while (r.Read()) resultado.Add(new(Guid.Parse(r.GetString(0)), Guid.Parse(r.GetString(1)),
             Guid.Parse(r.GetString(2)), Proteccion.Abrir(r.GetString(3)), DateTimeOffset.Parse(r.GetString(4)),
-            r.GetString(5), r.GetString(6)));
+            r.GetString(5), r.GetString(6), r.GetString(7), Guid.Parse(r.GetString(8))));
         return resultado;
     }
     public void AplicarResultado(ResultadoSync resultado)
@@ -250,7 +328,7 @@ public sealed class BaseDatosLocal
     {
         using var cn = Abrir();
         using var cmd = Comando(cn, null, """
-            SELECT p.datos,a.ingresado_at,a.estado_sync,a.detalle FROM accesos a
+            SELECT p.datos,a.ingresado_at,a.estado_sync,a.detalle,a.origen FROM accesos a
             JOIN participantes p ON p.registro_id=a.registro_id ORDER BY a.ingresado_at DESC
             """);
         using var r = cmd.ExecuteReader();
@@ -259,7 +337,8 @@ public sealed class BaseDatosLocal
         {
             var p = JsonSerializer.Deserialize<Participante>(Proteccion.Abrir(r.GetString(0)), Formato.Json)!;
             filas.Add(new(p.Nombre, p.Folio, p.Asesor, p.Grupo,
-                DateTimeOffset.Parse(r.GetString(1)).ToLocalTime(), r.GetString(2), r.GetString(3)));
+                DateTimeOffset.Parse(r.GetString(1)).ToLocalTime(), r.GetString(2), r.GetString(3),
+                r.GetString(4) == "nombre" ? "Nombre y fotografía" : "QR"));
         }
         return filas;
     }

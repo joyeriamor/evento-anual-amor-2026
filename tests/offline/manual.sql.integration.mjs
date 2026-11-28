@@ -1,0 +1,86 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash,randomUUID} from 'node:crypto';
+import {PGlite} from '@electric-sql/pglite';
+
+const db=new PGlite();
+const E='43e67bda-d19d-4c0e-a639-e85f2d62f294',C='3dc92160-79af-4bf7-b770-263038e88900';
+const A=randomUUID(),B=randomUUID(),D=randomUUID();
+const hash=t=>createHash('sha256').update(t).digest('hex');
+let checks=0;
+const eq=(a,b)=>{assert.deepEqual(a,b);checks++;};
+const no=async(f,re)=>{await assert.rejects(f,re);checks++;};
+const user=id=>db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+const rpc=async(name,args)=>(await db.query('select public.'+name+'('+args.map((_,i)=>'$'+(i+1)).join(',')+') as r',args)).rows[0].r;
+try{
+ await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+ create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ create table usuarios(id uuid primary key,rol text,activo boolean);
+ create table usuarios_eventos(usuario_id uuid,evento_id uuid,activo boolean);
+ create table eventos(id uuid primary key,fecha_inicio timestamptz);
+ create table promotoras(id uuid primary key,nombres text,apellidos text,tipo_participante text,foto_path text);
+ create table asesores(id uuid primary key,nombre text);
+ create table registros(id uuid primary key,evento_id uuid,promotora_id uuid,asesor_id uuid,folio text,estado text,grupo_ruta text,exento_pago boolean,es_prueba boolean);
+ create table invitaciones(id uuid primary key,registro_id uuid references registros(id),token_hash text unique,estado text,emitida_at timestamptz);
+ create table pagos(registro_id uuid,estado text);
+ create table accesos(id uuid primary key default gen_random_uuid(),invitacion_id uuid not null references invitaciones(id),operador_id uuid not null,ingresado_at timestamptz not null);`);
+ await db.exec(await readFile('supabase/migrations/20261128025528_acceso_offline.sql','utf8'));
+ const original=(await db.query("select oid::regprocedure::text as firma,md5(pg_get_functiondef(oid)) as hash from pg_proc where pronamespace='public'::regnamespace and proname like 'offline_%' order by proname")).rows;
+ await db.exec(await readFile('supabase/migrations/20261128144415_acceso_offline_manual.sql','utf8'));
+ eq((await db.query("select oid::regprocedure::text as firma,md5(pg_get_functiondef(oid)) as hash from pg_proc where pronamespace='public'::regnamespace and proname in('offline_autorizar','offline_descargar','offline_sincronizar') order by proname")).rows,original);
+ await db.query("insert into usuarios values($1,'administrador',true),($2,'acceso',true)",[A,B]);
+ await db.query("insert into usuarios_eventos values($1,$2,true),($3,$4,true)",[A,E,B,C]);
+ await db.query("insert into eventos values($1,now()+interval '1 day'),($2,now()+interval '2 days')",[E,C]);
+ const filas=[];
+ for(let i=0;i<10;i++){
+  const registro=randomUUID(),inv=randomUUID(),persona=randomUUID(),token=String(i).repeat(64);
+  filas.push({registro,inv,persona,token});
+  await db.query("insert into promotoras values($1,'PERSONA','FICTICIA','promotora',$2)",[persona,E+'/foto-'+i+'.png']);
+  await db.query("insert into registros values($1,$2,$3,null,$4,'confirmado',null,true,false)",[registro,E,persona,'PRUEBA-'+i]);
+  await db.query("insert into invitaciones values($1,$2,$3,'emitida',now())",[inv,registro,hash(token)]);
+ }
+ await user(A);const paquete=await rpc('offline_descargar',[E,D]);
+ const ahora=new Date().toISOString();
+ const manual=(fila=filas[0],op=randomUUID(),time=ahora,device=D,p=paquete.paquete_id,evento=E,confirmado=true)=>rpc('offline_sincronizar_manual',[evento,device,p,op,fila.registro,fila.inv,time,confirmado]);
+ const op=randomUUID(),primero=await manual(filas[0],op);
+ eq(primero.estado,'ingreso_registrado');eq(primero.origen,'nombre');eq(primero.registro_id,filas[0].registro);
+ eq(await manual(filas[0],op),primero);eq((await manual()).estado,'ya_ingreso');
+ eq((await db.query('select count(*)::int as n from accesos')).rows[0].n,1);
+ await no(()=>manual(filas[1],op),/reutilizado/);
+ await no(()=>manual(filas[0],op,'2001-01-01T00:00:00Z'),/reutilizado/);
+ await no(()=>manual(filas[1],randomUUID(),ahora,D,paquete.paquete_id,E,false),/manual inválida/);
+ await no(()=>manual(filas[1],randomUUID(),ahora,D,paquete.paquete_id,E,null),/manual inválida/);
+ await no(()=>manual(filas[1],randomUUID(),ahora,randomUUID()),/no pertenece/);
+ eq((await manual({...filas[1],registro:filas[2].registro})).estado,'qr_fuera_del_paquete');
+ eq((await manual({...filas[1],inv:randomUUID()})).estado,'qr_fuera_del_paquete');
+ eq((await manual(filas[1],randomUUID(),'2001-01-01T00:00:00Z')).estado,'fecha_fuera_de_rango');
+ eq((await manual(filas[1],randomUUID(),'2099-01-01T00:00:00Z')).estado,'fecha_fuera_de_rango');
+ await db.query('update registros set exento_pago=false where id=$1',[filas[1].registro]);
+ eq((await manual(filas[1])).estado,'sin_pago');
+ await db.query("insert into pagos values($1,'validado')",[filas[1].registro]);eq((await manual(filas[1])).estado,'ingreso_registrado');
+ await db.query("update invitaciones set estado='revocada' where id=$1",[filas[2].inv]);eq((await manual(filas[2])).estado,'no_autorizado_actualmente');
+ await db.query("update registros set estado='cancelado' where id=$1",[filas[3].registro]);eq((await manual(filas[3])).estado,'no_autorizado_actualmente');
+ await db.query("update promotoras set foto_path='' where id=$1",[filas[4].persona]);eq((await manual(filas[4])).estado,'sin_fotografia');
+ const nueva=randomUUID();await db.query("insert into invitaciones values($1,$2,$3,'emitida',now()+interval '1 second')",[nueva,filas[5].registro,hash('a'.repeat(64))]);
+ eq((await manual({...filas[5],inv:nueva})).estado,'qr_fuera_del_paquete');
+ const qr=await rpc('offline_sincronizar',[E,D,paquete.paquete_id,randomUUID(),filas[6].token,ahora]);eq(qr.estado,'ingreso_registrado');
+ eq((await manual(filas[6])).estado,'ya_ingreso');
+ eq((await rpc('offline_sincronizar',[E,D,paquete.paquete_id,randomUUID(),filas[0].token,ahora])).estado,'ya_ingreso');
+ await user(B);await no(()=>manual(filas[7]),/Sin permiso/);
+ await db.query('insert into usuarios_eventos values($1,$2,true)',[B,E]);await no(()=>manual(filas[7]),/no pertenece/);
+ await user(A);await no(()=>manual(filas[7],randomUUID(),ahora,D,paquete.paquete_id,C),/Sin permiso/);
+ await db.query('insert into usuarios_eventos values($1,$2,true)',[A,C]);await no(()=>manual(filas[7],randomUUID(),ahora,D,paquete.paquete_id,C),/no pertenece/);
+ await db.query('update usuarios_eventos set activo=false where usuario_id=$1',[A]);await no(()=>manual(filas[7]),/Sin permiso/);
+ await db.query('update usuarios_eventos set activo=true where usuario_id=$1',[A]);
+ await db.query('update usuarios set activo=false where id=$1',[A]);await no(()=>manual(filas[7]),/Sin permiso/);
+ await db.query("update usuarios set activo=true,rol='recepcion' where id=$1",[A]);await no(()=>manual(filas[7]),/Sin permiso/);
+ await user('');await no(()=>manual(filas[7]),/Sin permiso/);
+ const permisos=(await db.query(`select has_function_privilege('anon','public.offline_sincronizar_manual(uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,boolean)','EXECUTE') as anon,
+ has_function_privilege('authenticated','public.offline_sincronizar_manual(uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,boolean)','EXECUTE') as auth,
+ has_table_privilege('authenticated','public.offline_operaciones','SELECT') as lectura`)).rows[0];eq(permisos,{anon:false,auth:true,lectura:false});
+ await db.exec(await readFile('supabase/rollbacks/20261128144415_acceso_offline_manual.sql','utf8'));
+ eq((await db.query('select count(*)::int as n from accesos')).rows[0].n,3);
+ eq((await db.query("select to_regprocedure('public.offline_sincronizar_manual(uuid,uuid,uuid,uuid,uuid,uuid,timestamptz,boolean)') as f")).rows[0].f,null);
+ eq((await db.query("select to_regclass('public.offline_paquetes') is not null as t")).rows[0].t,true);
+ console.log(checks+' pruebas SQL de acceso por nombre aprobadas; PostgreSQL local y datos ficticios, sin producción.');
+}finally{await db.close();}

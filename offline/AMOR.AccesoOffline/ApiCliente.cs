@@ -55,7 +55,9 @@ public sealed class ApiCliente : IDisposable
             if (response.StatusCode == HttpStatusCode.Unauthorized)
                 throw new UnauthorizedAccessException("Inicia sesión de nuevo. Las entradas locales se conservan.");
             if (response.StatusCode == HttpStatusCode.NotFound)
-                throw new InvalidOperationException("Falta publicar el módulo offline en el servidor.");
+                throw new InvalidOperationException(ruta.EndsWith("/acceso-offline-manual", StringComparison.Ordinal) ?
+                    "Falta activar el acceso por nombre en el servidor. Tus entradas se conservan." :
+                    "Falta publicar el módulo offline en el servidor.");
             if (response.StatusCode == HttpStatusCode.Forbidden)
                 throw new InvalidOperationException("La cuenta no tiene permiso activo para este evento.");
             throw new InvalidOperationException("El servidor no confirmó la operación. Revisa la conexión y vuelve a intentar. Tus entradas se conservan.");
@@ -90,16 +92,16 @@ public sealed class ApiCliente : IDisposable
             new { refresh_token = sesion.RefreshToken }, null, ct);
         GuardarSesion(r.RootElement);
     }
-    private async Task<T> Operar<T>(object datos, CancellationToken ct)
+    private async Task<T> Operar<T>(object datos, CancellationToken ct, string endpoint = "acceso-offline")
     {
         if (sesion is null) throw new UnauthorizedAccessException("Conecta tu cuenta para descargar o sincronizar.");
         if (sesion.ExpiresAt < DateTimeOffset.UtcNow.AddMinutes(2).ToUnixTimeSeconds()) await Refrescar(ct);
         JsonDocument respuesta;
-        try { respuesta = await Enviar("/functions/v1/acceso-offline", datos, sesion!.AccessToken, ct); }
+        try { respuesta = await Enviar("/functions/v1/" + endpoint, datos, sesion!.AccessToken, ct); }
         catch (UnauthorizedAccessException)
         {
             await Refrescar(ct);
-            respuesta = await Enviar("/functions/v1/acceso-offline", datos, sesion!.AccessToken, ct);
+            respuesta = await Enviar("/functions/v1/" + endpoint, datos, sesion!.AccessToken, ct);
         }
         using (respuesta)
             return respuesta.RootElement.Deserialize<T>(Formato.Json) ?? throw new InvalidDataException("Respuesta incompleta.");
@@ -183,18 +185,29 @@ public sealed class ApiCliente : IDisposable
     {
         var pendientes = local.Pendientes();
         var terminadas = 0;
-        foreach (var grupo in pendientes.GroupBy(p => p.PaqueteId))
+        foreach (var grupo in pendientes.GroupBy(p => new { p.PaqueteId, p.Origen }))
             foreach (var lote in grupo.Chunk(25))
             {
                 ct.ThrowIfCancellationRequested();
+                if (grupo.Key.Origen is not ("qr" or "nombre"))
+                    throw new InvalidDataException("Una entrada tiene un método desconocido. Se conserva para revisión.");
+                var manual = grupo.Key.Origen == "nombre";
+                object[] entradas = manual ? lote.Select(a => (object)new
+                {
+                    a.OperacionId,
+                    a.RegistroId,
+                    a.InvitacionId,
+                    a.IngresadoAt,
+                    identidad_confirmada = true
+                }).ToArray() : lote.Select(a => (object)new { a.OperacionId, a.Token, a.IngresadoAt }).ToArray();
                 var r = await Operar<RespuestaSync>(new
                 {
                     accion = "sincronizar",
                     evento_id = local.EventoId,
                     dispositivo_id = dispositivo,
-                    paquete_id = grupo.Key,
-                    accesos = lote.Select(a => new { a.OperacionId, a.Token, a.IngresadoAt }).ToArray()
-                }, ct);
+                    paquete_id = grupo.Key.PaqueteId,
+                    accesos = entradas
+                }, ct, manual ? "acceso-offline-manual" : "acceso-offline");
                 var ids = lote.Select(p => p.OperacionId).ToHashSet();
                 if (!r.Ok || r.Resultados is null || r.Resultados.Count != lote.Length ||
                     r.Resultados.Select(x => x.OperacionId).Distinct().Count() != lote.Length ||

@@ -1,79 +1,70 @@
-# Acceso offline 2.1.0
+# Acceso offline 2.2.0 · búsqueda por nombre completo
 
-Preparada y validada el 27–28 de noviembre de 2026 para una sola laptop Windows x64.
+Preparado el 28 de noviembre de 2026 para una sola laptop Windows x64.
 
-## Terminado
+## Funcionalidad terminada localmente
 
-- Se recuperó el avance original WinForms/SQLite y se completó como versión 2.1.0.0.
-- Selección explícita RADEV’S/Chiapas, con bases separadas.
-- Inicio de sesión con usuario o correo, sesión protegida y renovación al conectar.
-- Descarga completa de participantes y fotos privadas autorizadas para el evento.
-- Activación de descarga únicamente cuando todas las fotos indicadas están guardadas;
-  cancelación/fallo conserva la descarga anterior.
-- Fotos JPEG/PNG/WebP, orientación de cámara y normalización local para visualizarlas.
-- Muestreo JPEG antes de asignar memoria: admite la foto real de 32 MP sin cambiarla.
-- Compatibilidad con JPEG antiguos sin marcador final; rechazo de imágenes ilegibles,
-  conservando la descarga anterior.
-- Nombre, folio, asesor, grupo y foto al leer el QR; habilitación manual de entrada.
-- Validación local de confirmación, pago/cortesía, estado del QR y entrada previa.
-- Entrada SQLite transaccional, durable y única por inscripción.
-- Persistencia tras cerrar/reabrir, historial y respaldo consistente con fotos cifradas.
-- Cola de sincronización, reintentos idempotentes y conflictos visibles sin perder datos.
-- Revalidación de permisos, equipo, evento, QR y pago/cortesía al sincronizar.
-- La descarga siguiente conserva las entradas pendientes y su paquete original.
-- Ejecutable con runtime LTS incluido: no necesita instalar .NET ni descargar componentes.
-- Código, migración, rollback, lock propio de Edge, pruebas y guía de operación.
+- Búsqueda sin internet por nombres y ambos apellidos, con acentos o sin ellos,
+  mayúsculas, espacios adicionales y apellidos en distinto orden.
+- Resultados del evento seleccionado con nombre completo, folio, asesor, grupo y
+  situación. Los homónimos requieren selección explícita; no se elige al primero.
+- Revisión de la fotografía en la ficha y check obligatorio de identidad antes
+  de habilitar el botón de ingreso sin QR. La búsqueda no registra entradas.
+- Se mantienen confirmación, pago/cortesía, QR emitido/activo, vigencia y entrada
+  previa. El ingreso por nombre bloquea después el QR y viceversa.
+- Historial y cola distinguen QR de Nombre y fotografía. La cola conserva
+  pendientes y sus IDs después de reiniciar, de perder una respuesta o de fallar
+  el nuevo servicio. No inventa, recupera ni descarga QR en claro para buscar.
+- Las bases v2 existentes agregan origen con valor heredado qr. Se conservan
+  descargas, fotografías, entradas anteriores y pendientes de 2.1.
+- Versión Assembly/FileVersion 2.2.0.0 con runtime incluido. No se borró la
+  versión anterior, el avance original, archivos .bak ni archivos del usuario.
 
-## Verificación ejecutada
+Los nombres permanecen cifrados en SQLite; la búsqueda descifra solamente en
+memoria. Cada evento utiliza su base y su descarga vigente.
+
+## Pruebas ejecutadas
 
 | Comprobación | Resultado | Entorno |
 |---|---:|---|
-| Aplicación Windows | 60 aprobadas | SQLite, DPAPI, imágenes y controles WinForms reales; Auth/HTTP simulados |
-| SQL | 37 aprobadas | PostgreSQL PGlite local, 1,109 registros ficticios; incluye permisos, reintentos y rollback |
-| Endpoint nuevo | 15 aprobadas | Handlers con Auth/RPC/Storage simulados |
-| Guard de eventos | 260 aprobadas | HTTP local real y Supabase simulado |
-| Tipado Edge | Aprobado | Deno, dependencias fijadas en lock separado |
-| Lint del repositorio | Aprobado | Sin cambiar el frontend existente |
-| Compilación Release x64 | Aprobada | SDK 10.0.404, Assembly/FileVersion 2.1.0.0, runtime incluido |
-| Revisión visual | Aprobada | Captura de interfaz con persona y foto ficticias |
+| Aplicación Windows | 105 aprobadas | SQLite, DPAPI, JPEG/WebP y controles WinForms reales; Auth/HTTP simulados |
+| Nueva RPC por nombre | 37 aprobadas | PostgreSQL PGlite local, datos ficticios; permisos, aislamiento, reintentos y rollback |
+| Nuevo endpoint por nombre | 16 aprobadas | Handlers con Auth/RPC simulados |
+| HTTP del flujo manual | 14 aprobadas | Transporte y guard reales en localhost; Auth/RPC simulados |
+| Regresión SQL QR | 37 aprobadas | PostgreSQL local |
+| Regresión endpoint QR | 15 aprobadas | Handlers simulados |
+| Tipado y lint | Aprobados | Deno check con lock propio congelado y ESLint del repositorio |
+| Release Windows x64 | Aprobado | SDK 10.0.404, runtime 10.0.15, versión 2.2.0.0 |
 
-## Activación y ensayo real
+Se probaron apellidos en orden inverso, acentos Unicode, homónimos, elección por
+folio, evento cruzado, selección antigua al renovar descarga, foto ausente,
+pago/estado no autorizables, carrera QR/nombre, pérdida de respuesta y migración
+de una base 2.1 con una entrada QR pendiente. La interfaz real exigió el check,
+mostró la foto ficticia y registró exactamente una entrada al pulsar el botón.
 
-Se aplicó únicamente la migración del módulo offline y se publicó una nueva
-Edge acceso-offline v1. No se reemplazaron las 33 Edge ni las 57 funciones SQL
-anteriores. Las tablas son privadas, con RLS y sin SELECT directo para usuarios.
-Auth real, Edge y RPC rechazaron las solicitudes sin sesión.
-La sesión real de hugo se usó desde el programa; contraseña y tokens no se
-imprimieron, exportaron ni incorporaron al código o al paquete.
+La lectura de códigos de un lector USB físico sigue pendiente en el equipo de
+recepción. La búsqueda no necesita el lector. La verificación real anterior
+2.1 cubrió Auth, Storage, descarga de ambos eventos, entrada ficticia con la red
+Windows desconectada y sincronización QR; su ensayo fue limpiado. El nuevo
+flujo por nombre se ha probado localmente y todavía requiere el ensayo real.
 
-La prueba real descargó 532 fichas y 532 fotos de RADEV’S, y 92 fichas y 92 fotos
-Chiapas (91 existentes y una ficticia). Se verificó que las listas no se mezclan.
-Con el adaptador de red de Windows desconectado, se mostró la fotografía, se
-registró una entrada ficticia, se bloqueó el segundo ingreso y el pendiente
-persistió al reabrir. La red se restauró al terminar mediante un bloque finally.
-Al reconectar, la sincronización real dejó cero pendientes y cero conflictos.
-Repetir la misma operación no duplicó el ingreso: SQL confirmó un solo acceso.
-El servidor rechazó el paquete Chiapas en RADEV’S y un dispositivo diferente.
-No se autorizó ningún ingreso de una participante real.
+## Activación pendiente de autorización
 
-Ensayo: EA26-2DDCB8EFA41F436885E0D1B675D8D812.
-Con autorización expresa del usuario se eliminó el ensayo y sus dependencias.
-La comprobación final por SQL devolvió cero en registro, participante, QR,
-paquetes offline, operaciones offline y fotografía sintética en Storage.
-No se modificaron datos reales. Las copias locales temporales de la prueba
-ya se habían eliminado.
-El lector USB físico sigue pendiente de comprobar en el equipo de recepción.
-No se ha probado un lector USB físico ni una cámara. El lector funciona como
-teclado; las pruebas verificaron esa entrada y el botón real de autorización.
-No se incluye lectura por cámara.
+El desarrollo no modificó datos reales, esquema de producción ni funciones
+publicadas. El componente preparado agrega únicamente:
 
-## Límites operativos
+- RPC offline_sincronizar_manual, mediante la migración
+  20261128144415_acceso_offline_manual.sql.
+- Edge acceso-offline-manual, con verify_jwt=true y lock propio.
 
-El modo sin internet usa la última descarga: no conoce cambios posteriores hasta
-actualizarla. Usar una sola laptop; antes del evento, descargar de nuevo y verificar
-fotos, fecha/hora y vigencia. Las entradas pendientes no se eliminan automáticamente.
-El respaldo cifrado requiere conservar la misma cuenta de Windows y el identificador
-del equipo. Las instrucciones están en LEEME.txt.
+No reemplaza las funciones QR, de pagos, de invitaciones ni de acceso online.
+El servidor revalida JWT, perfil/rol/asignación activos, paquete del usuario,
+equipo y evento, pareja registro/invitación incluida en la descarga, foto
+existente, estado y pago/cortesía actuales y ausencia de ingreso previo.
+Las operaciones se auditan con origen=nombre y conservan la idempotencia.
 
-El ZIP original, el programa anterior, participante.csv, .bak y la base v1 se
-conservan. La nueva versión guarda los datos por evento en una carpeta v2.
+Falta autorización explícita para publicar ese componente y ejecutar un ensayo
+con un registro y foto ficticios, limpiando exclusivamente ese ensayo al acabar.
+El plan y el rollback están en ACTIVACION.md. El programa conserva los ingresos
+por nombre si aún falta activar su servicio; no confirma sincronización hasta
+recibir una respuesta positiva. Utilizar 2.2 o posterior para esos pendientes.
