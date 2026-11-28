@@ -1,4 +1,4 @@
-AMOR · CONTROL DE ACCESO OFFLINE 2.0.0
+AMOR · CONTROL DE ACCESO OFFLINE 2.1.0
 
 Para una sola laptop con Windows 10/11 de 64 bits.
 Conserva la carpeta completa del programa. Abre AMOR.AccesoOffline.exe.

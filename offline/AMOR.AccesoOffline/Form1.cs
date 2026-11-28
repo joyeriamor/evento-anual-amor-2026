@@ -53,7 +53,7 @@ public sealed class Form1 : Form
     {
         api = cliente; raiz = carpeta; dispositivo = equipo ?? BaseDatosLocal.DispositivoId;
         local = new(Evento.Todos[0].Id, raiz);
-        Text = "AMOR 2026 · Control de Acceso Offline · 2.0.0";
+        Text = "AMOR 2026 · Control de Acceso Offline · 2.1.0";
         Size = new Size(1180, 800); MinimumSize = new Size(940, 680);
         StartPosition = FormStartPosition.CenterScreen; BackColor = Color.FromArgb(255, 246, 250);
         Font = new Font("Segoe UI", 11); AutoScaleMode = AutoScaleMode.Dpi;

@@ -136,6 +136,33 @@ static class Program
         api.Sincronizar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult();
         Check(local.Pendientes().Count == 0, "reintento de sincronizacion");
         Check(mock.Entradas == 1 && mock.Reintentos == 1, "respuesta perdida no duplica entrada");
+        using (var grande = new SKBitmap(4896, 6528))
+        {
+            grande.Erase(SKColors.Pink);
+            using var imagen = SKImage.FromBitmap(grande);
+            using var jpeg = imagen.Encode(SKEncodedImageFormat.Jpeg, 85);
+            mock.Foto = jpeg.ToArray();
+        }
+        mock.Paquete = mock.Paquete with { PaqueteId = Guid.NewGuid(), Participantes = [p] };
+        api.Descargar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult();
+        using (var imagen = System.Drawing.Image.FromStream(new MemoryStream(
+            Proteccion.Abrir(File.ReadAllBytes(local.RutaSegura(local.Consultar(Token).FotoPath))))))
+            Check(imagen.Height > imagen.Width && Math.Max(imagen.Width, imagen.Height) <= 2048,
+                "foto JPEG de 32 MP se descarga y reduce antes de guardar");
+        Check(local.Resumen().Entradas == 1, "reducir foto conserva la entrada existente");
+        mock.Foto = mock.Foto![..^2]; // JPEG with all image data but no closing EOI marker.
+        mock.Paquete = mock.Paquete with { PaqueteId = Guid.NewGuid() };
+        api.Descargar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult();
+        using (var imagen = SKBitmap.Decode(Proteccion.Abrir(File.ReadAllBytes(
+            local.RutaSegura(local.Consultar(Token).FotoPath)))))
+            Check(imagen is not null && imagen.GetPixel(imagen.Width / 2, imagen.Height - 1).Red > 150,
+                "JPEG sin marcador final conserva los pixeles visibles");
+        var previo = local.PaqueteActual()!.PaqueteId;
+        mock.Foto = [0xff, 0xd8, 0xff, 0xe1, 0, 0];
+        mock.Paquete = mock.Paquete with { PaqueteId = Guid.NewGuid() };
+        Rechaza(() => api.Descargar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult(),
+            "archivo JPEG ilegible no activa una descarga");
+        Check(local.PaqueteActual()!.PaqueteId == previo, "imagen ilegible conserva la descarga valida");
         mock.Paquete = mock.Paquete with { PaqueteId = Guid.NewGuid(), Participantes = [p with { FotoUrl = "https://ajeno.example/foto.png" }] };
         Rechaza(() => api.Descargar(local, D, progreso, CancellationToken.None).GetAwaiter().GetResult(), "rechaza fotografia de servidor ajeno");
         Check(local.Resumen().Participantes == 1 && local.Resumen().Entradas == 1, "fallo de fotos conserva descarga y entradas");
@@ -199,6 +226,7 @@ static class Program
     {
         public Paquete Paquete = paquete;
         public bool PerderRespuesta;
+        public byte[]? Foto;
         public int Entradas, Reintentos;
         readonly Dictionary<Guid, ResultadoSync> registro = [];
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
@@ -206,6 +234,7 @@ static class Program
             var path = request.RequestUri!.AbsolutePath;
             if (path.Contains("/storage/"))
             {
+                if (Foto is not null) return new(HttpStatusCode.OK) { Content = new ByteArrayContent(Foto) };
                 using var bitmap = new SKBitmap(10, 12); bitmap.Erase(SKColors.Pink);
                 using var image = SKImage.FromBitmap(bitmap); using var data = image.Encode(SKEncodedImageFormat.Webp, 90);
                 return new(HttpStatusCode.OK) { Content = new ByteArrayContent(data.ToArray()) };

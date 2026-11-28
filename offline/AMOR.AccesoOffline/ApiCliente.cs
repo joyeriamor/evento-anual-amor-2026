@@ -141,9 +141,29 @@ public sealed class ApiCliente : IDisposable
                     }
                     using var encoded = SKData.CreateCopy(bytes.ToArray());
                     using var codec = SKCodec.Create(encoded);
-                    if (codec is null || (long)codec.Info.Width * codec.Info.Height > 24_000_000)
+                    if (codec is null || codec.Info.Width <= 0 || codec.Info.Height <= 0 ||
+                        (long)codec.Info.Width * codec.Info.Height > 200_000_000)
                         throw new InvalidDataException("Dimensiones de fotografía no permitidas.");
-                    using var bitmap = SKBitmap.Decode(codec) ?? throw new InvalidDataException("Fotografía no reconocida.");
+                    // Camera JPEGs can exceed 24 MP. Decode at a supported reduced size,
+                    // before allocating pixels, and retain the original only on the server.
+                    var escala = Math.Min(1d, 2048d / Math.Max(codec.Info.Width, codec.Info.Height));
+                    var dimensiones = codec.GetScaledDimensions((float)escala);
+                    // JPEG decoders round to supported sampling steps.
+                    for (var intento = 0; intento < 8 && Math.Max(dimensiones.Width, dimensiones.Height) > 2048; intento++)
+                    {
+                        escala *= 0.75;
+                        dimensiones = codec.GetScaledDimensions((float)escala);
+                    }
+                    if ((long)dimensiones.Width * dimensiones.Height > 24_000_000)
+                        throw new InvalidDataException("El formato no permite reducir esta fotografía de forma segura.");
+                    var info = new SKImageInfo(dimensiones.Width, dimensiones.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+                    using var bitmap = new SKBitmap(info);
+                    var decodificacion = codec.GetPixels(info, bitmap.GetPixels());
+                    // Preserve the decoder's normal handling of legacy JPEGs lacking
+                    // the closing marker, as browsers and SKBitmap.Decode do.
+                    if (decodificacion != SKCodecResult.Success &&
+                        !(codec.EncodedFormat == SKEncodedImageFormat.Jpeg && decodificacion == SKCodecResult.IncompleteInput))
+                        throw new InvalidDataException("Fotografía no reconocida.");
                     using var orientada = Orientar(bitmap, codec.EncodedOrigin);
                     using var image = SKImage.FromBitmap(orientada);
                     using var jpeg = image.Encode(SKEncodedImageFormat.Jpeg, 85);

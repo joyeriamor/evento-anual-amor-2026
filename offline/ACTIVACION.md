@@ -1,4 +1,4 @@
-# Activación del acceso offline 2.0.0
+# Activación del acceso offline 2.1.0
 
 ## Alcance preparado
 
@@ -13,7 +13,20 @@ RADEV’S y Chiapas usan bases independientes. El formato QR es el existente:
 No se generan ni reemplazan invitaciones. No hay datos de demostración cargados
 automáticamente ni importación automática del participante.csv original.
 
-## Producción: requiere aprobación explícita
+## Estado de activación
+
+El usuario autorizó la activación del módulo offline y un ensayo ficticio.
+Se aplicó la migración y se publicó acceso-offline v1 con verify_jwt=true.
+Las dos tablas nuevas no conceden acceso directo a anon/authenticated;
+las dos RPC públicas comprueban identidad, rol y asignación activos.
+El helper no es ejecutable directamente por esos roles.
+Las 57 funciones SQL y 33 Edge anteriores conservaron sus definiciones/versiones.
+El ensayo real y su limpieza se detallan en INFORME.md.
+
+## Procedimiento de publicación y futuras reinstalaciones
+
+Las nuevas modificaciones de producción requieren autorización explícita.
+No volver a aplicar una migración que ya aparece instalada.
 
 1. Respaldar las definiciones actuales y confirmar que no existen objetos
    llamados offline_paquetes, offline_operaciones u offline_*.
