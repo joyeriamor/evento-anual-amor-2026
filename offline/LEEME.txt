@@ -1,0 +1,66 @@
+AMOR · CONTROL DE ACCESO OFFLINE 2.0.0
+
+Para una sola laptop con Windows 10/11 de 64 bits.
+Conserva la carpeta completa del programa. Abre AMOR.AccesoOffline.exe.
+No necesita instalar .NET ni tener internet para validar una descarga ya preparada.
+
+PREPARAR ANTES DE LA FIESTA, CON INTERNET
+1. Selecciona RADEV’S o Chiapas. Cada evento tiene su propia base local.
+2. Pulsa «Conectar cuenta». Usa tu usuario habitual con acceso al evento.
+3. Pulsa «Descargar datos y fotos». Espera el mensaje DESCARGA COMPLETA.
+4. Revisa el número de participantes, fotos y fecha de la descarga.
+5. Conecta el lector QR USB y coloca el cursor en el campo del código.
+6. Haz un respaldo. Guarda la laptop con fecha y hora correctas.
+
+La descarga y sincronización deben estar habilitadas en el servidor por el
+administrador. Si el programa indica que falta publicar el módulo, la descarga
+todavía no está activa. No es necesario reemplazar inscripciones ni invitaciones.
+
+DAR ACCESO SIN INTERNET
+1. Abre el programa con la misma cuenta de Windows y selecciona el evento.
+2. Escanea el QR. También puedes pegar el código de 64 caracteres.
+3. Revisa nombre, folio, asesor, grupo y fotografía.
+4. Pulsa «AUTORIZAR ENTRADA».
+5. Espera «ENTRADA GUARDADA EN ESTA LAPTOP» antes de dejar pasar a la persona.
+
+Cerrar y volver a abrir el programa conserva las entradas. Un QR de otro evento,
+sin pago/cortesía, no confirmado, revocado o ya ingresado no habilita el acceso.
+Las invitaciones sin emitir no tienen un QR que pueda utilizarse.
+
+El programa utiliza los estados que descargó. No puede conocer cambios hechos en
+el servidor después de la última descarga mientras siga sin internet. Descarga
+de nuevo antes de abrir la recepción. La descarga vence al terminar el día del evento.
+No operes el mismo evento en otra laptop desconectada: no compartirían las entradas.
+
+SUBIR LAS ENTRADAS CUANDO REGRESE INTERNET
+1. Conecta internet y pulsa «Conectar cuenta» si la sesión venció.
+2. Usa la misma cuenta con la que preparaste la descarga.
+3. Pulsa «Sincronizar entradas».
+4. Verifica que no queden pendientes ni entradas por revisar.
+
+Si se corta la conexión, vuelve a sincronizar. Cada entrada conserva su
+identificador; un reintento no crea otro ingreso. El servidor vuelve a revisar
+permisos, evento, QR y pago/cortesía actuales. Si algo cambió, la entrada se muestra
+como conflicto en «Ver entradas» y permanece disponible para revisión/reintento.
+Si el servidor ya tenía un ingreso, se marca como duplicado sin crear otro.
+La sincronización no cambia pagos, fotografías, inscripciones ni emite/reemite QR.
+
+RESPALDO Y PRIVACIDAD
+«Respaldar» guarda una copia consistente de la base y las fotos cifradas.
+El respaldo no incluye contraseña ni sesión. Solo puede abrir sus datos la misma
+cuenta de Windows que los descargó; no funciona como traslado a otra laptop.
+Guarda esa cuenta y su instalación. No borres pendientes antes de sincronizarlos.
+Los datos están en:
+%LOCALAPPDATA%\AMOR\AccesoOffline\v2\
+
+Para recuperar un respaldo en esa misma cuenta: cierra el programa, conserva una
+copia de la carpeta actual y repón acceso.db y paquetes en la carpeta del evento
+indicada en EQUIPO_Y_EVENTO.txt. Conserva dispositivo.txt en la carpeta v2.
+Si no existe o no coincide el equipo, solicita ayuda antes de reemplazarlo.
+
+Al terminar el evento, verifica la sincronización, cierra el programa y elimina
+la carpeta local del evento y sus respaldos cuando corresponda según el aviso de
+privacidad. El programa no elimina automáticamente entradas que estén pendientes.
+
+El avance original, su archivo participante.csv, la base anterior y sus .bak
+no se utilizan ni se borran. La versión 2 guarda sus datos en una carpeta separada.
