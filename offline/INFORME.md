@@ -57,8 +57,11 @@ El servidor rechazó el paquete Chiapas en RADEV’S y un dispositivo diferente.
 No se autorizó ningún ingreso de una participante real.
 
 Ensayo: EA26-2DDCB8EFA41F436885E0D1B675D8D812.
-La limpieza permanente de su registro, dependencias y fotografía quedó preparada
-con filtros exactos; requiere la confirmación final del navegador.
+Con autorización expresa del usuario se eliminó el ensayo y sus dependencias.
+La comprobación final por SQL devolvió cero en registro, participante, QR,
+paquetes offline, operaciones offline y fotografía sintética en Storage.
+No se modificaron datos reales. Las copias locales temporales de la prueba
+ya se habían eliminado.
 El lector USB físico sigue pendiente de comprobar en el equipo de recepción.
 No se ha probado un lector USB físico ni una cámara. El lector funciona como
 teclado; las pruebas verificaron esa entrada y el botón real de autorización.
